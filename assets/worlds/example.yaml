@@ -1,0 +1,119 @@
+world:
+  title: Misty Trial
+  start: crossroad
+
+flags:
+  - gate_unlocked
+
+items:
+  brass_key:
+    name: Brass Key
+    description: A tarnished brass key that feels heavy and important.
+    portable: true
+    aliases:
+      - key
+  stone_gate:
+    name: Stone Gate
+    description: A mossy stone gate with an ancient lock.
+    portable: false
+  survey_map:
+    name: Survey Map
+    description: A charcoal map showing the outer ruins.
+    portable: true
+
+locations:
+  crossroad:
+    name: Crossroad
+    description: Trails converge beneath leaning pines, with mist clinging to the ground.
+    exits:
+      north:
+        to: forest_path
+        description: A narrow path under the canopy.
+      east:
+        to: stone_gate_clearing
+        description: Stones hinting at old ruins.
+    items: []
+    npcs: []
+  forest_path:
+    name: Forest Path
+    description: The trees press close and the air smells of damp bark.
+    exits:
+      south:
+        to: crossroad
+        description: Back toward the crossroads.
+      west:
+        to: small_hut
+        description: A narrow path climbs up a grassy slope.
+    items:
+      - brass_key
+    npcs: []
+  small_hut:
+    name: Small Hut
+    description: The trail ends at a small cobblestone hut.
+    exits:
+      west:
+        to: forest_path
+        description: Back down the forest path.
+    npcs:
+      - hermit
+  stone_gate_clearing:
+    name: Stone Gate Clearing
+    description: A low wall and a sealed gate block the way north.
+    exits:
+      west:
+        to: crossroad
+        description: Toward the crossroads.
+      north:
+        to: inner_courtyard
+        description: Through the stone gate.
+        requires_flags:
+          - gate_unlocked
+        blocked_description: The gate is locked tight.
+    items:
+      - stone_gate
+    npcs: 
+      - gnome
+  inner_courtyard:
+    name: Inner Courtyard
+    description: Ruined walls encircle a quiet courtyard lit by pale light.
+    exits:
+      south:
+        to: stone_gate_clearing
+        description: Back to the gate.
+    items:
+      - survey_map
+    npcs: []
+
+npcs:
+  hermit:
+    name: Hermit
+    description: A stooped hermit tends a tiny fire, watching you warily.
+    persona: Wry, terse, likes riddles about the forest; guarded but not hostile.
+    sample_lines:
+      - "Hush now, the woods listen more than you think."
+      - "Every lock has a story; some open only to those who listen."
+    quest_hook: Knows rumors about the stone gate; will hint if asked or befriended.
+    scripted_talk:
+      text: The hermit eyes you, then mutters about an old key lost along the forest path.
+      set_flags: []
+      give_item: null
+      take_item: null
+      unlock_exit: null
+  gnome:
+    name: Gnome
+    description: A small hunched-back gnome sits casually on a large rock.
+    persona: Cheeky, unhelpful and somewhat sarcastic; but not threatening.
+    sample_lines:
+      - "Sure, sure. Everyone has a story."
+      - "And why would I want to do that?"
+    scripted_talk:
+      text: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
+
+interactions:
+  - verb: use
+    item: brass_key
+    target: stone_gate
+    set_flags:
+      - gate_unlocked
+    consumes: false
+    message: The brass key turns; stone grinds and the gate unlocks.

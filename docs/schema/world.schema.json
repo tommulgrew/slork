@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/world.schema.json",
+  "title": "Adventure World",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "world": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start"],
+      "properties": {
+        "title": { "type": "string" },
+        "start": { "type": "string" }
+      }
+    },
+    "flags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "items": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "portable": { "type": "boolean", "default": true },
+          "aliases": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          }
+        }
+      },
+      "default": {}
+    },
+    "npcs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "persona": { "type": "string" },
+          "sample_lines": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "quest_hook": { "type": "string" },
+          "topics": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "default": {}
+          },
+          "scripted_talk": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "text": { "type": "string" },
+              "set_flags": {
+                "type": "array",
+                "items": { "type": "string" },
+                "default": []
+              },
+              "give_item": { "type": ["string", "null"] },
+              "take_item": { "type": ["string", "null"] },
+              "unlock_exit": { "type": ["string", "null"] }
+            }
+          }
+        }
+      },
+      "default": {}
+    },
+    "locations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "notes": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "npcs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "exits": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["to"],
+              "properties": {
+                "to": { "type": "string" },
+                "description": { "type": "string" },
+                "requires_flags": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "default": []
+                },
+                "blocked_description": { "type": "string" }
+              }
+            },
+            "default": {}
+          }
+        }
+      },
+      "default": {}
+    },
+    "interactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["verb", "item"],
+        "properties": {
+          "verb": { "type": "string" },
+          "item": { "type": "string" },
+          "target": { "type": "string" },
+          "set_flags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "consumes": { "type": "boolean", "default": false },
+          "message": { "type": "string" }
+        }
+      },
+      "default": []
+    }
+  },
+  "required": ["world", "locations", "items"]
+}
