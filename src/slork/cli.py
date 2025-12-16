@@ -1,5 +1,6 @@
 from .args import parse_main_args
 from .world import load_world
+from . import engine
 
 def main() -> None:
 
@@ -9,10 +10,15 @@ def main() -> None:
     # Load world definition
     world = load_world(args.world)
 
+    # Initial state
+    state = engine.init_state(world)
+
     print()
     print("**************************************************")
     print("Slork v0.1 - " + world.world.title)
     print("**************************************************")
+
+    print(engine.describe_current_location(state))
 
     # Main loop
     while True:
