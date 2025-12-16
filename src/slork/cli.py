@@ -1,7 +1,7 @@
 from .args import parse_main_args
 from .world import load_world
 from .commands import parse_command
-from .engine import init_state, describe_current_location
+from .engine import init_state, describe_current_location, handle_command
 
 def main() -> None:
 
@@ -39,7 +39,8 @@ def main() -> None:
             print(player_cmd.error)
             continue
 
-        print("Game not implemented yet :)")
+        result = handle_command(state, player_cmd)
+        print(result.message)
 
 if __name__ == "__main__":
     main()
