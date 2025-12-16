@@ -51,7 +51,7 @@ locations:
     name: Small Hut
     description: The trail ends at a small cobblestone hut.
     exits:
-      west:
+      east:
         to: forest_path
         description: Back down the forest path.
     npcs:
