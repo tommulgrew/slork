@@ -1,6 +1,7 @@
 from .args import parse_main_args
 from .world import load_world
-from . import engine
+from .commands import parse_command
+from .engine import init_state, describe_current_location
 
 def main() -> None:
 
@@ -11,25 +12,32 @@ def main() -> None:
     world = load_world(args.world)
 
     # Initial state
-    state = engine.init_state(world)
+    state = init_state(world)
 
     print()
     print("**************************************************")
     print("Slork v0.1 - " + world.world.title)
     print("**************************************************")
 
-    print(engine.describe_current_location(state))
+    # Initial location
+    print(describe_current_location(state))
 
     # Main loop
     while True:
         try:
-            playerCmd = input("> ").strip()
+            player_cmd_str = input("> ").strip()
         except EOFError:
             break
-        if not playerCmd:
+        if not player_cmd_str:
             continue
-        if playerCmd.lower() in { "quit", "exit" }:
+        if player_cmd_str.lower() in { "quit", "exit" }:
             break
+
+        # Parse command
+        player_cmd = parse_command(player_cmd_str)
+        if player_cmd.error:
+            print(player_cmd.error)
+            continue
 
         print("Game not implemented yet :)")
 
