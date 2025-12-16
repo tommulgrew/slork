@@ -25,17 +25,11 @@ VERB_ALIASES = {
 
 DIRECTION_ALIASES = {
     "n": "north",
-    "north": "north",
     "s": "south",
-    "south": "south",
     "e": "east",
-    "east": "east",
     "w": "west",
-    "west": "west",
     "u": "up",
-    "up": "up",
     "d": "down",
-    "down": "down",
     "ne": "northeast",
     "nw": "northwest",
     "se": "southeast",
