@@ -39,14 +39,14 @@ DIRECTION_ALIASES = {
 @dataclass
 class ParsedCommand:
     raw: str
-    verb: Optional[str]
-    object: Optional[str]
-    target: Optional[str]
-    error: str
+    verb: Optional[str] = None
+    object: Optional[str] = None
+    target: Optional[str] = None
+    error: Optional[str] = None
 
 def parse_command(raw: str) -> ParsedCommand:
     raw = raw.strip()
-    cmd = ParsedCommand(raw = raw, verb = None, object = None, target = None, error = None)
+    cmd = ParsedCommand(raw = raw)
     if not raw:
         cmd.error = "No command provided."
         return cmd
@@ -111,7 +111,7 @@ def parse_command(raw: str) -> ParsedCommand:
             cmd.error = f"{verb_token} the {cmd.object} on what?"
             return cmd
         cmd.target = " ".join(target_remainder)
-        
+
     else:
         cmd.object = " ".join(remainder)
 

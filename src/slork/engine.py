@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-from typing import Set, List
 from .commands import ParsedCommand
 
 @dataclass
 class GameState:
     world: any
     location_id: str
-    inventory: Set[str]
-    flags: Set[str]
+    inventory: list[str]
+    flags: list[str]
 
 @dataclass
 class ActionResult:
@@ -17,14 +16,25 @@ class ActionResult:
 def init_state(world):
     return GameState(
         world = world,
-        location_id=world.world.start,
-        inventory=set(),
-        flags=set()
+        location_id=world.world.start
     )
 
-def describe_current_location(state: GameState) -> List[str]:
+def describe_current_location(state: GameState) -> list[str]:
     location = state.world.locations[state.location_id]
     lines = [location.name, location.description]
+
+    # Exits
+    exit_infos = []
+    for direction, exit in location.exits:
+        if has_required_flags(state, exit.get("requires_flags")):
+            exit_info = direction
+            exit_description = exit.get("description")
+            if exit_description:
+                exit_info += f" - {exit_description}"
+            exit_infos.append(exit_info)
+    if exit_infos:
+        lines.append(f"Exits: {', '.join(exit_infos)}")
+
     return "\n".join(lines)
 
 def handle_command(state: GameState, command: ParsedCommand) -> ActionResult:

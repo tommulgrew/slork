@@ -1,2 +1,2 @@
 pyyaml
-python-box
+dacite
