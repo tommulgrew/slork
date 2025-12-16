@@ -74,12 +74,13 @@ def parse_command(raw: str) -> ParsedCommand:
     if verb in {"look", "inventory"}:
         return cmd
 
-    # Skip the
+    # Transitive verbs
+
+    # Skip "the"
     remainder = tokens[1:]
     if remainder and remainder[0] == "the":
         remainder = remainder[1:]
 
-    # Transitive verbs
     if not remainder:
         missing_object = "what"
         if verb == "go":
@@ -87,21 +88,30 @@ def parse_command(raw: str) -> ParsedCommand:
         if verb == "talk":
             missing_object = "to whom"
         cmd.error = f"{verb_token} {missing_object}?"
-        return cmd
+        return cmd    
 
-    cmd.object = " ".join(remainder)
+    # verb object on target
+    if "on" in remainder:
 
-    # Di-transitive verbs
-    if verb == "use":
-        if "on" in remainder:
-            on_index = remainder.index("on")
-            cmd.object = " ".join(remainder[:on_index])
-            target_remainder = remainder[on_index + 1 :]
-            if target_remainder and target_remainder[0] == "the":
-                target_remainder = target_remainder[1:]
-            if not target_remainder:
-                cmd.error = f"{verb_token} the {cmd.object} on what?"
-                return cmd
-            cmd.target = " ".join(target_remainder)
+        # Only supported by some verbs
+        if verb != "use":
+            cmd.error = "Invalid command."
+            return cmd
+
+        # Split object and target
+        on_index = remainder.index("on")
+        cmd.object = " ".join(remainder[:on_index])
+        target_remainder = remainder[on_index + 1 :]
+
+        # Skip "the"
+        if target_remainder and target_remainder[0] == "the":
+            target_remainder = target_remainder[1:]
+
+        if not target_remainder:
+            cmd.error = f"{verb_token} the {cmd.object} on what?"
+            return cmd
+        cmd.target = " ".join(target_remainder)
+    else:
+        cmd.object = " ".join(remainder)
 
     return cmd
