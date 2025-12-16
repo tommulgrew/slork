@@ -82,11 +82,11 @@ def parse_command(raw: str) -> ParsedCommand:
 
     # Skip the
     remainder = tokens[1:]
-    if len(remainder) > 0 and remainder[0] == "the":
+    if remainder and remainder[0] == "the":
         remainder = remainder[1:]
 
     # Transitive verbs
-    if len(remainder) == 0:
+    if not remainder:
         missing_object = "what"
         if verb == "go":
             missing_object = "where"
@@ -103,9 +103,9 @@ def parse_command(raw: str) -> ParsedCommand:
             on_index = remainder.index("on")
             cmd.object = " ".join(remainder[:on_index])
             target_remainder = remainder[on_index + 1 :]
-            if len(target_remainder) > 0 and target_remainder[0] == "the":
+            if target_remainder and target_remainder[0] == "the":
                 target_remainder = target_remainder[1:]
-            if len(target_remainder) == 0:
+            if not target_remainder:
                 cmd.error = f"{verb_token} the {cmd.object} on what?"
                 return cmd
             cmd.target = " ".join(target_remainder)
