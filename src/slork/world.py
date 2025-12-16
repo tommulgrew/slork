@@ -20,6 +20,7 @@ class Item:
 class Exit:
     to: str
     description: str
+    requires_flags: Optional[list[str]]
 
 @dataclass
 class Location:

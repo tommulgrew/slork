@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from .commands import ParsedCommand
+from .world import World, Exit
 
 @dataclass
 class GameState:
-    world: any
+    world: World
     location_id: str
     inventory: list[str]
     flags: list[str]
@@ -13,10 +14,12 @@ class ActionResult:
     status: str # ok | no_effect | invalid
     message: str
 
-def init_state(world):
+def init_state(world: World):
     return GameState(
-        world = world,
-        location_id=world.world.start
+        world=world,
+        location_id=world.world.start,
+        inventory=[],
+        flags=[]
     )
 
 def describe_current_location(state: GameState) -> list[str]:
@@ -24,16 +27,15 @@ def describe_current_location(state: GameState) -> list[str]:
     lines = [location.name, location.description]
 
     # Exits
-    exit_infos = []
-    for direction, exit in location.exits:
-        if has_required_flags(state, exit.get("requires_flags")):
-            exit_info = direction
-            exit_description = exit.get("description")
-            if exit_description:
-                exit_info += f" - {exit_description}"
-            exit_infos.append(exit_info)
-    if exit_infos:
-        lines.append(f"Exits: {', '.join(exit_infos)}")
+    exit_descriptions = []
+    for direction, exit in location.exits.items():
+        if has_required_flags(state, exit.requires_flags):
+            exit_description = direction
+            if exit.description:
+                exit_description += f" - {exit.description}"
+            exit_descriptions.append(exit_description)
+    if exit_descriptions:
+        lines.append(f"Exits: {', '.join(exit_descriptions)}")
 
     return "\n".join(lines)
 
@@ -53,7 +55,7 @@ def handle_go(state: GameState, direction: str) -> ActionResult:
     exit = location.exits[direction]
 
     # Required flags must be present
-    if not has_required_flags(state, exit.get("requires_flags")):
+    if not has_required_flags(state, exit.requires_flags):
         return ActionResult(status = "invalid", message = f"You cannot go {direction}.")
 
     # Move to new location
