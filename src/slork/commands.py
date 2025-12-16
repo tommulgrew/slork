@@ -111,6 +111,7 @@ def parse_command(raw: str) -> ParsedCommand:
             cmd.error = f"{verb_token} the {cmd.object} on what?"
             return cmd
         cmd.target = " ".join(target_remainder)
+        
     else:
         cmd.object = " ".join(remainder)
 
