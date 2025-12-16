@@ -79,9 +79,14 @@ def parse_command(raw: str) -> ParsedCommand:
     # Intransitive verbs
     if verb in {"look", "inventory"}:
         return cmd
-    
+
+    # Skip the
+    remainder = tokens[1:]
+    if len(remainder) > 0 and remainder[0] == "the":
+        remainder = remainder[1:]
+
     # Transitive verbs
-    if len(tokens) < 2:
+    if len(remainder) == 0:
         missing_object = "what"
         if verb == "go":
             missing_object = "where"
@@ -90,7 +95,6 @@ def parse_command(raw: str) -> ParsedCommand:
         cmd.error = f"{verb_token} {missing_object}?"
         return cmd
 
-    remainder = tokens[1:]
     cmd.object = " ".join(remainder)
 
     # Di-transitive verbs
@@ -98,6 +102,12 @@ def parse_command(raw: str) -> ParsedCommand:
         if "on" in remainder:
             on_index = remainder.index("on")
             cmd.object = " ".join(remainder[:on_index])
-            cmd.target = " ".join(remainder[on_index + 1 :])
+            target_remainder = remainder[on_index + 1 :]
+            if len(target_remainder) > 0 and target_remainder[0] == "the":
+                target_remainder = target_remainder[1:]
+            if len(target_remainder) == 0:
+                cmd.error = f"{verb_token} the {cmd.object} on what?"
+                return cmd
+            cmd.target = " ".join(target_remainder)
 
     return cmd
