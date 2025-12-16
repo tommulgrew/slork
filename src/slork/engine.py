@@ -36,11 +36,10 @@ def handle_command(state: GameState, command: ParsedCommand) -> ActionResult:
 
 def handle_go(state: GameState, direction: str) -> ActionResult:
 
-    # Direction must be valid for location
+    # Location must have corresponding exit
     location = state.world.locations[state.location_id]
     if direction not in location.exits:
-        return ActionResult(status = "invalid", message = f"You cannot go {direction}.")
-    
+        return ActionResult(status = "invalid", message = f"You cannot go {direction}.")    
     exit = location.exits[direction]
 
     # Required flags must be present
