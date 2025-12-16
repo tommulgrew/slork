@@ -22,17 +22,17 @@ def init_state(world: World):
         flags=[]
     )
 
-def describe_current_location(state: GameState) -> list[str]:
+def describe_current_location(state: GameState) -> str:
     location = state.world.locations[state.location_id]
     lines = [location.name, location.description]
 
     # Exits
     exit_descriptions = []
-    for direction, exit in location.exits.items():
-        if has_required_flags(state, exit.requires_flags):
+    for direction, ex in location.exits.items():
+        if has_required_flags(state, ex.requires_flags):
             exit_description = direction
-            if exit.description:
-                exit_description += f" - {exit.description}"
+            if ex.description:
+                exit_description += f" - {ex.description}"
             exit_descriptions.append(exit_description)
     if exit_descriptions:
         lines.append(f"Exits: {', '.join(exit_descriptions)}")
@@ -63,7 +63,4 @@ def handle_go(state: GameState, direction: str) -> ActionResult:
     return ActionResult(status = "ok", message = describe_current_location(state))
 
 def has_required_flags(state: GameState, required_flags) -> bool:
-    if required_flags:
-        missing_flags = [flag for flag in required_flags if flag not in state.flags]
-        return not missing_flags
-    return True
+    return all(flag in state.flags for flag in (required_flags or []))
