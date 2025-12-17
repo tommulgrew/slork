@@ -38,7 +38,7 @@ def describe_current_location(state: GameState) -> str:
 
     # Items
     item_descriptions = []
-    for item_id in (location.items or []):
+    for item_id in location.items:
         item = state.world.items[item_id]
         item_descriptions.append(item.name)
     if item_descriptions:
@@ -99,7 +99,7 @@ def handle_take(state: GameState, noun: str) -> ActionResult:
 
     # Item must be portable
     if not item.portable:
-        return ActionResult(status = "no_effect", message = f"The {item.name} cannot be taken.")
+        return ActionResult(status = "no_effect", message = f"You cannot take the {item.name}.")
     
     # Remove from location and add to inventory
     location = current_location(state)
@@ -145,7 +145,7 @@ def handle_examine(state: GameState, noun: str) -> ActionResult:
     return ActionResult(status="ok", message=result.item.description)
 
 def has_required_flags(state: GameState, required_flags) -> bool:
-    return all(flag in state.flags for flag in (required_flags or []))
+    return all(flag in state.flags for flag in required_flags)
 
 def resolve_item(state: GameState, noun: str, *, include_location: bool = False, include_inventory: bool = False) -> ResolveItemResult:
 
@@ -154,7 +154,7 @@ def resolve_item(state: GameState, noun: str, *, include_location: bool = False,
     
     if (include_location):
         location = current_location(state)
-        item_ids.extend(location.items or [])
+        item_ids.extend(location.items)
     
     if (include_inventory):
         item_ids.extend(state.inventory)
@@ -183,4 +183,4 @@ def resolve_item(state: GameState, noun: str, *, include_location: bool = False,
     )
 
 def item_matches_noun(item: Item, noun: str):
-    return item.name.lower() == noun or noun in (item.aliases or [])
+    return item.name.lower() == noun or noun in item.aliases

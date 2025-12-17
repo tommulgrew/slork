@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 from dacite import from_dict
@@ -14,37 +14,37 @@ class Item:
     name: str
     description: str
     portable: bool
-    aliases: Optional[list[str]] = None
+    aliases: list[str] = field(default_factory=list)
 
 @dataclass
 class Exit:
     to: str
     description: str
-    requires_flags: Optional[list[str]]
+    requires_flags: list[str] = field(default_factory=list)
 
 @dataclass
 class Location:
     name: str
     description: str
     exits: dict[str, Exit]
-    items: Optional[list[str]]
-    npcs: Optional[list[str]]
+    items: list[str] = field(default_factory=list)
+    npcs: list[str] = field(default_factory=list)
 
 @dataclass
 class NPCScriptedTalk:
     text: str
-    set_flags: Optional[list[str]]
-    give_item: Optional[str]
-    take_item: Optional[str]
+    set_flags: list[str] = field(default_factory=list)
+    give_item: Optional[str] = None
+    take_item: Optional[str] = None
 
 @dataclass
 class NPC:
     name: str
     description: str
-    persona: Optional[str]
-    sample_lines: Optional[list[str]]
-    quest_hook: Optional[str]
-    scripted_talk: Optional[NPCScriptedTalk]
+    persona: Optional[str] = None
+    sample_lines: list[str] = field(default_factory=list)
+    quest_hook: Optional[str] = None
+    scripted_talk: Optional[NPCScriptedTalk] = None
 
 @dataclass
 class World:
