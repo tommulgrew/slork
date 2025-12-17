@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+from typing import Optional
 from .commands import ParsedCommand
-from .world import World, Item
+from .world import World, Item, Location
 
 @dataclass
 class GameState:
@@ -14,6 +15,12 @@ class ActionResult:
     status: str # ok | no_effect | invalid
     message: str
 
+@dataclass
+class ResolveItemResult:
+    item: Item = None
+    item_id: Optional[str] = None
+    error: Optional[str] = None
+
 def init_state(world: World):
     return GameState(
         world=world,
@@ -22,8 +29,11 @@ def init_state(world: World):
         flags=[]
     )
 
+def current_location(state: GameState) -> Location:
+    return state.world.locations[state.location_id]
+
 def describe_current_location(state: GameState) -> str:
-    location = state.world.locations[state.location_id]
+    location = current_location(state)
     lines = [location.name, location.description]
 
     # Items
@@ -59,7 +69,7 @@ def handle_command(state: GameState, command: ParsedCommand) -> ActionResult:
 def handle_go(state: GameState, direction: str) -> ActionResult:
 
     # Location must have corresponding exit
-    location = state.world.locations[state.location_id]
+    location = current_location(state)
     if direction not in location.exits:
         return ActionResult(status = "invalid", message = f"You cannot go {direction}.")    
     exit = location.exits[direction]
@@ -77,8 +87,29 @@ def has_required_flags(state: GameState, required_flags) -> bool:
 
 def handle_take(state: GameState, object: object) -> ActionResult:
 
-    # Find matching items at location
-    location = state.world.locations[state.location_id]
+    # Resolve item
+    result = resolve_item(state, object)
+    if result.error:
+        return ActionResult("invalid", result.error)
+
+    item_id = result.item_id
+    item = result.item
+
+    # Item must be portable
+    if not item.portable:
+        return ActionResult(status = "no_effect", message = f"The {item.name} cannot be taken.")
+    
+    # Remove from location and add to inventory
+    location = current_location(state)
+    location.items.remove(item_id)
+    state.inventory.append(item_id)
+
+    return ActionResult(status = "ok", message = f"You took the {item.name}.")               
+
+def resolve_item(state: GameState, object) -> ResolveItemResult:
+
+    # Find matching items at current location
+    location = current_location(state)
     matches = [ 
         item_id
         for item_id in (location.items or [])
@@ -87,23 +118,15 @@ def handle_take(state: GameState, object: object) -> ActionResult:
 
     # Must be exactly one
     if not matches:
-        return ActionResult(status = "invalid", message = f"There is no {object} here.")
+        return ResolveItemResult(error=f"There is no {object} here.")
     
     if len(matches) > 1:
-        return ActionResult(status = "invalid", message = f"Which {object}?")
-
-    item_id = matches[0]
-    item = state.world.items[item_id]
-
-    # Item must be portable
-    if not item.portable:
-        return ActionResult(status = "no_effect", message = f"The {item.name} cannot be taken.")
+        return ResolveItemResult(error=f"Which {object}?")
     
-    # Remove from location and add to inventory
-    state.inventory.append(item_id)
-    location.items.remove(item_id)
-
-    return ActionResult(status = "ok", message = f"You took the {item.name}.")               
+    return ResolveItemResult(
+        item_id=matches[0],
+        item=state.world.items[matches[0]]
+    )
 
 def item_matches_object(item: Item, object: str):
     return item.name.lower() == object or object in (item.aliases or [])

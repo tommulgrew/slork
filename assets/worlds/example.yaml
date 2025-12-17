@@ -16,10 +16,15 @@ items:
     name: Stone Gate
     description: A mossy stone gate with an ancient lock.
     portable: false
+    aliases:
+      - gate
   survey_map:
     name: Survey Map
     description: A charcoal map showing the outer ruins.
     portable: true
+    aliases:
+      - map
+      - chart
 
 locations:
   crossroad:
