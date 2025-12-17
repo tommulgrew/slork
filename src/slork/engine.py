@@ -82,9 +82,6 @@ def handle_go(state: GameState, direction: str) -> ActionResult:
     state.location_id = exit.to
     return ActionResult(status = "ok", message = describe_current_location(state))
 
-def has_required_flags(state: GameState, required_flags) -> bool:
-    return all(flag in state.flags for flag in (required_flags or []))
-
 def handle_take(state: GameState, object: object) -> ActionResult:
 
     # Resolve item
@@ -105,6 +102,9 @@ def handle_take(state: GameState, object: object) -> ActionResult:
     state.inventory.append(item_id)
 
     return ActionResult(status = "ok", message = f"You took the {item.name}.")               
+
+def has_required_flags(state: GameState, required_flags) -> bool:
+    return all(flag in state.flags for flag in (required_flags or []))
 
 def resolve_item(state: GameState, object) -> ResolveItemResult:
 
