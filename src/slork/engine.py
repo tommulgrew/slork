@@ -17,7 +17,7 @@ class ActionResult:
 
 @dataclass
 class ResolveItemResult:
-    item: Item = None
+    item: Optional[Item] = None
     item_id: Optional[str] = None
     error: Optional[str] = None
 
@@ -163,12 +163,16 @@ def resolve_item(state: GameState, noun: str, *, include_location: bool = False,
     matches = [ 
         item_id
         for item_id in item_ids
-        if item_matches_object(state.world.items[item_id], noun)
+        if item_matches_noun(state.world.items[item_id], noun)
     ]
 
     # Must be exactly one
     if not matches:
-        return ResolveItemResult(error=f"There is no {noun} here." if include_location else f"You are not carrying a {noun}.")
+        if include_location:
+            error = f"There is no {noun} here."
+        else:
+            error = f"You are not carrying a {noun}."
+        return ResolveItemResult(error=error)
     
     if len(matches) > 1:
         return ResolveItemResult(error=f"Which {noun}?")
@@ -178,5 +182,5 @@ def resolve_item(state: GameState, noun: str, *, include_location: bool = False,
         item=state.world.items[matches[0]]
     )
 
-def item_matches_object(item: Item, object: str):
-    return item.name.lower() == object or object in (item.aliases or [])
+def item_matches_noun(item: Item, noun: str):
+    return item.name.lower() == noun or noun in (item.aliases or [])
