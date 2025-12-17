@@ -26,6 +26,15 @@ def describe_current_location(state: GameState) -> str:
     location = state.world.locations[state.location_id]
     lines = [location.name, location.description]
 
+    # Items
+    if location.items:
+        item_descriptions = []
+        for item_id in location.items:
+            item = state.world.items[item_id]
+            item_descriptions.append(item.name)
+        if item_descriptions:
+            lines.append(f"You see: {', '.join(item_descriptions)}")
+
     # Exits
     exit_descriptions = []
     for direction, ex in location.exits.items():
