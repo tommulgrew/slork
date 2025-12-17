@@ -60,6 +60,8 @@ def describe_current_location(state: GameState) -> str:
 def handle_command(state: GameState, command: ParsedCommand) -> ActionResult:
     if command.verb == "look":
         return ActionResult(status = "ok", message = describe_current_location(state))
+    if command.verb == "inventory":
+        return handle_inventory(state)
     if command.verb == "go":
         return handle_go(state, command.object)
     if command.verb == "take":
@@ -101,7 +103,22 @@ def handle_take(state: GameState, object: object) -> ActionResult:
     location.items.remove(item_id)
     state.inventory.append(item_id)
 
-    return ActionResult(status = "ok", message = f"You took the {item.name}.")               
+    return ActionResult(status = "ok", message = f"You took the {item.name}.")
+
+def handle_inventory(state: GameState) -> ActionResult:
+
+    # Get inventory item names
+    inventory_items = [
+        state.world.items[item_id].name
+        for item_id in state.inventory
+    ]
+
+    if inventory_items:
+        message = ",\n".join(inventory_items)
+    else:
+        message = "You carry nothing."
+
+    return ActionResult(status = "ok", message = message)
 
 def has_required_flags(state: GameState, required_flags) -> bool:
     return all(flag in state.flags for flag in (required_flags or []))
