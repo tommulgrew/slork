@@ -86,10 +86,10 @@ def handle_go(state: GameState, direction: str) -> ActionResult:
     state.location_id = exit.to
     return ActionResult(status = "ok", message = describe_current_location(state))
 
-def handle_take(state: GameState, object: str) -> ActionResult:
+def handle_take(state: GameState, noun: str) -> ActionResult:
 
     # Resolve item
-    result = resolve_item(state, object, include_location=True)
+    result = resolve_item(state, noun, include_location=True)
     if result.error:
         return ActionResult("invalid", result.error)
 
@@ -115,17 +115,14 @@ def handle_inventory(state: GameState) -> ActionResult:
         for item_id in state.inventory
     ]
 
-    if inventory_items:
-        message = ",\n".join(inventory_items)
-    else:
-        message = "You carry nothing."
+    message = ",\n".join(inventory_items) if inventory_items else "You carry nothing."
 
     return ActionResult(status = "ok", message = message)
 
-def handle_drop(state: GameState, object: str) -> ActionResult:
+def handle_drop(state: GameState, noun: str) -> ActionResult:
 
     # Resolve item in inventory
-    result = resolve_item(state, object, include_inventory=True)
+    result = resolve_item(state, noun, include_inventory=True)
     if result.error:
         return ActionResult(status = "invalid", message = result.error)
 
@@ -142,7 +139,7 @@ def handle_drop(state: GameState, object: str) -> ActionResult:
 def has_required_flags(state: GameState, required_flags) -> bool:
     return all(flag in state.flags for flag in (required_flags or []))
 
-def resolve_item(state: GameState, object: str, *, include_location: bool = False, include_inventory: bool = False) -> ResolveItemResult:
+def resolve_item(state: GameState, noun: str, *, include_location: bool = False, include_inventory: bool = False) -> ResolveItemResult:
 
     # Determine items to search
     item_ids: list[str] = []
@@ -158,15 +155,15 @@ def resolve_item(state: GameState, object: str, *, include_location: bool = Fals
     matches = [ 
         item_id
         for item_id in item_ids
-        if item_matches_object(state.world.items[item_id], object)
+        if item_matches_object(state.world.items[item_id], noun)
     ]
 
     # Must be exactly one
     if not matches:
-        return ResolveItemResult(error=f"There is no {object} here.")
+        return ResolveItemResult(error=f"There is no {noun} here." if include_location else f"You are not carrying a {noun}.")
     
     if len(matches) > 1:
-        return ResolveItemResult(error=f"Which {object}?")
+        return ResolveItemResult(error=f"Which {noun}?")
     
     return ResolveItemResult(
         item_id=matches[0],
