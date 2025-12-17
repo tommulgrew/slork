@@ -34,6 +34,17 @@ DIRECTION_ALIASES = {
     "nw": "northwest",
     "se": "southeast",
     "sw": "southwest",
+
+    "north": "north",
+    "south": "south",
+    "east": "east",
+    "west": "west",
+    "up": "up",
+    "down": "down",
+    "northeast": "northeast",
+    "northwest": "northwest",
+    "southeast": "southeast",
+    "southwest": "southwest",
 }
 
 @dataclass
