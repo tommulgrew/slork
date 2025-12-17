@@ -66,6 +66,8 @@ def handle_command(state: GameState, command: ParsedCommand) -> ActionResult:
         return handle_go(state, command.object)
     if command.verb == "take":
         return handle_take(state, command.object)
+    if command.verb == "drop":
+        return handle_drop(state, command.object)
     return ActionResult(status = "no_effect", message="That didn't work.")
 
 def handle_go(state: GameState, direction: str) -> ActionResult:
@@ -84,7 +86,7 @@ def handle_go(state: GameState, direction: str) -> ActionResult:
     state.location_id = exit.to
     return ActionResult(status = "ok", message = describe_current_location(state))
 
-def handle_take(state: GameState, object: object) -> ActionResult:
+def handle_take(state: GameState, object: str) -> ActionResult:
 
     # Resolve item
     result = resolve_item(state, object)
@@ -120,10 +122,27 @@ def handle_inventory(state: GameState) -> ActionResult:
 
     return ActionResult(status = "ok", message = message)
 
+def handle_drop(state: GameState, object: str) -> ActionResult:
+
+    # Resolve item in inventory
+    result = resolve_inventory_item(state, object)
+    if result.error:
+        return ActionResult(status = "invalid", message = result.error)
+
+    item_id = result.item_id
+    item = result.item
+
+    # Remove from inventory and add to location
+    location = current_location(state)
+    state.inventory.remove(item_id)
+    location.items.append(item_id)
+
+    return ActionResult(status="ok", message=f"You dropped the {item.name}")
+
 def has_required_flags(state: GameState, required_flags) -> bool:
     return all(flag in state.flags for flag in (required_flags or []))
 
-def resolve_item(state: GameState, object) -> ResolveItemResult:
+def resolve_item(state: GameState, object: str) -> ResolveItemResult:
 
     # Find matching items at current location
     location = current_location(state)
@@ -136,6 +155,27 @@ def resolve_item(state: GameState, object) -> ResolveItemResult:
     # Must be exactly one
     if not matches:
         return ResolveItemResult(error=f"There is no {object} here.")
+    
+    if len(matches) > 1:
+        return ResolveItemResult(error=f"Which {object}?")
+    
+    return ResolveItemResult(
+        item_id=matches[0],
+        item=state.world.items[matches[0]]
+    )
+
+def resolve_inventory_item(state: GameState, object: str) -> ResolveItemResult:
+
+    # Find matching items in inventory
+    matches = [
+        item_id
+        for item_id in state.inventory
+        if item_matches_object(state.world.items[item_id], object)
+    ]
+
+    # Must be exactly one
+    if not matches:
+        return ResolveItemResult(error=f"You are not carrying any {object}.")
     
     if len(matches) > 1:
         return ResolveItemResult(error=f"Which {object}?")
