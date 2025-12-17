@@ -68,6 +68,8 @@ def handle_command(state: GameState, command: ParsedCommand) -> ActionResult:
         return handle_take(state, command.object)
     if command.verb == "drop":
         return handle_drop(state, command.object)
+    if command.verb == "examine":
+        return handle_examine(state, command.object)
     return ActionResult(status = "no_effect", message="That didn't work.")
 
 def handle_go(state: GameState, direction: str) -> ActionResult:
@@ -88,7 +90,6 @@ def handle_go(state: GameState, direction: str) -> ActionResult:
 
 def handle_take(state: GameState, noun: str) -> ActionResult:
 
-    # Resolve item
     result = resolve_item(state, noun, include_location=True)
     if result.error:
         return ActionResult("invalid", result.error)
@@ -121,7 +122,6 @@ def handle_inventory(state: GameState) -> ActionResult:
 
 def handle_drop(state: GameState, noun: str) -> ActionResult:
 
-    # Resolve item in inventory
     result = resolve_item(state, noun, include_inventory=True)
     if result.error:
         return ActionResult(status = "invalid", message = result.error)
@@ -135,6 +135,14 @@ def handle_drop(state: GameState, noun: str) -> ActionResult:
     location.items.append(item_id)
 
     return ActionResult(status="ok", message=f"You dropped the {item.name}")
+
+def handle_examine(state: GameState, noun: str) -> ActionResult:
+
+    result = resolve_item(state, noun, include_location=True, include_inventory=True)
+    if result.error:
+        return ActionResult(status = "invalid", message = result.error)
+    
+    return ActionResult(status="ok", message=result.item.description)
 
 def has_required_flags(state: GameState, required_flags) -> bool:
     return all(flag in state.flags for flag in (required_flags or []))
