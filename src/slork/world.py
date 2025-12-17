@@ -21,6 +21,7 @@ class Exit:
     to: str
     description: str
     requires_flags: list[str] = field(default_factory=list)
+    blocked_description: Optional[str] = None
 
 @dataclass
 class Location:

@@ -82,7 +82,10 @@ def handle_go(state: GameState, direction: str) -> ActionResult:
 
     # Required flags must be present
     if not has_required_flags(state, exit.requires_flags):
-        return ActionResult(status = "invalid", message = f"You cannot go {direction}.")
+        if exit.blocked_description:
+            return ActionResult(status = "invalid", message = exit.blocked_description)
+        else:
+            return ActionResult(status = "invalid", message = f"You cannot go {direction}.")
 
     # Move to new location
     state.location_id = exit.to
