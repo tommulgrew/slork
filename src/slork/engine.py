@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 from .commands import ParsedCommand
-from .world import World, Item, Location
+from .world import World, Item, Location, Interaction
 
 @dataclass
 class GameState:
@@ -14,6 +14,11 @@ class GameState:
 class ActionResult:
     status: str # ok | no_effect | invalid
     message: str
+
+@dataclass
+class InteractionResult:
+    succeeded: bool = False
+    message: Optional[str] = None
 
 @dataclass
 class ResolveItemResult:
@@ -63,13 +68,20 @@ def handle_command(state: GameState, command: ParsedCommand) -> ActionResult:
     if command.verb == "inventory":
         return handle_inventory(state)
     if command.verb == "go":
-        return handle_go(state, command.object)
+        return handle_go(state, command.main_noun)
     if command.verb == "take":
-        return handle_take(state, command.object)
+        return handle_take(state, command.main_noun)
     if command.verb == "drop":
-        return handle_drop(state, command.object)
+        return handle_drop(state, command.main_noun)
     if command.verb == "examine":
-        return handle_examine(state, command.object)
+        return handle_examine(state, command.main_noun)
+
+    # Look for matching interaction    
+    interaction_result: InteractionResult = handle_interaction(state, command)
+    if interaction_result.succeeded:
+        return ActionResult(status = "ok", message = interaction_result.message)
+
+    # Default message
     return ActionResult(status = "no_effect", message="That didn't work.")
 
 def handle_go(state: GameState, direction: str) -> ActionResult:
@@ -147,6 +159,37 @@ def handle_examine(state: GameState, noun: str) -> ActionResult:
     
     return ActionResult(status="ok", message=result.item.description)
 
+def handle_interaction(state: GameState, command: ParsedCommand) -> InteractionResult:
+
+    # Resolve items
+    item_result = resolve_item(state, command.main_noun, include_inventory=True)
+    if item_result.error:
+        return InteractionResult(error=item_result.error)
+    item_id = item_result.item_id
+
+    target_id = None
+    if command.target_noun:
+        target_result = resolve_item(state, command.target_noun, include_location=True)
+        if target_result.error:
+            return InteractionResult(error=target_result.error)
+        target_id = target_result.item_id
+
+    # Search for matching interaction
+    interaction: Interaction = next(
+        (
+            interaction 
+            for interaction in state.world.interactions
+            if matches_interaction(interaction, command.verb, item_id, target_id)
+        ),
+        None
+    )
+
+    if interaction:
+        apply_interaction(state, interaction)
+        return InteractionResult(succeeded=True, message=interaction.message)
+    
+    return InteractionResult()
+
 def has_required_flags(state: GameState, required_flags) -> bool:
     return all(flag in state.flags for flag in required_flags)
 
@@ -187,3 +230,14 @@ def resolve_item(state: GameState, noun: str, *, include_location: bool = False,
 
 def item_matches_noun(item: Item, noun: str):
     return item.name.lower() == noun or noun in item.aliases
+
+def matches_interaction(interaction: Interaction, verb: str, item_id: str, target_id: Optional[str]) -> bool:
+    return interaction.verb == verb and interaction.item == item_id and interaction.target == target_id
+
+def apply_interaction(state: GameState, interaction: Interaction):
+    
+    for flag in interaction.set_flags:
+        state.flags.append(flag)
+    
+    if interaction.consumes:
+        state.inventory.remove(interaction.item)

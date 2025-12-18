@@ -48,12 +48,22 @@ class NPC:
     scripted_talk: Optional[NPCScriptedTalk] = None
 
 @dataclass
+class Interaction:
+    verb: str
+    item: str
+    message: str
+    target: Optional[str] = None
+    set_flags: list[str] = field(default_factory=list)
+    consumes: bool = False
+
+@dataclass
 class World:
     world: Header
     flags: list[str]
     items: dict[str, Item]
     locations: dict[str, Location]
     npcs: dict[str, NPC]
+    interactions: list[Interaction]
 
 def load_world(path: Path):
     world_yaml = path.read_text()

@@ -51,8 +51,8 @@ DIRECTION_ALIASES = {
 class ParsedCommand:
     raw: str
     verb: Optional[str] = None
-    object: Optional[str] = None
-    target: Optional[str] = None
+    main_noun: Optional[str] = None
+    target_noun: Optional[str] = None
     error: Optional[str] = None
 
 def parse_command(raw: str) -> ParsedCommand:
@@ -71,7 +71,7 @@ def parse_command(raw: str) -> ParsedCommand:
     if verb_token in DIRECTION_ALIASES:
         direction = DIRECTION_ALIASES[verb_token]
         cmd.verb = "go"
-        cmd.object = direction
+        cmd.main_noun = direction
         return cmd
     
     # Expand verb aliases
@@ -111,7 +111,7 @@ def parse_command(raw: str) -> ParsedCommand:
 
         # Split object and target
         on_index = remainder.index("on")
-        cmd.object = " ".join(remainder[:on_index])
+        cmd.main_noun = " ".join(remainder[:on_index])
         target_remainder = remainder[on_index + 1 :]
 
         # Skip "the"
@@ -119,11 +119,11 @@ def parse_command(raw: str) -> ParsedCommand:
             target_remainder = target_remainder[1:]
 
         if not target_remainder:
-            cmd.error = f"{verb_token} the {cmd.object} on what?"
+            cmd.error = f"{verb_token} the {cmd.main_noun} on what?"
             return cmd
-        cmd.target = " ".join(target_remainder)
+        cmd.target_noun = " ".join(target_remainder)
 
     else:
-        cmd.object = " ".join(remainder)
+        cmd.main_noun = " ".join(remainder)
 
     return cmd

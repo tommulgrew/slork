@@ -16,7 +16,8 @@ def main() -> None:
 
     print()
     print("**************************************************")
-    print("Slork v0.1 - " + world.world.title)
+    print(world.world.title)
+    print("Slork v0.1 (c) Tom Mulgrew")
     print("**************************************************")
 
     # Initial location
