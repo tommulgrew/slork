@@ -27,6 +27,18 @@
                 "PYTHONPATH": "${workspaceFolder}/src"
             },
             "args": ["--world", "assets/worlds/example.yaml", "--ai-model", "llama3.2"]
+        },
+        {
+            "name": "gpt-oss:20b-cloud",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "args": ["--world", "assets/worlds/example.yaml", "--ai-model", "gpt-oss:20b-cloud"]
         }
     ]
 }

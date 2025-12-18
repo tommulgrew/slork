@@ -6,7 +6,6 @@ from .world import World, Item, Location, Interaction
 @dataclass
 class GameState:
     world: World
-    is_ai_mode: bool
     location_id: str
     inventory: list[str]
     flags: list[str]
@@ -28,10 +27,9 @@ class ResolveItemResult:
     item_id: Optional[str] = None
     error: Optional[str] = None
 
-def init_state(world: World, is_ai_mode: bool):
+def init_state(world: World):
     return GameState(
         world=world,
-        is_ai_mode=is_ai_mode,
         location_id=world.world.start,
         inventory=[],
         flags=[],
@@ -40,19 +38,17 @@ def init_state(world: World, is_ai_mode: bool):
 def current_location(state: GameState) -> Location:
     return state.world.locations[state.location_id]
 
-def describe_current_location(state: GameState) -> str:
+def describe_current_location(state: GameState, verbose: bool = False) -> str:
     location = current_location(state)
     lines = [location.name, location.description]
 
     # Items
     # Only list portable items. Fixed items should be described
     # in the location description.
-    # Except in AI mode all items are listed to help the AI understand
-    # which items can be actioned.
     item_descriptions = []
     for item_id in location.items:
         item = state.world.items[item_id]
-        if item.portable or state.is_ai_mode:
+        if item.portable or verbose:
             item_descriptions.append(item.name)
     if item_descriptions:
         lines.append(f"You see: {', '.join(item_descriptions)}")
@@ -67,6 +63,14 @@ def describe_current_location(state: GameState) -> str:
             exit_descriptions.append(exit_description)
     if exit_descriptions:
         lines.append(f"Exits: {', '.join(exit_descriptions)}")
+
+    # Player inventory
+    if verbose:
+        inventory_items = [
+            state.world.items[item_id].name
+            for item_id in state.inventory
+        ]
+        lines.append(f"Inventory: { ', '.join(inventory_items) if inventory_items else 'Nothing' }")
 
     return "\n".join(lines)
 

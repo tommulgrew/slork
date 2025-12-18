@@ -13,7 +13,7 @@ def main() -> None:
     world = load_world(args.world)
 
     # Initial state
-    state = init_state(world, bool(args.ai_model))
+    state = init_state(world)
 
     # Ollama AI client
     ai_client: OllamaClient = None
@@ -59,8 +59,8 @@ def main() -> None:
                     "The game engine accepts commands with syntax: VERB NOUN\n"
                     f"Valid verbs are {verb_list}. LOOK and INVENTORY do not require a noun. USE can also have the format: USE [noun] ON [target]\n"
                     "Directions for GO are: north,south,east,west,up,down as well as northwest etc.\n"
-                    "Use only visible items/npcs/exits provided. One action per turn.\n"
                     "Respond with just the text command to pass to the game engine.\n"
+                    "(Do not attempt to *be* the engine.)\n"
                     "Examples:\n"
                     "GO NORTH\n"
                     "TAKE AXE\n"
@@ -68,7 +68,7 @@ def main() -> None:
                 ),
                 OllamaMessage(
                     "user",
-                    f"ENGINE: {describe_current_location(state)}"
+                    f"ENGINE: {describe_current_location(state, verbose=True)}"
                 ),
                 OllamaMessage(
                     "user",
@@ -77,6 +77,7 @@ def main() -> None:
             ]
             ai_response = ai_client.chat(ai_messages)
             player_cmd_str = ai_response.content
+            print(f"({player_cmd_str})")
 
         # Parse command
         player_cmd = parse_command(player_cmd_str)
