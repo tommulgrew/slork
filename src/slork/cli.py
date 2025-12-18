@@ -13,7 +13,7 @@ def main() -> None:
     world = load_world(args.world)
 
     # Initial state
-    state = init_state(world)
+    state = init_state(world, bool(args.ai_model))
 
     # Ollama AI client
     ai_client: OllamaClient = None
@@ -28,6 +28,8 @@ def main() -> None:
     print("**************************************************")
     print(world.world.title)
     print("Slork v0.2 (c) Tom Mulgrew")
+    if ai_client:
+        print(f"Using AI model: {ai_client.settings.model}")
     print("**************************************************")
 
     # Initial location
