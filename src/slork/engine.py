@@ -19,6 +19,7 @@ class ActionResult:
 class InteractionResult:
     succeeded: bool = False
     message: Optional[str] = None
+    error: Optional[str] = None
 
 @dataclass
 class ResolveItemResult:
@@ -31,7 +32,7 @@ def init_state(world: World):
         world=world,
         location_id=world.world.start,
         inventory=[],
-        flags=[]
+        flags=[],
     )
 
 def current_location(state: GameState) -> Location:
@@ -78,6 +79,8 @@ def handle_command(state: GameState, command: ParsedCommand) -> ActionResult:
 
     # Look for matching interaction    
     interaction_result: InteractionResult = handle_interaction(state, command)
+    if interaction_result.error:
+        return ActionResult(status="invalid", message=interaction_result.error)
     if interaction_result.succeeded:
         return ActionResult(status = "ok", message = interaction_result.message)
 
@@ -162,7 +165,7 @@ def handle_examine(state: GameState, noun: str) -> ActionResult:
 def handle_interaction(state: GameState, command: ParsedCommand) -> InteractionResult:
 
     # Resolve items
-    item_result = resolve_item(state, command.main_noun, include_inventory=True)
+    item_result = resolve_item(state, command.main_noun, include_inventory=True, include_location=not command.target_noun)
     if item_result.error:
         return InteractionResult(error=item_result.error)
     item_id = item_result.item_id
@@ -185,6 +188,9 @@ def handle_interaction(state: GameState, command: ParsedCommand) -> InteractionR
     )
 
     if interaction:
+        if interaction.completed and not interaction.repeatable:
+            return InteractionResult(error="You already did that.")        
+
         apply_interaction(state, interaction)
         return InteractionResult(succeeded=True, message=interaction.message)
     
@@ -241,3 +247,5 @@ def apply_interaction(state: GameState, interaction: Interaction):
     
     if interaction.consumes:
         state.inventory.remove(interaction.item)
+
+    interaction.completed = True

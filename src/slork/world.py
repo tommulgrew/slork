@@ -55,6 +55,8 @@ class Interaction:
     target: Optional[str] = None
     set_flags: list[str] = field(default_factory=list)
     consumes: bool = False
+    repeatable: bool = False
+    completed: bool = False     # Game session state. Not part of world file.
 
 @dataclass
 class World:
