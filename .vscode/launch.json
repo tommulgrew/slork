@@ -15,6 +15,18 @@
                 "PYTHONPATH": "${workspaceFolder}/src"
             },
             "args": ["--world", "assets/worlds/example.yaml"]
+        },
+        {
+            "name": "llama3.2",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            },
+            "args": ["--world", "assets/worlds/example.yaml", "--ai-model", "llama3.2"]
         }
     ]
 }

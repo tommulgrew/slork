@@ -56,7 +56,7 @@ class ParsedCommand:
     error: Optional[str] = None
 
 def parse_command(raw: str) -> ParsedCommand:
-    raw = raw.strip()
+    raw = strip_quotes(raw.strip()).strip()
     cmd = ParsedCommand(raw = raw)
     if not raw:
         cmd.error = "No command provided."
@@ -127,3 +127,8 @@ def parse_command(raw: str) -> ParsedCommand:
         cmd.main_noun = " ".join(remainder)
 
     return cmd
+
+def strip_quotes(s: str) -> str:
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in ("'", '"'):
+        return s[1:-1]
+    return s
