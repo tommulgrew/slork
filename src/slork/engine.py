@@ -43,10 +43,13 @@ def describe_current_location(state: GameState) -> str:
     lines = [location.name, location.description]
 
     # Items
+    # Only list portable items. Fixed items should be described
+    # in the location description.
     item_descriptions = []
     for item_id in location.items:
         item = state.world.items[item_id]
-        item_descriptions.append(item.name)
+        if item.portable:
+            item_descriptions.append(item.name)
     if item_descriptions:
         lines.append(f"You see: {', '.join(item_descriptions)}")
 
@@ -182,14 +185,14 @@ def handle_interaction(state: GameState, command: ParsedCommand) -> InteractionR
         (
             interaction 
             for interaction in state.world.interactions
-            if matches_interaction(interaction, command.verb, item_id, target_id)
+            if matches_interaction(state, interaction, command.verb, item_id, target_id)
         ),
         None
     )
 
     if interaction:
         if interaction.completed and not interaction.repeatable:
-            return InteractionResult(error="You already did that.")        
+            return InteractionResult(error="You already did that.")       
 
         apply_interaction(state, interaction)
         return InteractionResult(succeeded=True, message=interaction.message)
@@ -237,13 +240,32 @@ def resolve_item(state: GameState, noun: str, *, include_location: bool = False,
 def item_matches_noun(item: Item, noun: str):
     return item.name.lower() == noun or noun in item.aliases
 
-def matches_interaction(interaction: Interaction, verb: str, item_id: str, target_id: Optional[str]) -> bool:
-    return interaction.verb == verb and interaction.item == item_id and interaction.target == target_id
+def matches_interaction(state: GameState, interaction: Interaction, verb: str, item_id: str, target_id: Optional[str]) -> bool:
+
+    # Command must match
+    if interaction.verb != verb or interaction.item != item_id or interaction.target != target_id:
+        return False
+
+    # Flag requirements
+    has_required = all(
+        flag in state.flags
+        for flag in interaction.requires_flags        
+    )
+    is_blocked = any(
+        flag in state.flags
+        for flag in interaction.blocking_flags
+    )
+
+    return has_required and not is_blocked
 
 def apply_interaction(state: GameState, interaction: Interaction):
     
     for flag in interaction.set_flags:
-        state.flags.append(flag)
+        if flag not in state.flags:
+            state.flags.append(flag)
+
+    for flag in interaction.clear_flags:
+        state.flags.remove(flag)
     
     if interaction.consumes:
         state.inventory.remove(interaction.item)

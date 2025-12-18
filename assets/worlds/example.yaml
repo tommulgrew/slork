@@ -25,6 +25,14 @@ items:
     aliases:
       - map
       - chart
+  small_hut:
+    name: Small Hut
+    description: A simple but well maintained coblestone hut with a thached roof.
+    portable: false
+    aliases:
+      - hut
+      - house
+      - building
 
 locations:
   crossroad:
@@ -59,6 +67,8 @@ locations:
       east:
         to: forest_path
         description: Back down the forest path.
+    items:
+      - small_hut
     npcs:
       - hermit
   stone_gate_clearing:
@@ -122,3 +132,15 @@ interactions:
       - gate_unlocked
     consumes: false
     message: The brass key turns; stone grinds and the gate unlocks.
+  - verb: open
+    item: stone_gate
+    blocking_flags:
+      - gate_unlocked
+    repeatable: true
+    message: The gate is locked and won't open.
+  - verb: open
+    item: stone_gate
+    requires_flags:
+      - gate_unlocked
+    repeatable: true
+    message: It's already open.

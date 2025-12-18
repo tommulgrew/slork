@@ -128,12 +128,28 @@
           "verb": { "type": "string" },
           "item": { "type": "string" },
           "target": { "type": "string" },
+          "requires_flags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "blocking_flags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
           "set_flags": {
             "type": "array",
             "items": { "type": "string" },
             "default": []
           },
+          "clear_flags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
           "consumes": { "type": "boolean", "default": false },
+          "repeatable": { "type": "boolean", "default": false },
           "message": { "type": "string" }
         }
       },

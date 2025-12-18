@@ -53,7 +53,10 @@ class Interaction:
     item: str
     message: str
     target: Optional[str] = None
+    requires_flags: list[str] = field(default_factory=list)
+    blocking_flags: list[str] = field(default_factory=list)
     set_flags: list[str] = field(default_factory=list)
+    clear_flags: list[str] = field(default_factory=list)
     consumes: bool = False
     repeatable: bool = False
     completed: bool = False     # Game session state. Not part of world file.
