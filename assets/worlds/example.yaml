@@ -27,7 +27,7 @@ items:
       - chart
   small_hut:
     name: Small Hut
-    description: A simple but well maintained coblestone hut with a thached roof.
+    description: A simple but well kept coblestone hut with a dirt floor and a thached roof.
     portable: false
     aliases:
       - hut
@@ -131,7 +131,7 @@ interactions:
     set_flags:
       - gate_unlocked
     consumes: false
-    message: The brass key turns; stone grinds and the gate unlocks.
+    message: The brass key turns; stone grinds and the gate unlocks and swings open.
   - verb: open
     item: stone_gate
     blocking_flags:
