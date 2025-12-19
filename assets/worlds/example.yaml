@@ -30,9 +30,9 @@ items:
     description: A simple but well kept coblestone hut with a dirt floor and a thached roof.
     portable: false
     aliases:
+      - small cobblestone hut
+      - cobblestone hut
       - hut
-      - house
-      - building
 
 locations:
   crossroad:
