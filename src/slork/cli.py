@@ -2,7 +2,7 @@ from .args import parse_main_args
 from .world import load_world, World
 from .commands import parse_command, VALID_VERBS
 from .engine import GameEngine
-from .ai_client import OllamaMessage, OllamaClient, OllamaClientSettings, OllamaApiError
+from .ai_client import OllamaClient, OllamaClientSettings, OllamaApiError
 from .ai_engine import AIGameEngine
 
 def main() -> None:
