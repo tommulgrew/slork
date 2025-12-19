@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Type, TypeVar
 from dataclasses import dataclass
 from collections import deque
 import json
@@ -7,6 +7,8 @@ from dacite.exceptions import DaciteError
 from .engine import GameEngine
 from .ai_client import OllamaClient, OllamaMessage
 from .commands import VALID_VERBS
+
+T = TypeVar("T")
 
 @dataclass
 class AIPlayerInputResponse:
@@ -73,13 +75,7 @@ class AIGameEngine:
         self.message_history.append(ai_chat_response)
 
         # Expect an AIPlayerInputResponse in JSON format
-        try:
-            ai_response_dict=json.loads(ai_chat_response.content)
-            return from_dict(AIPlayerInputResponse, ai_response_dict)
-        except json.JSONDecodeError as exc:
-            raise AIResponseFormatError("AI response was not valid JSON") from exc
-        except DaciteError as exc:
-            raise AIResponseFormatError("AI JSON response did not match expected schema")
+        return parse_ai_response(ai_chat_response.content, AIPlayerInputResponse)
 
     def ai_enhance_engine_response(self, engine_response: str, raw_command: str) -> str:
 
@@ -99,8 +95,8 @@ class AIGameEngine:
         self.message_history.append(engine_response_message)
         self.message_history.append(ai_chat_response)
 
-        ai_response_dict=json.loads(ai_chat_response.content)
-        ai_response=from_dict(AIEnhanceEngineResponse, ai_response_dict)
+        # Expect an AIEnhanceEngineResponse in JSON format
+        ai_response = parse_ai_response(ai_chat_response.content, AIEnhanceEngineResponse)
         return ai_response.respond
 
 def create_ai_prompts() -> AIPrompts:
@@ -142,3 +138,12 @@ Examples:
 {{ "respond": "You step forward boldly into the dim tunnel, ready to face whatever might lurk inside." }}
 """
     )
+
+def parse_ai_response(raw_text: str, response_type: Type[T]) -> T:
+    try:
+        data=json.loads(raw_text)
+        return from_dict(response_type, data)
+    except json.JSONDecodeError as exc:
+        raise AIResponseFormatError("AI response was not valid JSON") from exc
+    except DaciteError as exc:
+        raise AIResponseFormatError("AI JSON response did not match expected schema")
