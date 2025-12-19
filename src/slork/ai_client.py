@@ -1,14 +1,27 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from dacite import from_dict
 from urllib import request
 from urllib.error import HTTPError, URLError
+from typing import Any, Optional
 import json
 import socket
 
 @dataclass
+class OllamaToolFunction:
+    index: int
+    name: str
+    arguments: dict[str, Any]
+
+@dataclass
+class OllamaToolCall:
+    id: str
+    function: OllamaToolFunction
+
+@dataclass
 class OllamaMessage:
     role: str       # system | user | assistant
-    content: str
+    content: Optional[str] = None
+    tool_calls: list[OllamaToolCall] = field(default_factory=list)
 
 @dataclass
 class OllamaChatRequest:
@@ -57,6 +70,15 @@ class OllamaClient:
         except URLError as exc:
             raise OllamaApiError("Ollama is unreachable (is it running?)") from exc
 
+        # Decode response JSON
         print(f"AI RESPONSE: {body}")
-        response_dict=json.loads(body)
-        return from_dict(OllamaChatResponse, response_dict).message        
+        response_dict = json.loads(body)
+        response_message: OllamaMessage = from_dict(OllamaChatResponse, response_dict).message
+
+        # If the LLM returned a tool call, move it to the content
+        if response_message.tool_calls:
+            if not response_message.content:
+                response_message.content = json.dumps(response_message.tool_calls[0].arguments)
+            response_message.tool_calls = []
+
+        return response_message
