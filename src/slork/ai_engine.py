@@ -1,14 +1,20 @@
 from typing import Optional
 from dataclasses import dataclass
 from collections import deque
+import json
+from dacite import from_dict
 from .engine import GameEngine
 from .ai_client import OllamaClient, OllamaMessage
 from .commands import VALID_VERBS
 
 @dataclass
 class AIPlayerInputResponse:
-    engine_command: Optional[str] = None
-    player_message: Optional[str] = None
+    execute: Optional[str] = None
+    respond: Optional[str] = None
+
+@dataclass
+class AIEnhanceEngineResponse:
+    respond: str
 
 @dataclass
 class AIPrompts:
@@ -31,12 +37,12 @@ class AIGameEngine:
         ai_input_response: AIPlayerInputResponse = self.ai_interpret_player_input(raw_command)
 
         # AI replied back to player?
-        if ai_input_response.player_message:
-            return ai_input_response.player_message
+        if ai_input_response.respond:
+            return ai_input_response.respond
 
         # Otherwise AI output command to engine
-        print(f"({ai_input_response.engine_command})")
-        engine_response = self.engine.handle_raw_command(ai_input_response.engine_command)
+        print(f"({ai_input_response.execute})")
+        engine_response = self.engine.handle_raw_command(ai_input_response.execute)
 
         # Use AI to enhance(?) the engine response
         return self.ai_enhance_engine_response(engine_response, raw_command)
@@ -56,15 +62,15 @@ class AIGameEngine:
         ]
 
         # Call Ollama chat endpoint
-        ai_response = self.ai_client.chat(ai_messages)
+        ai_chat_response = self.ai_client.chat(ai_messages)
 
         # Add interaction to message history
         self.message_history.append(player_message)
-        self.message_history.append(ai_response)
+        self.message_history.append(ai_chat_response)
 
-        # Return translated engine command
-        # TODO: Allow AI to respond directly to player when appropriate
-        return AIPlayerInputResponse(engine_command=ai_response.content)
+        # Expect an AIPlayerInputResponse in JSON format
+        ai_response_dict=json.loads(ai_chat_response.content)
+        return from_dict(AIPlayerInputResponse, ai_response_dict)        
 
     def ai_enhance_engine_response(self, engine_response: str, raw_command: str) -> str:
 
@@ -78,13 +84,15 @@ class AIGameEngine:
         ]
 
         # Call Ollama chat endpoint
-        ai_response = self.ai_client.chat(ai_messages)
+        ai_chat_response = self.ai_client.chat(ai_messages)
 
         # Add interaction to message history
         self.message_history.append(engine_response_message)
-        self.message_history.append(ai_response)
+        self.message_history.append(ai_chat_response)
 
-        return ai_response.content
+        ai_response_dict=json.loads(ai_chat_response.content)
+        ai_response=from_dict(AIEnhanceEngineResponse, ai_response_dict)
+        return ai_response.respond
 
 def create_ai_prompts() -> AIPrompts:
     verb_list = ', '.join(sorted(VALID_VERBS))
@@ -92,22 +100,36 @@ def create_ai_prompts() -> AIPrompts:
         interpret_player_input=f"""\
 You are narrator for a deterministic text adventure.
 You liase *between* the player (PLAYER) and the game engine (ENGINE) who do not communicate directly with each other.
-Determine the player's intent and output the corresponding text adventure command for the game engine.
+Analyze the player's input and determine their intent.
+If they are trying to perform a game action, map their intent to the corresponding text adventure command for the game engine.
 The game engine accepts commands with syntax: VERB NOUN
 Valid verbs are {verb_list}. LOOK and INVENTORY do not require a noun. USE can also have the format: USE [noun] ON [target]
 Directions for GO are: north,south,east,west,up,down as well as northwest etc.
-Respond with just the text command to pass to the game engine.
-(Do not attempt to *be* the engine.)
+Do not attempt to *be* the engine.
+Respond with the command for the game engine to execute as JSON:
+{{ "execute": "[command]" }}
 Examples:
-GO NORTH
-TAKE AXE
-USE WAND ON MAGIC BARRIER
+{{ "execute": "GO NORTH" }}
+{{ "execute": "TAKE AXE" }}
+{{ "execute": "USE WAND ON MAGIC BARRIER" }}
+If the player asks a question, consider whether executing a LOOK, INVENTORY or EXAMINE command to retrive information
+from the engine may help with answering it.
+Otherwise, if the player is not trying to perform a game action, respond directly to the player as JSON:
+{{ "respond": "[response]" }}
+Examples:
+{{ "respond": "I'm not sure what you mean. What would you like to do?" }}
+{{ "respond": "I don't know how to open the gate, but perhaps you could look around for a key." }}
+Return only JSON in one of the above 2 formats, and no other text.
 """,
         enhance_engine_response="""\
 You are narrator for a deterministic text adventure.
 You liase *between* the player (PLAYER) and the game engine (ENGINE) who do not communicate directly with each other.
 Take the game engine's last response and reword it to add some color and flavor.
 Use the information provided by the game engine - do not invent new objects or exits. Include the items and exits in the description, rather than listing them separately. Do not list the player's inventory unless it is relevant.
-Respond with the reworded text to display to the player."
+If the player's last input was a question, consider whether the engine output can be used to answer it.
+Respond with the reworded text to display to the player, as JSON:
+{{ "respond": "[response]" }}
+Examples:
+{{ "respond": "You step forward boldly into the dim tunnel, ready to face whatever might lurk inside." }}
 """
     )

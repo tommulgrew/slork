@@ -32,8 +32,8 @@ def main() -> None:
     print("**************************************************")
     print(world.world.title)
     print("Slork v0.2 (c) Tom Mulgrew")
-    if ai_client:
-        print(f"Using AI model: {ai_client.settings.model}")
+    if ai_engine:
+        print(f"Using AI model: {args.ai_model}")
     print("**************************************************")
 
     # Initial location
@@ -52,7 +52,9 @@ def main() -> None:
                 break
             if player_cmd_str.lower() == "ai":
                 # Toggle AI on/off
-                if engine == ai_engine:
+                if ai_engine == None:
+                    print("AI is not available. Specify a model using '--ai-model MODELNAME' when launching Slork to enable AI.")
+                elif engine == ai_engine:
                     engine = base_engine
                     print("AI disabled")
                 else:

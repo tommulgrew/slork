@@ -57,5 +57,6 @@ class OllamaClient:
         except URLError as exc:
             raise OllamaApiError("Ollama is unreachable (is it running?)") from exc
 
+        print(f"AI RESPONSE: {body}")
         response_dict=json.loads(body)
         return from_dict(OllamaChatResponse, response_dict).message        
