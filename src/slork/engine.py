@@ -1,12 +1,18 @@
 from dataclasses import dataclass
 from typing import Optional
+from enum import Enum
 from .commands import ParsedCommand
 from .world import World, Item, Location, Interaction
 from .commands import parse_command
 
+class ActionStatus(Enum):
+    OK = "ok"
+    NO_EFFECT = "no_effect"
+    INVALID = "invalid"
+
 @dataclass
 class ActionResult:
-    status: str # ok | no_effect | invalid
+    status: ActionStatus
     message: str
 
 @dataclass
@@ -77,7 +83,7 @@ class GameEngine:
 
     def handle_command(self, command: ParsedCommand) -> ActionResult:
         if command.verb == "look":
-            return ActionResult(status = "ok", message = self.describe_current_location())
+            return ActionResult(status=ActionStatus.OK, message=self.describe_current_location())
         if command.verb == "inventory":
             return self.handle_inventory()
         if command.verb == "go":
@@ -92,31 +98,31 @@ class GameEngine:
         # Look for matching interaction    
         interaction_result: InteractionResult = self.handle_interaction(command)
         if interaction_result.error:
-            return ActionResult(status="invalid", message=interaction_result.error)
+            return ActionResult(status=ActionStatus.INVALID, message=interaction_result.error)
         if interaction_result.succeeded:
-            return ActionResult(status = "ok", message = interaction_result.message)
+            return ActionResult(status=ActionStatus.OK, message=interaction_result.message)
 
         # Default message
-        return ActionResult(status = "no_effect", message="That didn't work.")
+        return ActionResult(status=ActionStatus.NO_EFFECT, message="That didn't work.")
 
     def handle_go(self, direction: str) -> ActionResult:
 
         # Location must have corresponding exit
         location = self.current_location()
         if direction not in location.exits:
-            return ActionResult(status = "invalid", message = f"You cannot go {direction}.")    
+            return ActionResult(status=ActionStatus.INVALID, message=f"You cannot go {direction}.")    
         exit = location.exits[direction]
 
         # Required flags must be present
         if not self.has_required_flags(exit.requires_flags):
             if exit.blocked_description:
-                return ActionResult(status = "invalid", message = exit.blocked_description)
+                return ActionResult(status=ActionStatus.INVALID, message=exit.blocked_description)
             else:
-                return ActionResult(status = "invalid", message = f"You cannot go {direction}.")
+                return ActionResult(status=ActionStatus.INVALID, message=f"You cannot go {direction}.")
 
         # Move to new location
         self.location_id = exit.to
-        return ActionResult(status = "ok", message = self.describe_current_location())
+        return ActionResult(status=ActionStatus.OK, message=self.describe_current_location())
 
     def handle_take(self, noun: str) -> ActionResult:
 
@@ -129,14 +135,14 @@ class GameEngine:
 
         # Item must be portable
         if not item.portable:
-            return ActionResult(status = "no_effect", message = f"You cannot take the {item.name}.")
+            return ActionResult(status=ActionStatus.NO_EFFECT, message=f"You cannot take the {item.name}.")
         
         # Remove from location and add to inventory
         location = self.current_location()
         location.items.remove(item_id)
         self.inventory.append(item_id)
 
-        return ActionResult(status = "ok", message = f"You took the {item.name}.")
+        return ActionResult(status=ActionStatus.OK, message=f"You took the {item.name}.")
 
     def handle_inventory(self) -> ActionResult:
 
@@ -148,13 +154,13 @@ class GameEngine:
 
         message = ",\n".join(inventory_items) if inventory_items else "You carry nothing."
 
-        return ActionResult(status = "ok", message = message)
+        return ActionResult(status=ActionStatus.OK, message=message)
 
     def handle_drop(self, noun: str) -> ActionResult:
 
         result = self.resolve_item(noun, include_inventory=True)
         if result.error:
-            return ActionResult(status = "invalid", message = result.error)
+            return ActionResult(status=ActionStatus.INVALID, message=result.error)
 
         item_id = result.item_id
         item = result.item
@@ -164,15 +170,15 @@ class GameEngine:
         self.inventory.remove(item_id)
         location.items.append(item_id)
 
-        return ActionResult(status="ok", message=f"You dropped the {item.name}")
+        return ActionResult(status=ActionStatus.OK, message=f"You dropped the {item.name}")
 
     def handle_examine(self, noun: str) -> ActionResult:
 
         result = self.resolve_item(noun, include_location=True, include_inventory=True)
         if result.error:
-            return ActionResult(status = "invalid", message = result.error)
+            return ActionResult(status=ActionStatus.INVALID, message=result.error)
         
-        return ActionResult(status="ok", message=result.item.description)
+        return ActionResult(status=ActionStatus.OK, message=result.item.description)
 
     def handle_interaction(self, command: ParsedCommand) -> InteractionResult:
 

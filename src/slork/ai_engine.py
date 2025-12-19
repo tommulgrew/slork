@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from collections import deque
 import json
 from dacite import from_dict
+from dacite.exceptions import DaciteError
 from .engine import GameEngine
 from .ai_client import OllamaClient, OllamaMessage
 from .commands import VALID_VERBS
@@ -20,6 +21,9 @@ class AIEnhanceEngineResponse:
 class AIPrompts:
     interpret_player_input: str
     enhance_engine_response: str
+
+class AIResponseFormatError(Exception):
+    """Raised when AI client returns a response in the wrong format"""
 
 class AIGameEngine:
 
@@ -69,8 +73,13 @@ class AIGameEngine:
         self.message_history.append(ai_chat_response)
 
         # Expect an AIPlayerInputResponse in JSON format
-        ai_response_dict=json.loads(ai_chat_response.content)
-        return from_dict(AIPlayerInputResponse, ai_response_dict)        
+        try:
+            ai_response_dict=json.loads(ai_chat_response.content)
+            return from_dict(AIPlayerInputResponse, ai_response_dict)
+        except json.JSONDecodeError as exc:
+            raise AIResponseFormatError("AI response was not valid JSON") from exc
+        except DaciteError as exc:
+            raise AIResponseFormatError("AI JSON response did not match expected schema")
 
     def ai_enhance_engine_response(self, engine_response: str, raw_command: str) -> str:
 
