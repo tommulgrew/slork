@@ -47,13 +47,13 @@ def main() -> None:
             break
 
         # Use AI to translate command
+        raw_player_cmd_str = player_cmd_str
         if ai_client:
             verb_list = ', '.join(sorted(VALID_VERBS))
             ai_messages: list[OllamaMessage] = [
                 OllamaMessage(
                     "system", 
                     "You are narrator for a deterministic text adventure.\n"
-                    "Do not attempt to be the game engine.\n"
                     "You liase *between* the player (PLAYER) and the game engine (ENGINE) who do not communicate directly with each other.\n"
                     "Determine the player's intent and output the corresponding text adventure command for the game engine.\n"
                     "The game engine accepts commands with syntax: VERB NOUN\n"
@@ -86,7 +86,40 @@ def main() -> None:
             continue
 
         result = handle_command(state, player_cmd)
-        print(result.message)
+        engine_message = result.message
+
+        if ai_client:
+            ai_messages: list[OllamaMessage] = [
+                OllamaMessage(
+                    "system", 
+                    "You are narrator for a deterministic text adventure.\n"
+                    "Do not attempt to be the game engine.\n"
+                    "You liase *between* the player (PLAYER) and the game engine (ENGINE) who do not communicate directly with each other.\n"
+                    "Take the game engine's last response and reword it to add some color and flavor.\n"
+                    "Use only the items and exits specified by the game engine - do not invent any new ones.\n"
+                    "Respond with the reworded text to display to the player."
+                ),
+                OllamaMessage(
+                    "user",
+                    f"ENGINE: {describe_current_location(state, verbose=True)}"
+                ),
+                OllamaMessage(
+                    "user",
+                    f"PLAYER: {raw_player_cmd_str}"
+                ),
+                OllamaMessage(
+                    "assistant",
+                    player_cmd_str
+                ),
+                OllamaMessage(
+                    "user",
+                    f"ENGINE: {engine_message}"
+                )
+            ]
+            ai_response = ai_client.chat(ai_messages)
+            engine_message = ai_response.content
+
+        print(engine_message)
 
 if __name__ == "__main__":
     main()
