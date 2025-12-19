@@ -60,6 +60,9 @@ def main() -> None:
                     print("AI enabled")
                 continue
 
+            engine_response = engine.handle_raw_command(player_cmd_str)
+            print(engine_response)
+
             # # Use AI to translate command
             # raw_player_cmd_str = player_cmd_str
             # if ai_client:
@@ -93,15 +96,6 @@ def main() -> None:
             #     player_cmd_str = ai_response.content
             #     print(f"({player_cmd_str})")
 
-            # Parse command
-            player_cmd = parse_command(player_cmd_str)
-            if player_cmd.error:
-                print(player_cmd.error)
-                continue
-
-            result = engine.handle_command(player_cmd)
-            engine_message = result.message
-
             # if ai_client:
             #     ai_messages: list[OllamaMessage] = [
             #         OllamaMessage(
@@ -132,8 +126,6 @@ def main() -> None:
             #     ]
             #     ai_response = ai_client.chat(ai_messages)
             #     engine_message = ai_response.content
-
-            print(engine_message)
 
         except OllamaApiError as exc:
             print(f"{exc}\n(Enter 'AI' to toggle AI off.)")

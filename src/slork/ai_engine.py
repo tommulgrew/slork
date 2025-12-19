@@ -11,5 +11,5 @@ class AIGameEngine:
     def describe_current_location(self, verbose: bool = False) -> str:
         return self.engine.describe_current_location(verbose)
     
-    def handle_command(self, command: ParsedCommand) -> ActionResult:
-        return self.engine.handle_command(command)
+    def handle_raw_command(self, raw_command: str) -> str:
+        return self.engine.handle_raw_command(raw_command)

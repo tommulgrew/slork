@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 from .commands import ParsedCommand
 from .world import World, Item, Location, Interaction
+from .commands import parse_command
 
 @dataclass
 class ActionResult:
@@ -65,6 +66,14 @@ class GameEngine:
             lines.append(f"Inventory: { ', '.join(inventory_items) if inventory_items else 'Nothing' }")
 
         return "\n".join(lines)
+    
+    def handle_raw_command(self, raw_command: str) -> str:
+        command = parse_command(raw_command)
+        if command.error:
+            return command.error
+        
+        result = self.handle_command(command)
+        return result.message
 
     def handle_command(self, command: ParsedCommand) -> ActionResult:
         if command.verb == "look":
