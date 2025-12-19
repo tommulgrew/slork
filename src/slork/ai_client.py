@@ -71,14 +71,14 @@ class OllamaClient:
             raise OllamaApiError("Ollama is unreachable (is it running?)") from exc
 
         # Decode response JSON
-        print(f"AI RESPONSE: {body}")
+        # print(f"AI RESPONSE: {body}")
         response_dict = json.loads(body)
         response_message: OllamaMessage = from_dict(OllamaChatResponse, response_dict).message
 
         # If the LLM returned a tool call, move it to the content
         if response_message.tool_calls:
             if not response_message.content:
-                response_message.content = json.dumps(response_message.tool_calls[0].arguments)
+                response_message.content = json.dumps(response_message.tool_calls[0].function.arguments)
             response_message.tool_calls = []
 
         return response_message

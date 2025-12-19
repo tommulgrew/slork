@@ -127,7 +127,7 @@ class GameEngine:
 
         result = self.resolve_item(noun, include_location=True)
         if result.error:
-            return ActionResult("invalid", result.error)
+            return ActionResult(status=ActionStatus.INVALID, message=result.error)
 
         item_id = result.item_id
         item = result.item

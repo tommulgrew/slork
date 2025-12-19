@@ -37,7 +37,9 @@ class AIGameEngine:
         self.ai_prompts = create_ai_prompts()
 
     def describe_current_location(self, verbose: bool = False) -> str:
-        return self.engine.describe_current_location(verbose)
+        description = self.engine.describe_current_location(verbose)
+        ai_description = self.ai_enhance_engine_response(ActionResult(status=ActionStatus.OK, message=description))
+        return ai_description.message
     
     def handle_raw_command(self, raw_command: str) -> ActionResult:
         ai_input_response: AIPlayerInputResponse = self.ai_interpret_player_input(raw_command)
@@ -47,7 +49,7 @@ class AIGameEngine:
             return ActionResult(status=ActionStatus.OK, message=ai_input_response.respond)
 
         # Otherwise AI output command to engine
-        # print(f"({ai_input_response.execute})")
+        print(f"({ai_input_response.execute})")
         engine_response = self.engine.handle_raw_command(ai_input_response.execute)
 
         # Use AI to enhance(?) the engine response
@@ -77,7 +79,7 @@ class AIGameEngine:
         # Expect an AIPlayerInputResponse in JSON format
         return parse_ai_response(ai_chat_response.content, AIPlayerInputResponse)
 
-    def ai_enhance_engine_response(self, engine_response: ActionResult) -> str:
+    def ai_enhance_engine_response(self, engine_response: ActionResult) -> ActionResult:
 
         # Build messages for chat api call
         system_message = OllamaMessage("system", self.ai_prompts.enhance_engine_response)
