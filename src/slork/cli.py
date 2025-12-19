@@ -1,7 +1,7 @@
 from .args import parse_main_args
-from .world import load_world
+from .world import load_world, World
 from .commands import parse_command, VALID_VERBS
-from .engine import init_state, describe_current_location, handle_command
+from .engine import GameEngine
 from .ai_client import OllamaMessage, OllamaClient, OllamaClientSettings, OllamaApiError
 
 def main() -> None:
@@ -10,10 +10,10 @@ def main() -> None:
     args = parse_main_args()
 
     # Load world definition
-    world = load_world(args.world)
+    world: World = load_world(args.world)
 
-    # Initial state
-    state = init_state(world)
+    # Create game engine
+    engine: GameEngine = GameEngine(world)
 
     # Ollama AI client
     ai_client: OllamaClient = None
@@ -33,7 +33,7 @@ def main() -> None:
     print("**************************************************")
 
     # Initial location
-    print(describe_current_location(state))
+    print(engine.describe_current_location())
 
     # Main loop
     while True:
@@ -73,7 +73,7 @@ def main() -> None:
                     ),
                     OllamaMessage(
                         "user",
-                        f"ENGINE: {describe_current_location(state, verbose=True)}"
+                        f"ENGINE: {engine.describe_current_location(verbose=True)}"
                     ),
                     OllamaMessage(
                         "user",
@@ -90,7 +90,7 @@ def main() -> None:
                 print(player_cmd.error)
                 continue
 
-            result = handle_command(state, player_cmd)
+            result = engine.handle_command(player_cmd)
             engine_message = result.message
 
             if ai_client:
@@ -106,7 +106,7 @@ def main() -> None:
                     ),
                     OllamaMessage(
                         "user",
-                        f"ENGINE:\n  MESSAGE: {describe_current_location(state, verbose=True)}"
+                        f"ENGINE:\n  MESSAGE: {engine.describe_current_location(verbose=True)}"
                     ),
                     OllamaMessage(
                         "user",
