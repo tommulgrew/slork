@@ -4,7 +4,7 @@ from collections import deque
 import json
 from dacite import from_dict
 from dacite.exceptions import DaciteError
-from .engine import GameEngine
+from .engine import GameEngine, ActionResult, ActionStatus
 from .ai_client import OllamaClient, OllamaMessage
 from .commands import VALID_VERBS
 
@@ -39,19 +39,19 @@ class AIGameEngine:
     def describe_current_location(self, verbose: bool = False) -> str:
         return self.engine.describe_current_location(verbose)
     
-    def handle_raw_command(self, raw_command: str) -> str:
+    def handle_raw_command(self, raw_command: str) -> ActionResult:
         ai_input_response: AIPlayerInputResponse = self.ai_interpret_player_input(raw_command)
 
         # AI replied back to player?
         if ai_input_response.respond:
-            return ai_input_response.respond
+            return ActionResult(status=ActionStatus.OK, message=ai_input_response.respond)
 
         # Otherwise AI output command to engine
-        print(f"({ai_input_response.execute})")
+        # print(f"({ai_input_response.execute})")
         engine_response = self.engine.handle_raw_command(ai_input_response.execute)
 
         # Use AI to enhance(?) the engine response
-        return self.ai_enhance_engine_response(engine_response, raw_command)
+        return self.ai_enhance_engine_response(engine_response)
 
     def ai_interpret_player_input(self, raw_command: str) -> AIPlayerInputResponse:
 
@@ -77,11 +77,11 @@ class AIGameEngine:
         # Expect an AIPlayerInputResponse in JSON format
         return parse_ai_response(ai_chat_response.content, AIPlayerInputResponse)
 
-    def ai_enhance_engine_response(self, engine_response: str, raw_command: str) -> str:
+    def ai_enhance_engine_response(self, engine_response: ActionResult) -> str:
 
         # Build messages for chat api call
         system_message = OllamaMessage("system", self.ai_prompts.enhance_engine_response)
-        engine_response_message = OllamaMessage("user", f"ENGINE: {engine_response}")
+        engine_response_message = OllamaMessage("user", f"ENGINE:\n  STATUS: {engine_response.status.name}\n  MESSAGE: {engine_response.message}")
         ai_messages = [
             system_message,
             *self.message_history,
@@ -97,7 +97,7 @@ class AIGameEngine:
 
         # Expect an AIEnhanceEngineResponse in JSON format
         ai_response = parse_ai_response(ai_chat_response.content, AIEnhanceEngineResponse)
-        return ai_response.respond
+        return ActionResult(status=engine_response.status, message=ai_response.respond)
 
 def create_ai_prompts() -> AIPrompts:
     verb_list = ', '.join(sorted(VALID_VERBS))

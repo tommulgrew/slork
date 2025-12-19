@@ -1,7 +1,6 @@
 from .args import parse_main_args
 from .world import load_world, World
-from .commands import parse_command, VALID_VERBS
-from .engine import GameEngine
+from .engine import GameEngine, ActionResult
 from .ai_client import OllamaClient, OllamaClientSettings, OllamaApiError
 from .ai_engine import AIGameEngine, AIResponseFormatError
 
@@ -62,8 +61,8 @@ def main() -> None:
                     print("AI enabled")
                 continue
 
-            engine_response = engine.handle_raw_command(player_cmd_str)
-            print(engine_response)
+            engine_response: ActionResult = engine.handle_raw_command(player_cmd_str)
+            print(engine_response.message)
 
         except (OllamaApiError, AIResponseFormatError) as exc:
             print(f"{exc}\n(Enter 'AI' to toggle AI off.)")

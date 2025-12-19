@@ -73,13 +73,12 @@ class GameEngine:
 
         return "\n".join(lines)
     
-    def handle_raw_command(self, raw_command: str) -> str:
+    def handle_raw_command(self, raw_command: str) -> ActionResult:
         command = parse_command(raw_command)
         if command.error:
-            return command.error
+            return ActionResult(status=ActionStatus.INVALID, message=command.error)
         
-        result = self.handle_command(command)
-        return result.message
+        return self.handle_command(command)
 
     def handle_command(self, command: ParsedCommand) -> ActionResult:
         if command.verb == "look":
