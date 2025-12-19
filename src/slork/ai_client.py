@@ -3,6 +3,7 @@ from dacite import from_dict
 from urllib import request
 from urllib.error import HTTPError, URLError
 import json
+import socket
 
 @dataclass
 class OllamaMessage:
@@ -27,6 +28,9 @@ class OllamaClientSettings:
     model: str
     base_url: str
 
+class OllamaApiError(Exception):
+    """Raised when the OllamaApi call fails/times out"""
+
 class OllamaClient:
     def __init__(self, settings: OllamaClientSettings):
         self.settings = settings
@@ -46,8 +50,12 @@ class OllamaClient:
         try:
             with request.urlopen(req, timeout=60) as resp:
                 body = resp.read().decode("utf-8")
-        except (URLError, HTTPError) as exc:  # noqa: PERF203
-            raise RuntimeError(f"Ollama request failed: {exc}") from exc
+        except socket.timeout as exc:
+            raise OllamaApiError("Ollama timed out (try a quicker model?)") from exc
+        except HTTPError as exc:
+            raise OllamaApiError(f"Ollama HTTP error: {exc.code}") from exc
+        except URLError as exc:
+            raise OllamaApiError("Ollama is unreachable (is it running?)") from exc
 
         response_dict=json.loads(body)
         return from_dict(OllamaChatResponse, response_dict).message        
