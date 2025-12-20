@@ -24,9 +24,14 @@ class OllamaMessage:
     tool_calls: list[OllamaToolCall] = field(default_factory=list)
 
 @dataclass
+class OllamaNormalisedMessage:
+    role: str
+    content: str
+
+@dataclass
 class OllamaChatRequest:
     model: str
-    messages: list[OllamaMessage]
+    messages: list[OllamaNormalisedMessage]
     stream: bool = False
 
 @dataclass
@@ -48,7 +53,7 @@ class OllamaClient:
     def __init__(self, settings: OllamaClientSettings):
         self.settings = settings
 
-    def chat(self, messages: list[OllamaMessage]) -> OllamaMessage:
+    def chat(self, messages: list[OllamaNormalisedMessage]) -> OllamaNormalisedMessage:
         chat_request = OllamaChatRequest(
             model=self.settings.model,
             messages=messages
@@ -71,14 +76,21 @@ class OllamaClient:
             raise OllamaApiError("Ollama is unreachable (is it running?)") from exc
 
         # Decode response JSON
-        # print(f"AI RESPONSE: {body}")
+        print(f"AI RESPONSE: {body}")
         response_dict = json.loads(body)
         response_message: OllamaMessage = from_dict(OllamaChatResponse, response_dict).message
 
-        # If the LLM returned a tool call, move it to the content
-        if response_message.tool_calls:
-            if not response_message.content:
-                response_message.content = json.dumps(response_message.tool_calls[0].function.arguments)
-            response_message.tool_calls = []
+        # Normalise chat message response
+        if response_message.content:
+            return OllamaNormalisedMessage(
+                role=response_message.role, 
+                content=response_message.content
+            )
 
-        return response_message
+        if response_message.tool_calls:
+            return OllamaNormalisedMessage(
+                role=response_message.role,
+                content=json.dumps(response_message.tool_calls[0].function.arguments)
+            )
+
+        raise OllamaApiError("Ollama response contained no content or tool call")

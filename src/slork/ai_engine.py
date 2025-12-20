@@ -5,7 +5,7 @@ import json
 from dacite import from_dict
 from dacite.exceptions import DaciteError
 from .engine import GameEngine, ActionResult, ActionStatus
-from .ai_client import OllamaClient, OllamaMessage
+from .ai_client import OllamaClient, OllamaNormalisedMessage
 from .commands import VALID_VERBS
 
 T = TypeVar("T")
@@ -33,7 +33,7 @@ class AIGameEngine:
         self.engine = engine
         self.ai_client = ai_client
 
-        self.message_history = deque(maxlen=6)
+        self.message_history: deque[OllamaNormalisedMessage] = deque(maxlen=6)
         self.ai_prompts = create_ai_prompts()
 
     def describe_current_location(self, verbose: bool = False) -> str:
@@ -49,20 +49,23 @@ class AIGameEngine:
             return ActionResult(status=ActionStatus.OK, message=ai_input_response.respond)
 
         # Otherwise AI output command to engine
-        print(f"({ai_input_response.execute})")
-        engine_response = self.engine.handle_raw_command(ai_input_response.execute)
+        if ai_input_response.execute:
+            print(f"({ai_input_response.execute})")
+            engine_response = self.engine.handle_raw_command(ai_input_response.execute)
 
-        # Use AI to enhance(?) the engine response
-        return self.ai_enhance_engine_response(engine_response)
+            # Use AI to enhance(?) the engine response
+            return self.ai_enhance_engine_response(engine_response)
+
+        raise AIResponseFormatError("AI response did not include a 'respond' or 'execute' entry")
 
     def ai_interpret_player_input(self, raw_command: str) -> AIPlayerInputResponse:
 
         # Build messages for chat api call
-        system_message = OllamaMessage("system", self.ai_prompts.interpret_player_input)
-        engine_context_message = OllamaMessage("user", f"ENGINE: {self.engine.describe_current_location(verbose=True)}")
-        player_message = OllamaMessage("user", f"PLAYER: {raw_command}")
+        system_message = OllamaNormalisedMessage("system", self.ai_prompts.interpret_player_input)
+        engine_context_message = OllamaNormalisedMessage("user", f"ENGINE: {self.engine.describe_current_location(verbose=True)}")
+        player_message = OllamaNormalisedMessage("user", f"PLAYER: {raw_command}")
 
-        ai_messages = [
+        ai_messages: list[OllamaNormalisedMessage] = [
             system_message,
             *self.message_history,
             engine_context_message,
@@ -71,6 +74,9 @@ class AIGameEngine:
 
         # Call Ollama chat endpoint
         ai_chat_response = self.ai_client.chat(ai_messages)
+
+        if not ai_chat_response.content:
+            raise AIResponseFormatError("AI response has no content")
 
         # Add interaction to message history
         self.message_history.append(player_message)
@@ -82,9 +88,9 @@ class AIGameEngine:
     def ai_enhance_engine_response(self, engine_response: ActionResult) -> ActionResult:
 
         # Build messages for chat api call
-        system_message = OllamaMessage("system", self.ai_prompts.enhance_engine_response)
-        engine_response_message = OllamaMessage("user", f"ENGINE:\n  STATUS: {engine_response.status.name}\n  MESSAGE: {engine_response.message}")
-        ai_messages = [
+        system_message = OllamaNormalisedMessage("system", self.ai_prompts.enhance_engine_response)
+        engine_response_message = OllamaNormalisedMessage("user", f"ENGINE:\n  STATUS: {engine_response.status.name}\n  MESSAGE: {engine_response.message}")
+        ai_messages: list[OllamaNormalisedMessage] = [
             system_message,
             *self.message_history,
             engine_response_message
