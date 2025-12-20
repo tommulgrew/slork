@@ -13,7 +13,8 @@ class Header:
 class Item:
     name: str
     description: str
-    portable: bool
+    portable: bool = False
+    is_npc: bool = False
     aliases: list[str] = field(default_factory=list)
 
 @dataclass
@@ -29,23 +30,13 @@ class Location:
     description: str
     exits: dict[str, Exit]
     items: list[str] = field(default_factory=list)
-    npcs: list[str] = field(default_factory=list)
-
-@dataclass
-class NPCScriptedTalk:
-    text: str
-    set_flags: list[str] = field(default_factory=list)
-    give_item: Optional[str] = None
-    take_item: Optional[str] = None
 
 @dataclass
 class NPC:
-    name: str
     description: str
     persona: Optional[str] = None
     sample_lines: list[str] = field(default_factory=list)
     quest_hook: Optional[str] = None
-    scripted_talk: Optional[NPCScriptedTalk] = None
 
 @dataclass
 class Interaction:

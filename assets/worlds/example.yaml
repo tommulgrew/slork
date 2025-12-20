@@ -33,6 +33,14 @@ items:
       - small cobblestone hut
       - cobblestone hut
       - hut
+  hermit:
+    name: Hermit
+    description: A slender wirey old man with gray hair.
+    is_npc: true
+  gnome:
+    name: Gnome
+    description: A short, grumpy looking gnome.
+    is_npc: true
 
 locations:
   crossroad:
@@ -46,7 +54,6 @@ locations:
         to: stone_gate_clearing
         description: Stones hinting at old ruins.
     items: []
-    npcs: []
   forest_path:
     name: Forest Path
     description: The trees press close and the air smells of damp bark.
@@ -59,7 +66,6 @@ locations:
         description: A narrow path climbs up a grassy slope.
     items:
       - brass_key
-    npcs: []
   small_hut:
     name: Small Hut
     description: The trail ends at a small cobblestone hut.
@@ -69,7 +75,6 @@ locations:
         description: Back down the forest path.
     items:
       - small_hut
-    npcs:
       - hermit
   stone_gate_clearing:
     name: Stone Gate Clearing
@@ -86,7 +91,6 @@ locations:
         blocked_description: The gate is locked tight.
     items:
       - stone_gate
-    npcs: 
       - gnome
   inner_courtyard:
     name: Inner Courtyard
@@ -97,11 +101,9 @@ locations:
         description: Back to the gate.
     items:
       - survey_map
-    npcs: []
 
 npcs:
-  hermit:
-    name: Hermit
+  hermit:    
     description: A stooped hermit tends a tiny fire, watching you warily.
     persona: Wry, terse, likes riddles about the forest; guarded but not hostile.
     sample_lines:
@@ -109,7 +111,6 @@ npcs:
       - "Every lock has a story; some open only to those who listen."
     quest_hook: Knows rumors about the stone gate; will hint if asked or befriended.
   gnome:
-    name: Gnome
     description: A small hunched-back gnome sits casually on a large rock.
     persona: Cheeky, unhelpful and somewhat sarcastic; but not threatening.
     sample_lines:

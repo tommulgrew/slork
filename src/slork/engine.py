@@ -41,14 +41,22 @@ class GameEngine:
         location = self.current_location()
         lines = [location.name, location.description]
 
+        # NPCs
+        for item_id in location.items:
+            item = self.world.items[item_id]
+            if item.is_npc:
+                npc = self.world.npcs[item_id]
+                lines.append(npc.description)
+
         # Items
         # Only list portable items. Fixed items should be described
         # in the location description.
         item_descriptions = []
         for item_id in location.items:
             item = self.world.items[item_id]
-            if item.portable or verbose:
-                item_descriptions.append(item.name)
+            if not item.is_npc:
+                if item.portable or verbose:
+                    item_descriptions.append(item.name)
         if item_descriptions:
             lines.append(f"You see: {', '.join(item_descriptions)}")
 
@@ -105,8 +113,8 @@ class GameEngine:
         interaction_result: InteractionResult = self.handle_interaction(command)
         if interaction_result.error:
             return ActionResult(status=ActionStatus.INVALID, message=interaction_result.error)
-        assert interaction_result.message is not None
         if interaction_result.succeeded:
+            assert interaction_result.message is not None
             return ActionResult(status=ActionStatus.OK, message=interaction_result.message)
 
         # Default message
@@ -122,10 +130,10 @@ class GameEngine:
 
         # Required flags must be present
         if not self.has_required_flags(exit.requires_flags):
-            if exit.blocked_description:
-                return ActionResult(status=ActionStatus.INVALID, message=exit.blocked_description)
-            else:
-                return ActionResult(status=ActionStatus.INVALID, message=f"You cannot go {direction}.")
+            return ActionResult(
+                status=ActionStatus.INVALID, 
+                message=exit.blocked_description if exit.blocked_description else f"You cannot go {direction}."
+            )
 
         # Move to new location
         self.location_id = exit.to
