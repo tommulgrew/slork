@@ -81,23 +81,31 @@ class GameEngine:
         return self.handle_command(command)
 
     def handle_command(self, command: ParsedCommand) -> ActionResult:
+
+        # Note: Command parser ensures specific verbs always have a noun
+
         if command.verb == "look":
             return ActionResult(status=ActionStatus.OK, message=self.describe_current_location())
         if command.verb == "inventory":
             return self.handle_inventory()
         if command.verb == "go":
+            assert command.main_noun is not None
             return self.handle_go(command.main_noun)
         if command.verb == "take":
+            assert command.main_noun is not None
             return self.handle_take(command.main_noun)
         if command.verb == "drop":
+            assert command.main_noun is not None
             return self.handle_drop(command.main_noun)
         if command.verb == "examine":
+            assert command.main_noun is not None
             return self.handle_examine(command.main_noun)
 
         # Look for matching interaction    
         interaction_result: InteractionResult = self.handle_interaction(command)
         if interaction_result.error:
             return ActionResult(status=ActionStatus.INVALID, message=interaction_result.error)
+        assert interaction_result.message is not None
         if interaction_result.succeeded:
             return ActionResult(status=ActionStatus.OK, message=interaction_result.message)
 
@@ -128,6 +136,8 @@ class GameEngine:
         result = self.resolve_item(noun, include_location=True)
         if result.error:
             return ActionResult(status=ActionStatus.INVALID, message=result.error)
+        assert result.item_id is not None
+        assert result.item is not None
 
         item_id = result.item_id
         item = result.item
@@ -160,6 +170,8 @@ class GameEngine:
         result = self.resolve_item(noun, include_inventory=True)
         if result.error:
             return ActionResult(status=ActionStatus.INVALID, message=result.error)
+        assert result.item_id is not None
+        assert result.item is not None
 
         item_id = result.item_id
         item = result.item
@@ -175,11 +187,17 @@ class GameEngine:
 
         result = self.resolve_item(noun, include_location=True, include_inventory=True)
         if result.error:
-            return ActionResult(status=ActionStatus.INVALID, message=result.error)
-        
+            return ActionResult(status=ActionStatus.INVALID, message=result.error)        
+        assert result.item is not None
+
         return ActionResult(status=ActionStatus.OK, message=result.item.description)
 
     def handle_interaction(self, command: ParsedCommand) -> InteractionResult:
+        assert command.verb is not None
+
+        # All interactions at least require a main noun
+        if not command.main_noun:
+            return InteractionResult()
 
         # Resolve items
         item_result = self.resolve_item(
@@ -189,6 +207,7 @@ class GameEngine:
         )
         if item_result.error:
             return InteractionResult(error=item_result.error)
+        assert item_result.item_id is not None
         item_id = item_result.item_id
 
         target_id = None
@@ -199,7 +218,7 @@ class GameEngine:
             target_id = target_result.item_id
 
         # Search for matching interaction
-        interaction: Interaction = next(
+        interaction: Optional[Interaction] = next(
             (
                 interaction 
                 for interaction in self.world.interactions
