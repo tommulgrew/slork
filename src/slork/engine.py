@@ -42,11 +42,26 @@ class GameEngine:
         lines = [location.name, location.description]
 
         # NPCs
-        for item_id in location.items:
-            item = self.world.items[item_id]
-            if item.is_npc:
-                npc = self.world.npcs[item_id]
-                lines.append(npc.description)
+        npcs = [ 
+            (self.world.items[item_id], self.world.npcs[item_id])
+            for item_id in location.items 
+            if self.world.items[item_id].is_npc
+        ]
+        for item, npc in npcs:
+            lines.append(npc.description)
+
+        # NPC info
+        if verbose and npcs:
+            lines.append("Present NPCs:")
+            for item, npc in npcs:
+                lines.append(f"  {item.name}")
+                if npc.persona:
+                    lines.append(f"    Persona: {npc.persona}")
+                if npc.quest_hook:
+                    lines.append(f"    Quest hook: {npc.quest_hook}")
+                if npc.sample_lines:
+                    quoted_lines = [f'"{sample_line}"' for sample_line in npc.sample_lines]
+                    lines.append(f"    Sample lines:{', '.join(quoted_lines)}")
 
         # Items
         # Only list portable items. Fixed items should be described

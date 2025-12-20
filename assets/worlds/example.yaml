@@ -143,4 +143,5 @@ interactions:
     message: The hermit eyes you, then mutters about an old key lost along the forest path.
   - verb: talk
     item: gnome
+    repeatable: true
     message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
