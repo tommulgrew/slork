@@ -56,6 +56,9 @@ class Interaction:
 
 @dataclass
 class World:
+    """
+    A text adventure world definition, loaded from a yaml file.
+    """
     world: Header
     flags: list[str]
     items: dict[str, Item]

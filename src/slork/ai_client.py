@@ -50,6 +50,9 @@ class OllamaApiError(Exception):
     """Raised when the OllamaApi call fails/times out"""
 
 class OllamaClient:
+    """
+    A basic client for accessing the Ollama chat API to invoke LLM functions.
+    """
     def __init__(self, settings: OllamaClientSettings):
         self.settings = settings
 

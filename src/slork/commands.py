@@ -57,6 +57,14 @@ class ParsedCommand:
     error: Optional[str] = None
 
 def parse_command(raw: str) -> ParsedCommand:
+    """
+    Parse player input for a text adventure game.
+    Most input has the form: VERB NOUN
+    Some verbs have special rules:
+        GO has special noun logic. Uses directions (rather than items).
+        LOOK and INVENTORY do not have a noun.
+        USE and GIVE have two nouns separated by ON or TO (respectively).
+    """
     raw = strip_quotes(raw.strip()).strip()
     cmd = ParsedCommand(raw = raw)
     if not raw:
