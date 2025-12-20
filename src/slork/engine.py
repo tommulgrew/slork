@@ -34,6 +34,7 @@ class GameEngine:
         self.inventory=world.world.initial_inventory.copy() if world.world.initial_inventory else []
         self.companions=world.world.initial_companions.copy() if world.world.initial_companions else []
         self.flags=[]
+        self.move_companions()
 
     def current_location(self) -> Location:
         return self.world.locations[self.location_id]
@@ -167,6 +168,8 @@ class GameEngine:
 
         # Move to new location
         self.location_id = exit.to
+        self.move_companions()
+        
         return ActionResult(status=ActionStatus.OK, message=self.describe_current_location())
 
     def handle_take(self, noun: str) -> ActionResult:
@@ -347,3 +350,12 @@ class GameEngine:
             self.inventory.remove(interaction.item)
 
         interaction.completed = True
+    
+    def move_companions(self):
+        for location_id, location in self.world.locations.items():
+            for companion in self.companions:
+                if companion in location.items:
+                    location.items.remove(companion)
+
+        location = self.current_location()
+        location.items.extend(self.companions)

@@ -170,6 +170,9 @@ interactions:
     item: gnome
     repeatable: true
     message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
+  - verb: talk
+    item: lenny
+    message: Lenny says "You're doing well! Much better than the last guy!"
   - verb: give
     item: lint
     target: lenny
