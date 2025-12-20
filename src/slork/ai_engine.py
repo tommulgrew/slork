@@ -134,7 +134,7 @@ Examples:
 {{ "respond": "I don't know how to open the door, but perhaps you could look around for a key." }}
 If the player attempts to talk to an NPC in the scene, refer to the provided NPC information and either:
 Issue a TALK command if the NPC has a TALK interaction available, for example:
-{{ "execute", "TALK CHECKOUT GIRL" }}
+{{ "execute": "TALK CHECKOUT GIRL" }}
 Otherwise improvise how the NPC might react or reply, taking into account their persona. Sample lines are just
 examples, create your own dialog responses as necessary.
 {{ "respond": "The ogre turns slowly and scratches his head. 'Me don't know. Me just smash things...'" }}
