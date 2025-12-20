@@ -41,7 +41,23 @@ class GameEngine:
 
     def describe_current_location(self, verbose: bool = False) -> str:
         location = self.current_location()
-        lines = [location.name, location.description]
+        lines = [
+            location.name, 
+            location.description, 
+            *self.describe_npcs(verbose),
+            *self.describe_items(verbose),
+            *self.describe_exits(verbose),
+        ]
+
+        # Player inventory
+        if verbose:
+            lines.extend(self.describe_inventory())
+
+        return "\n".join(lines)
+
+    def describe_npcs(self, verbose: bool) -> list[str]:
+        location = self.current_location()
+        lines = []
 
         # NPCs
         companion_npcs = [
@@ -87,6 +103,12 @@ class GameEngine:
                     lines.append("    TALK interaction: Yes")
                 else:
                     lines.append("    TALK interaction: No")
+        
+        return lines
+
+    def describe_items(self, verbose: bool) -> list[str]:
+        location = self.current_location()
+        lines = []
 
         # Items
         # Only list portable items. Fixed items should be described
@@ -100,6 +122,12 @@ class GameEngine:
         if item_descriptions:
             lines.append(f"You see: {', '.join(item_descriptions)}")
 
+        return lines
+
+    def describe_exits(self, verbose: bool) -> list[str]:
+        location = self.current_location()
+        lines = []
+
         # Exits
         exit_descriptions = []
         for direction, ex in location.exits.items():
@@ -111,15 +139,19 @@ class GameEngine:
         if exit_descriptions:
             lines.append(f"Exits: {', '.join(exit_descriptions)}")
 
-        # Player inventory
-        if verbose:
-            inventory_items = [
-                self.world.items[item_id].name
-                for item_id in self.inventory
-            ]
-            lines.append(f"Inventory: { ', '.join(inventory_items) if inventory_items else 'Nothing' }")
+        return lines
 
-        return "\n".join(lines)
+    def describe_inventory(self) -> list[str]:
+        location = self.current_location()
+        lines = []
+
+        inventory_items = [
+            self.world.items[item_id].name
+            for item_id in self.inventory
+        ]
+        lines.append(f"Inventory: { ', '.join(inventory_items) if inventory_items else 'Nothing' }")
+
+        return lines
     
     def handle_raw_command(self, raw_command: str) -> ActionResult:
         command = parse_command(raw_command)

@@ -177,7 +177,7 @@ interactions:
     item: lint
     target: lenny
     repeatable: false
-    message: The Leprechaun's eyes widen. "You have given me pocket lint! The spell is broken! I am free! ...I'm just kidding, here's your stinky fluff back. Who gives someone lint?"
+    message: The leprechaun's eyes widen. "You have given me pocket lint! The spell is broken! I am free! ...I'm just kidding, here's your stinky fluff back. Who gives someone lint?"
   - verb: give
     item: lint
     target: gnome
