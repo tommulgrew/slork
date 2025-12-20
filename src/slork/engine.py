@@ -44,18 +44,27 @@ class GameEngine:
         lines = [location.name, location.description]
 
         # NPCs
-        npcs = [ 
-            (self.world.items[item_id], self.world.npcs[item_id])
-            for item_id in location.items 
-            if self.world.items[item_id].is_npc
+        companion_npcs = [
+            (item_id, self.world.items[item_id], self.world.npcs[item_id])
+            for item_id in self.companions
         ]
-        for item, npc in npcs:
+        other_npcs = [ 
+            (item_id, self.world.items[item_id], self.world.npcs[item_id])
+            for item_id in location.items 
+            if self.world.items[item_id].is_npc and item_id not in self.companions
+        ]
+        for item_id, item, npc in other_npcs:
             lines.append(npc.description)
 
+        if companion_npcs:
+            companion_names = [item.name for _, item, _ in companion_npcs]
+            lines.append(f"Your companions: {', '.join(companion_names)}")
+
         # NPC info
+        npcs = [*companion_npcs, *other_npcs]
         if verbose and npcs:
             lines.append("Present NPCs:")
-            for item, npc in npcs:
+            for item_id, item, npc in npcs:
                 lines.append(f"  {item.name}")
                 if npc.persona:
                     lines.append(f"    Persona: {npc.persona}")
@@ -63,14 +72,14 @@ class GameEngine:
                     lines.append(f"    Quest hook: {npc.quest_hook}")
                 if npc.sample_lines:
                     quoted_lines = [f'"{sample_line}"' for sample_line in npc.sample_lines]
-                    lines.append(f"    Sample lines:{', '.join(quoted_lines)}")
+                    lines.append(f"    Sample lines: {', '.join(quoted_lines)}")
                 
                 # Look for talk interaction
                 talk_interaction: Optional[Interaction] = next( 
                     (
                         interaction 
                         for interaction in self.world.interactions
-                        if self.matches_interaction(interaction, "talk", item.name.lower(), None)
+                        if self.matches_interaction(interaction, "talk", item_id, None)
                     ),
                     None
                 )

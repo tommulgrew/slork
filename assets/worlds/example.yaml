@@ -47,7 +47,7 @@ items:
     is_npc: true
   lenny:
     name: Lenny the Leprechaun
-    description: A small, annoyingly jolly leprechaun who follows you around. He claims to be your leprechaun equivalent of a fairy godmother. There doesn't seem to be any way to get rid of him.
+    description: A small, annoyingly jolly leprechaun who follows you around. He claims to be your leprechaun equivalent of a fairy godmother, yet has no interest in doing anything helpful. There doesn't seem to be any way to get rid of him.
     is_npc: true
     aliases:
       - lenny
@@ -182,4 +182,4 @@ interactions:
     item: lint
     target: gnome
     repeatable: false
-    message: The gnome is not impressed.
+    message: The gnome is not impressed with your pocket fluff.
