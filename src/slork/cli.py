@@ -1,3 +1,4 @@
+from typing import Optional
 from .args import parse_main_args
 from .world import load_world, World
 from .engine import GameEngine, ActionResult
@@ -17,7 +18,7 @@ def main() -> None:
     engine = base_engine
 
     # AI infused engine
-    ai_engine: AIGameEngine = None
+    ai_engine: Optional[AIGameEngine] = None
     if args.ai_model:
         ai_settings: OllamaClientSettings = OllamaClientSettings(
             args.ai_model,
