@@ -108,12 +108,6 @@ npcs:
       - "Hush now, the woods listen more than you think."
       - "Every lock has a story; some open only to those who listen."
     quest_hook: Knows rumors about the stone gate; will hint if asked or befriended.
-    scripted_talk:
-      text: The hermit eyes you, then mutters about an old key lost along the forest path.
-      set_flags: []
-      give_item: null
-      take_item: null
-      unlock_exit: null
   gnome:
     name: Gnome
     description: A small hunched-back gnome sits casually on a large rock.
@@ -121,8 +115,6 @@ npcs:
     sample_lines:
       - "Sure, sure. Everyone has a story."
       - "And why would I want to do that?"
-    scripted_talk:
-      text: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
 
 interactions:
   - verb: use
@@ -144,3 +136,10 @@ interactions:
       - gate_unlocked
     repeatable: true
     message: It's already open.
+  - verb: talk
+    item: hermit
+    repeatable: true
+    message: The hermit eyes you, then mutters about an old key lost along the forest path.
+  - verb: talk
+    item: gnome
+    message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."

@@ -56,21 +56,6 @@
             "type": "object",
             "additionalProperties": { "type": "string" },
             "default": {}
-          },
-          "scripted_talk": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "text": { "type": "string" },
-              "set_flags": {
-                "type": "array",
-                "items": { "type": "string" },
-                "default": []
-              },
-              "give_item": { "type": ["string", "null"] },
-              "take_item": { "type": ["string", "null"] },
-              "unlock_exit": { "type": ["string", "null"] }
-            }
           }
         }
       },
