@@ -132,8 +132,10 @@ Otherwise, if the player is not trying to perform a game action, respond directl
 Examples:
 {{ "respond": "I'm not sure what you mean. What would you like to do?" }}
 {{ "respond": "I don't know how to open the gate, but perhaps you could look around for a key." }}
-If the player attempts to talk to an NPC in the scene, improvise a response based on the provided NPC information.
-Example:
+If the player attempts to talk to an NPC in the scene, refer to the provided NPC information and either:
+Issue a TALK command if the NPC has a TALK interaction available, for example:
+{{ "execute", "TALK CHECKOUT GIRL" }}
+Otherwise improvise a dialog response in character with the NPC's persona and sample dialog lines, for example:
 {{ "respond": "The ogre turns slowly and scratches his head. 'Me don't know. Me just smash things...'" }}
 Return only JSON in one of the above 2 formats, and no other text.
 """,

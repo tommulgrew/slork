@@ -62,6 +62,20 @@ class GameEngine:
                 if npc.sample_lines:
                     quoted_lines = [f'"{sample_line}"' for sample_line in npc.sample_lines]
                     lines.append(f"    Sample lines:{', '.join(quoted_lines)}")
+                
+                # Look for talk interaction
+                talk_interaction: Optional[Interaction] = next( 
+                    (
+                        interaction 
+                        for interaction in self.world.interactions
+                        if self.matches_interaction(interaction, "talk", item.name.lower(), None)
+                    ),
+                    None
+                )
+                if talk_interaction and not talk_interaction.completed:
+                    lines.append("    TALK interaction: Yes")
+                else:
+                    lines.append("    TALK interaction: No")
 
         # Items
         # Only list portable items. Fixed items should be described
