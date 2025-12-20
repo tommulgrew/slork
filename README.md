@@ -6,6 +6,7 @@ The LLM interprets players' input and translates them to the text adventure comm
 
 The underlying text adventure engine provides a stable game-state with persistent locations, items and characters.
 
+AI example:
 ```
 **************************************************
 Misty Trial
@@ -42,6 +43,28 @@ in his deep bass voice, he shrugs and says, "Don’t look at me, I ain’t openi
 this gate for anybody." Lenny the Leprechaun snorts, pointing his bright green 
 finger at the low wall and the sealed gate to the north, while a single exit, 
 westward, still leads back to the crossroads.
+```
+
+Without AI:
+```
+**************************************************
+Misty Trial
+Slork v0.2 (c) Tom Mulgrew
+**************************************************
+Crossroad
+Trails converge beneath leaning pines, with mist clinging to the ground.
+Your companions: Lenny the Leprechaun
+Exits: north - A narrow path under the canopy., east - Stones hinting at old 
+ruins.
+> go east
+Stone Gate Clearing
+A low wall and a sealed gate block the way north.
+A small hunched-back gnome sits casually on a large rock.
+Your companions: Lenny the Leprechaun
+Exits: west - Toward the crossroads.
+> talk to gnome
+The gnome turns towards you lazily. "Don't look at me, I aint opening this gate 
+for anybody."
 ```
 
 Slork uses Ollama for running local or cloud based LLMs.
