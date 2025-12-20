@@ -12,6 +12,7 @@ VALID_VERBS = {
     "close",
     "examine",
     "talk",
+    "give"
 }
 
 VERB_ALIASES = {
@@ -102,15 +103,23 @@ def parse_command(raw: str) -> ParsedCommand:
         return cmd    
 
     # verb object on target
-    if "on" in remainder:
+    joining_word: Optional[str] = next(
+        (word for word in [ "on", "to" ] if word in remainder), 
+        None
+    )
+    if joining_word:
 
         # Only supported by some verbs
-        if verb != "use":
+        if joining_word == "on" and verb != "use":
+            cmd.error = "Invalid command."
+            return cmd
+        
+        if joining_word == "to" and verb not in [ "talk", "give" ]:
             cmd.error = "Invalid command."
             return cmd
 
         # Split object and target
-        on_index = remainder.index("on")
+        on_index = remainder.index(joining_word)
         cmd.main_noun = " ".join(remainder[:on_index])
         target_remainder = remainder[on_index + 1 :]
 
@@ -119,9 +128,20 @@ def parse_command(raw: str) -> ParsedCommand:
             target_remainder = target_remainder[1:]
 
         if not target_remainder:
-            cmd.error = f"{verb_token} the {cmd.main_noun} on what?"
+            missing_target = "whom" if verb == "give" or verb == "talk" else "what"
+            if cmd.main_noun:
+                cmd.error = f"{verb_token} the {cmd.main_noun} {joining_word} {missing_target}?"
+            else:
+                cmd.error = f"{verb_token} {joining_word} {missing_target}?"
             return cmd
         cmd.target_noun = " ".join(target_remainder)
+
+        # VERB TO [noun] will leave main_noun blank, and set the target_noun.
+        # E.g.: TALK TO HERMIT
+        # In this case transfer it to the main_noun
+        if cmd.main_noun == "":
+            cmd.main_noun = cmd.target_noun
+            cmd.target_noun = None
 
     else:
         cmd.main_noun = " ".join(remainder)

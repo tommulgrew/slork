@@ -8,7 +8,9 @@ import yaml
 class Header:
     title: str
     start: str
-
+    initial_inventory: list[str] = field(default_factory=list)
+    initial_companions: list[str] = field(default_factory=list)
+    
 @dataclass
 class Item:
     name: str

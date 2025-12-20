@@ -1,6 +1,10 @@
 world:
   title: Misty Trial
   start: crossroad
+  initial_companions:
+    - lenny
+  initial_inventory:
+    - lint
 
 flags:
   - gate_unlocked
@@ -41,6 +45,20 @@ items:
     name: Gnome
     description: A short, grumpy looking gnome.
     is_npc: true
+  lenny:
+    name: Lenny the Leprechaun
+    description: A small, annoyingly jolly leprechaun who follows you around. He claims to be your leprechaun equivalent of a fairy godmother. There doesn't seem to be any way to get rid of him.
+    is_npc: true
+    aliases:
+      - lenny
+      - leprechaun
+  lint:
+    name: Pocket lint
+    description: A small pile of fluff that has gathered in your pocket. Why is lint always purple?
+    portable: true
+    aliases:
+      - lint
+      - fluff
 
 locations:
   crossroad:
@@ -116,6 +134,13 @@ npcs:
     sample_lines:
       - "Sure, sure. Everyone has a story."
       - "And why would I want to do that?"
+  lenny:
+    description: Lenny the Leprechaun is here.
+    persona: Annoyingly jolly and enthusiastic; eager to share his opinion.
+    sample_lines:
+      - "This reminds me of a time a wizard turned me into a jellyfish."
+      - "Ooh I love grumpy trolls. Try poking it with a stick."
+      - "I'd love to carry that for you, but I don't want to."    
 
 interactions:
   - verb: use
@@ -145,3 +170,13 @@ interactions:
     item: gnome
     repeatable: true
     message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
+  - verb: give
+    item: lint
+    target: lenny
+    repeatable: false
+    message: The Leprechaun's eyes widen. "You have given me pocket lint! The spell is broken! I am free! ...I'm just kidding, here's your stinky fluff back. Who gives someone lint?"
+  - verb: give
+    item: lint
+    target: gnome
+    repeatable: false
+    message: The gnome is not impressed.

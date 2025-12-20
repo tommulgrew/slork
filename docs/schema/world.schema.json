@@ -11,7 +11,17 @@
       "required": ["start"],
       "properties": {
         "title": { "type": "string" },
-        "start": { "type": "string" }
+        "start": { "type": "string" },
+        "initial_inventory": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "initial_companions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
       }
     },
     "flags": {
@@ -51,12 +61,7 @@
             "items": { "type": "string" },
             "default": []
           },
-          "quest_hook": { "type": "string" },
-          "topics": {
-            "type": "object",
-            "additionalProperties": { "type": "string" },
-            "default": {}
-          }
+          "quest_hook": { "type": "string" }
         }
       },
       "default": {}

@@ -31,7 +31,8 @@ class GameEngine:
     def __init__(self, world:World):
         self.world = world
         self.location_id = world.world.start
-        self.inventory=[]
+        self.inventory=world.world.initial_inventory.copy() if world.world.initial_inventory else []
+        self.companions=world.world.initial_companions.copy() if world.world.initial_companions else []
         self.flags=[]
 
     def current_location(self) -> Location:
