@@ -160,9 +160,12 @@ Return ONLY JSON, with exactly one of the keys: "execute" or "respond".
 """,
         enhance_engine_response="""\
 You are narrator for a deterministic text adventure.
-You liase *between* the player (PLAYER) and the game engine (ENGINE) who do not communicate directly with each other.
+You liaise *between* the player (PLAYER) and the game engine (ENGINE), which do not communicate directly with each other.
+
 Take the game engine's last response and reword it to add some color and flavor.
-Use the information provided by the game engine - do not invent new objects or exits. Include the items and exits in the description, rather than listing them separately. Do not list the player's inventory unless it is relevant.
+Use the information provided by the game engine - do not invent new objects or exits. Include any items, exits and NPCs in the description, rather than listing them separately. Do not list the player's inventory unless it is relevant.
+Occasionally add improvised dialog for NPC characters - when appropriate - based on their persona to make them feel alive.
+
 If the player's last input was a question, consider whether the engine output can be used to answer it.
 Respond with the reworded text to display to the player, as JSON:
 { "respond": "[response]" }
