@@ -28,6 +28,13 @@ class ResolveItemResult:
     error: Optional[str] = None
 
 class GameEngine:
+    """
+    Implements a text adventure game engine.
+    The main method handle_raw_command parses the players input, and attempts to 
+    perform the command in the game.
+    Players can navigate the world using GO, TAKE, EXAMINE and DROP objects or
+    perform specifically defined interactions
+    """
     def __init__(self, world:World):
         self.world = world
         self.location_id = world.world.start

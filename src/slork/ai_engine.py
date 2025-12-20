@@ -28,7 +28,13 @@ class AIResponseFormatError(Exception):
     """Raised when AI client returns a response in the wrong format"""
 
 class AIGameEngine:
-
+    """
+    Wraps around a regular GameEngine and adds LLM integration.
+    The LLM translates the player's input into the game engine syntax, allowing
+    the player to interact using natural language.
+    The LLM also attempts to add flavour to the game engine responses, and provide
+    dialog for NPC characters.
+    """
     def __init__(self, engine: GameEngine, ai_client: OllamaClient):
         self.engine = engine
         self.ai_client = ai_client
