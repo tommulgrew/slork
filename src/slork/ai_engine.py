@@ -112,33 +112,51 @@ def create_ai_prompts() -> AIPrompts:
     return AIPrompts(
         interpret_player_input=f"""\
 You are narrator for a deterministic text adventure.
-You liase *between* the player (PLAYER) and the game engine (ENGINE) who do not communicate directly with each other.
+You liaise *between* the player (PLAYER) and the game engine (ENGINE), which do not communicate directly with each other.
+
+Decision rule:
+- If the player's input can reasonably map to a game action, ALWAYS return an "execute" response.
+- Only return "respond" if no valid game command applies.
+
+Do NOT invoke tools, functions, or tool calls.
+You must communicate ONLY by returning raw JSON text.
+
 Analyze the player's input and determine their intent.
-If they are trying to perform a game action, map their intent to the corresponding text adventure command for the game engine.
+If they are trying to perform a game action, map their intent to the corresponding text adventure command.
+
 The game engine accepts commands with syntax: VERB NOUN
-Valid verbs are {verb_list}. LOOK and INVENTORY do not require a noun. USE can also have the format: USE [noun] ON [target]
-Directions for GO are: north,south,east,west,up,down as well as northwest etc.
+Valid verbs are {verb_list}. Do not invent new verbs.
+LOOK and INVENTORY do not require a noun.
+USE can also have the format: USE [noun] ON [target]
+Directions for GO are: north, south, east, west, up, down, northwest, etc.
+
 Do not attempt to *be* the engine.
+
 Respond with the command for the game engine to execute as JSON:
 {{ "execute": "[command]" }}
+
 Examples:
 {{ "execute": "GO NORTH" }}
 {{ "execute": "TAKE AXE" }}
 {{ "execute": "USE WAND ON MAGIC BARRIER" }}
-If the player asks a question, consider whether executing a LOOK, INVENTORY or EXAMINE command to retrive information
-from the engine may help with answering it.
-Otherwise, if the player is not trying to perform a game action, respond directly to the player as JSON:
+
+If the player input is a question:
+- Prefer issuing LOOK, INVENTORY, or EXAMINE if engine state may help answer it.
+
+If the player attempts to talk to an NPC:
+- If a TALK interaction exists, you MUST issue a TALK command, for example:
+{{ "execute": "TALK CHECKOUT GIRL" }}
+- Otherwise, improvise dialogue using the NPC persona, and respond directly to the player, for example:
+{{ "respond": "The ogre turns slowly and scratches his head. 'Me don't know. Me just smash things...'" }}
+- Do not invent new facts or change game state.
+
+If no valid game action applies, respond directly to the player as JSON:
 {{ "respond": "[response]" }}
-Examples:
+For example:
 {{ "respond": "I'm not sure what you mean. What would you like to do?" }}
 {{ "respond": "I don't know how to open the door, but perhaps you could look around for a key." }}
-If the player attempts to talk to an NPC in the scene, refer to the provided NPC information and either:
-Issue a TALK command if the NPC has a TALK interaction available, for example:
-{{ "execute": "TALK CHECKOUT GIRL" }}
-Otherwise improvise how the NPC might react or reply, taking into account their persona. Sample lines are just
-examples, create your own dialog responses as necessary.
-{{ "respond": "The ogre turns slowly and scratches his head. 'Me don't know. Me just smash things...'" }}
-Return only JSON in one of the above 2 formats, and no other text.
+
+Return ONLY JSON, with exactly one of the keys: "execute" or "respond".
 """,
         enhance_engine_response="""\
 You are narrator for a deterministic text adventure.
@@ -147,9 +165,9 @@ Take the game engine's last response and reword it to add some color and flavor.
 Use the information provided by the game engine - do not invent new objects or exits. Include the items and exits in the description, rather than listing them separately. Do not list the player's inventory unless it is relevant.
 If the player's last input was a question, consider whether the engine output can be used to answer it.
 Respond with the reworded text to display to the player, as JSON:
-{{ "respond": "[response]" }}
+{ "respond": "[response]" }
 Examples:
-{{ "respond": "You step forward boldly into the dim tunnel, ready to face whatever might lurk inside." }}
+{ "respond": "You step forward boldly into the dim tunnel, ready to face whatever might lurk inside." }
 """
     )
 
@@ -158,6 +176,8 @@ def parse_ai_response(raw_text: str, response_type: Type[T]) -> T:
         data=json.loads(raw_text)
         return from_dict(response_type, data)
     except json.JSONDecodeError as exc:
+        print(f"RAW RESPONSE: {raw_text}")
         raise AIResponseFormatError("AI response was not valid JSON") from exc
     except DaciteError as exc:
+        print(f"RAW RESPONSE: {raw_text}")
         raise AIResponseFormatError("AI JSON response did not match expected schema")

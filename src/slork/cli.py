@@ -36,7 +36,11 @@ def main() -> None:
     print("**************************************************")
 
     # Initial location
-    print(engine.describe_current_location())
+    try:
+        print(engine.describe_current_location())
+    except (OllamaApiError, AIResponseFormatError) as exc:
+        print(base_engine.describe_current_location())
+        print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
 
     # Main loop
     while True:
@@ -66,7 +70,6 @@ def main() -> None:
 
         except (OllamaApiError, AIResponseFormatError) as exc:
             print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
-            continue        
 
 if __name__ == "__main__":
     main()
