@@ -1,6 +1,5 @@
+from importlib.metadata import version
 from typing import Optional
-
-from slork.procgen.world_gen import WorldGenerator
 from .args import parse_main_args
 from .world import load_world, World
 from .engine import GameEngine, ActionResult
@@ -34,7 +33,7 @@ def main() -> None:
     print()
     print("**************************************************")
     print(world.world.title)
-    print("Slork v0.2 (c) Tom Mulgrew")
+    print(f"Slork v{version('slork')} (c) Tom Mulgrew")
     if ai_engine:
         print(f"Using AI model: {args.ai_model}")
     print("**************************************************")
