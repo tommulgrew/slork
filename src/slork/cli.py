@@ -1,9 +1,12 @@
 from typing import Optional
+
+from slork.procgen.world_gen import WorldGenerator
 from .args import parse_main_args
 from .world import load_world, World
 from .engine import GameEngine, ActionResult
 from .ai_client import OllamaClient, OllamaClientSettings, OllamaApiError
 from .ai_engine import AIGameEngine, AIResponseFormatError
+from slork.procgen.world_gen import WorldGenerator
 
 def main() -> None:
 

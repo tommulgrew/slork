@@ -8,36 +8,27 @@
             "name": "No AI",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/run.py",
+            "module": "slork.cli",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            },
             "args": ["--world", "assets/worlds/example.yaml"]
         },
         {
             "name": "llama3.2",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/run.py",
+            "module": "slork.cli",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            },
             "args": ["--world", "assets/worlds/example.yaml", "--ai-model", "llama3.2"]
         },
         {
             "name": "gpt-oss:20b-cloud",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/run.py",
+            "module": "slork.cli",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/src"
-            },
             "args": ["--world", "assets/worlds/example.yaml", "--ai-model", "gpt-oss:20b-cloud"]
         }
     ]

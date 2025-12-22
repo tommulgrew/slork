@@ -79,16 +79,16 @@ Slork is a lightweight text-adventure engine. Worlds are defined in YAML, parsed
 
 ## Requirements
 - Python 3.11+ recommended
-- `pip install -r requirements.txt`
+- `pip install -e .`
 - Optional: [Ollama](https://ollama.com/) running locally if you want AI narration/command mapping
 
 ## Quick start
 ```bash
-python run.py                          # play the bundled example world
-python run.py --world assets/worlds/example.yaml
+python -m slork.cli                          # play the bundled example world
+python -m slork.cli --world assets/worlds/example.yaml
 
 # Enable AI assistance (model must be available to Ollama)
-python run.py --ai-model llama3        # optionally add --ollama-url http://localhost:11434
+python -m slork.cli --ai-model llama3        # optionally add --ollama-url http://localhost:11434
 ```
 
 During play:
@@ -111,7 +111,7 @@ During play:
 - If Ollama fails or replies unexpectedly, the engine falls back to the non-AI output and you can toggle AI off with `ai`.
 
 ## Project layout
-- `run.py` – entry point for local play
+- `src/slork/cli.py` – entry point for local play
 - `src/slork/engine.py` – deterministic game engine
 - `src/slork/commands.py` – parser/aliases for player commands
 - `src/slork/world.py` – world data models and loader

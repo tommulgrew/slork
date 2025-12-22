@@ -134,6 +134,7 @@ The game engine accepts commands with syntax: VERB NOUN
 Valid verbs are {verb_list}. Do not invent new verbs.
 LOOK and INVENTORY do not require a noun.
 USE can also have the format: USE [noun] ON [target]
+GIVE has format: GIVE [noun] TO [target]
 Directions for GO are: north, south, east, west, up, down, northwest, etc.
 
 Do not attempt to *be* the engine.
