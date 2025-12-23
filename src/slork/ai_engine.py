@@ -120,6 +120,7 @@ class AIGameEngine:
         except AIResponseFormatError as exc:
             # Allow AI one attempt to fix invalid JSON
             try:
+                print("(Repairing JSON...)")
                 repaired_json = self.repair_json(raw_text, exc)
                 return parse_ai_response(repaired_json, response_type)
             except AIResponseFormatError as exc:
