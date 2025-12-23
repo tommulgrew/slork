@@ -23,6 +23,7 @@ class AIEnhanceEngineResponse:
 class AIPrompts:
     interpret_player_input: str
     enhance_engine_response: str
+    repair_json: str
 
 class AIResponseFormatError(Exception):
     """Raised when AI client returns a response in the wrong format"""
@@ -89,7 +90,7 @@ class AIGameEngine:
         self.message_history.append(ai_chat_response)
 
         # Expect an AIPlayerInputResponse in JSON format
-        return parse_ai_response(ai_chat_response.content, AIPlayerInputResponse)
+        return self.parse_ai_response_with_repair(ai_chat_response.content, AIPlayerInputResponse)
 
     def ai_enhance_engine_response(self, engine_response: ActionResult) -> ActionResult:
 
@@ -110,8 +111,41 @@ class AIGameEngine:
         self.message_history.append(ai_chat_response)
 
         # Expect an AIEnhanceEngineResponse in JSON format
-        ai_response = parse_ai_response(ai_chat_response.content, AIEnhanceEngineResponse)
+        ai_response = self.parse_ai_response_with_repair(ai_chat_response.content, AIEnhanceEngineResponse)
         return ActionResult(status=engine_response.status, message=ai_response.respond)
+
+    def parse_ai_response_with_repair(self, raw_text: str, response_type: Type[T]) -> T:
+        try:
+            return parse_ai_response(raw_text, response_type)
+        except AIResponseFormatError as exc:
+            # Allow AI one attempt to fix invalid JSON
+            try:
+                repaired_json = self.repair_json(raw_text, exc)
+                return parse_ai_response(repaired_json, response_type)
+            except AIResponseFormatError as exc:
+                print(f"RAW RESPONSE: {raw_text}")
+                raise
+
+    def repair_json(self, json: str, exc) -> str:
+        system_message = OllamaNormalisedMessage("system", self.ai_prompts.repair_json)
+        user_message = OllamaNormalisedMessage("user", f"""\
+The following JSON was rejected by the parser.
+
+Parser error:
+{exc}
+
+Malformed JSON:
+{json}
+"""
+        )
+
+        ai_messages: list[OllamaNormalisedMessage] = [
+            system_message,
+            user_message
+        ]
+
+        ai_chat_response = self.ai_client.chat(ai_messages)
+        return ai_chat_response.content
 
 def create_ai_prompts() -> AIPrompts:
     verb_list = ', '.join(sorted(VALID_VERBS))
@@ -178,6 +212,14 @@ Respond with the reworded text to display to the player, as JSON:
 { "respond": "[response]" }
 Examples:
 { "respond": "You step forward boldly into the dim tunnel, ready to face whatever might lurk inside." }
+""",
+        repair_json="""\
+You are a JSON repair tool.
+Your task its to fix malformed JSON so that it is valid and semantically equivalent.
+Do not add new fields.
+Do not remove fields.
+Do not change values except to fix syntax.
+Return ONLY valid JSON.
 """
     )
 
@@ -186,8 +228,6 @@ def parse_ai_response(raw_text: str, response_type: Type[T]) -> T:
         data=json.loads(raw_text)
         return from_dict(response_type, data)
     except json.JSONDecodeError as exc:
-        print(f"RAW RESPONSE: {raw_text}")
         raise AIResponseFormatError("AI response was not valid JSON") from exc
     except DaciteError as exc:
-        print(f"RAW RESPONSE: {raw_text}")
         raise AIResponseFormatError("AI JSON response did not match expected schema")
