@@ -106,7 +106,6 @@ NPCs are implemented as **items with extra metadata**.
 researcher:
   name: Elias the Researcher
   description: A tired man in a faded field jacket.
-  is_npc: true
   aliases: [elias, researcher]
 ```
 

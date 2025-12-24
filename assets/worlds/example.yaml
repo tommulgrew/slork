@@ -40,15 +40,12 @@ items:
   hermit:
     name: Hermit
     description: A slender wirey old man with gray hair.
-    is_npc: true
   gnome:
     name: Gnome
     description: A short, grumpy looking gnome.
-    is_npc: true
   lenny:
     name: Lenny the Leprechaun
     description: A small, annoyingly jolly leprechaun who follows you around. He claims to be your leprechaun equivalent of a fairy godmother, yet has no interest in doing anything helpful. There doesn't seem to be any way to get rid of him.
-    is_npc: true
     aliases:
       - lenny
       - leprechaun

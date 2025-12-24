@@ -52,13 +52,11 @@ items:
   researcher:
     name: Elias the Researcher
     description: A tired man in a faded field jacket, eyes sharp despite the years.
-    is_npc: true
     aliases: [elias, researcher]
 
   caretaker:
     name: Mara the Caretaker
     description: A woman with windburned skin and steady hands. She watches the sea constantly.
-    is_npc: true
     aliases: [mara, caretaker]
 
   bone:
@@ -69,7 +67,6 @@ items:
   dog:
     name: Dog
     description: A small, friendly dog.
-    is_npc: true    
 
 npcs:
   researcher:

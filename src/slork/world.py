@@ -16,7 +16,6 @@ class Item:
     name: str
     description: str
     portable: bool = False
-    is_npc: bool = False
     aliases: list[str] = field(default_factory=list)
 
 @dataclass

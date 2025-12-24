@@ -74,7 +74,7 @@ class GameEngine:
         other_npcs = [ 
             (item_id, self.world.items[item_id], self.world.npcs[item_id])
             for item_id in location.items 
-            if self.world.items[item_id].is_npc and item_id not in self.companions
+            if item_id in self.world.npcs and item_id not in self.companions
         ]
         for item_id, item, npc in other_npcs:
             lines.append(npc.description)
@@ -123,7 +123,7 @@ class GameEngine:
         item_descriptions = []
         for item_id in location.items:
             item = self.world.items[item_id]
-            if not item.is_npc:
+            if item_id not in self.world.npcs:
                 if item.portable or verbose:
                     item_descriptions.append(item.name)
         if item_descriptions:

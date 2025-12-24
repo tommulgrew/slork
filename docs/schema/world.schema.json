@@ -57,11 +57,6 @@
             "type": "boolean", "default": true,
             "description": "If true, the player can TAKE and DROP the item. If false, the item will remain in its initial location."
           },
-          "is_npc": { 
-            "type": "boolean", 
-            "default": false,
-            "description": "True if the item is an NPC. Requires a corresponding entry (with the same ID) in the 'npcs' array."
-          },
           "aliases": {
             "type": "array",
             "items": { "type": "string" },
