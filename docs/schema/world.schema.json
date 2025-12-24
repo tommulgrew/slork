@@ -8,16 +8,24 @@
     "world": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["start"],
+      "required": ["title", "start"],
       "properties": {
-        "title": { "type": "string" },
-        "start": { "type": "string" },
+        "title": { 
+          "type": "string",
+          "description": "Optional world title to display when the game starts."
+        },
+        "start": { 
+          "type": "string",
+          "description": "The location ID of the location the player will start in."
+        },
         "initial_inventory": {
+          "description": "List of item IDs for the items in the player's starting inventory.",
           "type": "array",
           "items": { "type": "string" },
           "default": []
         },
         "initial_companions": {
+          "description": "List of item IDs for companion NPCs.",
           "type": "array",
           "items": { "type": "string" },
           "default": []
@@ -27,22 +35,38 @@
     "flags": {
       "type": "array",
       "items": { "type": "string" },
-      "default": []
+      "default": [],
+      "description": "List of global flag IDs. Flags can be set by interactions and used to enable/disable exits or interactions."
     },
     "items": {
       "type": "object",
+      "description": "List of interactive game items. Includes portable (can be picked up), non-portable (never leave their original location) and NPCs.",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "name": { "type": "string" },
-          "description": { "type": "string" },
-          "portable": { "type": "boolean", "default": true },
-          "is_npc": { "type": "boolean", "default": false },
+          "name": { 
+            "type": "string",
+            "description": "The main name of the item. Used when displaying messages about the item. Used by the player to refer to the item in commands (e.g. TAKE FLASHLIGHT)."
+          },
+          "description": { 
+            "type": "string",
+            "description": "Displayed when the player examines the item."
+          },
+          "portable": { 
+            "type": "boolean", "default": true,
+            "description": "If true, the player can TAKE and DROP the item. If false, the item will remain in its initial location."
+          },
+          "is_npc": { 
+            "type": "boolean", 
+            "default": false,
+            "description": "True if the item is an NPC. Requires a corresponding entry (with the same ID) in the 'npcs' array."
+          },
           "aliases": {
             "type": "array",
             "items": { "type": "string" },
-            "default": []
+            "default": [],
+            "description": "List of aliases the player can use instead of the 'name' in the commands. E.g. 'brass key', 'key'."
           }
         }
       },
@@ -68,33 +92,52 @@
     },
     "locations": {
       "type": "object",
+      "description": "Locations that the player navigates between.",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "name": { "type": "string" },
-          "description": { "type": "string" },
+          "name": { 
+            "type": "string",
+            "description": "Displayed before the location description."
+          },
+          "description": { 
+            "type": "string",
+            "description": "The location description is displayed when the player enters a new location or uses the LOOK command."
+          },
           "notes": { "type": "string" },
           "items": {
             "type": "array",
             "items": { "type": "string" },
-            "default": []
+            "default": [],
+            "description": "A list of item IDs for items in the location."
           },
           "exits": {
             "type": "object",
+            "description": "A list of exits from the location (to another location). Exits should be named 'north', 'south', 'east', 'west', combinations like 'northwest', or 'up' or 'down'.",
             "additionalProperties": {
               "type": "object",
               "additionalProperties": false,
               "required": ["to"],
               "properties": {
-                "to": { "type": "string" },
-                "description": { "type": "string" },
+                "to": { 
+                  "type": "string",
+                  "description": "The ID of the location the exit leads to."
+                },
+                "description": { 
+                  "type": "string",
+                  "description": "Describes the exit. 'A narrow path winds along the cliffs towards...'"
+                },
                 "requires_flags": {
                   "type": "array",
                   "items": { "type": "string" },
-                  "default": []
+                  "default": [],
+                  "description": "A list of flag IDs that must be set before the player can use the exit. E.g. 'gate_unlocked'"
                 },
-                "blocked_description": { "type": "string" }
+                "blocked_description": { 
+                  "type": "string",
+                  "description": "Displayed when the player attempts to use the exit when it is blocked (required flags are not set)."
+                }
               }
             },
             "default": {}
@@ -105,37 +148,62 @@
     },
     "interactions": {
       "type": "array",
+      "description": "Defines the interactions the player can have with the world, including their criteria and effects.",
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": ["verb", "item"],
         "properties": {
-          "verb": { "type": "string" },
-          "item": { "type": "string" },
-          "target": { "type": "string" },
+          "verb": { 
+            "type": "string",
+            "description": "The verb used in the command. Must be one of the predefined engine verbs, e.g. USE, OPEN, GIVE."
+          },
+          "item": { 
+            "type": "string",
+            "description": "The item ID of the item specified in the interaction. The item must be in the location, or in the player's inventory."
+          },
+          "target": { 
+            "type": "string",
+            "description": "The item ID of the target item. Applies to USE and GIVE verbs only."
+          },
           "requires_flags": {
             "type": "array",
             "items": { "type": "string" },
-            "default": []
+            "default": [],
+            "description": "List of flag IDs that must be set in order to perform the interaction."
           },
           "blocking_flags": {
             "type": "array",
             "items": { "type": "string" },
-            "default": []
+            "default": [],
+            "description": "List of flag IDs that must *not* be set in order to perform the interaction."
           },
           "set_flags": {
             "type": "array",
             "items": { "type": "string" },
-            "default": []
+            "default": [],
+            "description": "A list of flag IDs to set when the interaction is performed."
           },
           "clear_flags": {
             "type": "array",
             "items": { "type": "string" },
-            "default": []
+            "default": [],
+            "description": "A list of flag IDs to clear when the interaction is performed."
           },
-          "consumes": { "type": "boolean", "default": false },
-          "repeatable": { "type": "boolean", "default": false },
-          "message": { "type": "string" }
+          "consumes": { 
+            "type": "boolean", 
+            "default": false,
+            "description": "If true the item will be removed from the game (and the player's inventory if applicable) when the interaction is performed."
+          },
+          "repeatable": { 
+            "type": "boolean", 
+            "default": false,
+            "description": "Whether the interaction can be repeated. If false, it can only be performed once."
+          },
+          "message": { 
+            "type": "string",
+            "description": "Displayed to the user when they successfully perform the action."
+          }
         }
       },
       "default": []
