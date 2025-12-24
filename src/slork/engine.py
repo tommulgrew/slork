@@ -39,8 +39,7 @@ class GameEngine:
         self.world = world
         self.location_id = world.world.start
         self.inventory=world.world.initial_inventory.copy() if world.world.initial_inventory else []
-        self.companions=world.world.initial_companions.copy() if world.world.initial_companions else []
-        self.flags=[]
+        self.flags=[companion_flag(npc_id) for npc_id in world.world.initial_companions]
         self.move_companions()
 
     def current_location(self) -> Location:
@@ -68,13 +67,13 @@ class GameEngine:
 
         # NPCs
         companion_npcs = [
-            (item_id, self.world.items[item_id], self.world.npcs[item_id])
-            for item_id in self.companions
+            (npc_id, self.world.items[npc_id], self.world.npcs[npc_id])
+            for npc_id in self.companions
         ]
         other_npcs = [ 
             (item_id, self.world.items[item_id], self.world.npcs[item_id])
-            for item_id in location.items 
-            if item_id in self.world.npcs and item_id not in self.companions
+            for item_id in location.items
+            if self.is_npc(item_id) and not self.is_companion(item_id)
         ]
         for item_id, item, npc in other_npcs:
             lines.append(npc.description)
@@ -123,7 +122,7 @@ class GameEngine:
         item_descriptions = []
         for item_id in location.items:
             item = self.world.items[item_id]
-            if item_id not in self.world.npcs:
+            if not self.is_npc(item_id):
                 if item.portable or verbose:
                     item_descriptions.append(item.name)
         if item_descriptions:
@@ -400,10 +399,27 @@ class GameEngine:
         interaction.completed = True
     
     def move_companions(self):
-        for location_id, location in self.world.locations.items():
+        for _, location in self.world.locations.items():
             for companion in self.companions:
                 if companion in location.items:
                     location.items.remove(companion)
 
         location = self.current_location()
         location.items.extend(self.companions)
+
+    def is_npc(self, item_id: str) -> bool:
+        return item_id in self.world.npcs
+
+    @property
+    def npcs(self) -> list[str]:
+        return [ npc_id for npc_id, _ in self.world.npcs.items() ]
+
+    def is_companion(self, npc_id: str) -> bool:
+        return companion_flag(npc_id) in self.flags
+
+    @property
+    def companions(self) -> list[str]:
+        return [ npc_id for npc_id in self.npcs if self.is_companion(npc_id) ]
+
+def companion_flag(npc_id: str) -> str:
+    return f"companion:{npc_id}"
