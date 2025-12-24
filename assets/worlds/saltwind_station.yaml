@@ -1,7 +1,7 @@
 world:
   title: "The Saltwind Station"
   start: beach
-  initial_inventory: []
+  initial_inventory: [bone]
   initial_companions: []
 
 flags: []
@@ -61,6 +61,16 @@ items:
     is_npc: true
     aliases: [mara, caretaker]
 
+  bone:
+    name: Rubber bone
+    description: A small rubber toy bone.
+    aliases: [bone]
+
+  dog:
+    name: Dog
+    description: A small, friendly dog.
+    is_npc: true    
+
 npcs:
   researcher:
     description: Elias, a man in a faded field jacket, stands nearby, jotting notes and watching the sea with a wary expression.
@@ -77,6 +87,10 @@ npcs:
       - "Someone has to keep the lights working."
       - "Storm's coming. Always does."
     quest_hook: She wants the lighthouse restored.
+
+  dog:
+    description: A small hairy dog sits in an old basket, watching you hopefully.
+    persona: A small enthusiastic dog.    
 
 locations:
   beach:
@@ -129,7 +143,7 @@ locations:
   radio_room:
     name: Radio Room
     description: Dusty consoles face a single desk-mounted radio.
-    items: [radio, station_key]
+    items: [radio, station_key, dog]    
     exits:
       west:
         to: main_hall
@@ -169,10 +183,6 @@ interactions:
     message: >
       Elias rubs his temples. "We picked something up out there. Then command told us to stay quiet."
 
-  - verb: get
-    item: fuel_can
-    message: You pick up the fuel can. It's heavier than it looks.
-
   - verb: use
     item: fuel_can
     target: generator
@@ -210,3 +220,14 @@ interactions:
     blocking_flags: [power_restored]
     message: >
       The radio is dead.
+
+  - verb: talk
+    item: dog
+    message: "\"Woof!\""
+
+  - verb: give
+    item: bone
+    target: dog
+    consumes: true
+    message: "The dog accepts the toy bone and begins chewing on it."
+    
