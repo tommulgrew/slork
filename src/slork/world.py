@@ -71,3 +71,25 @@ def load_world(path: Path):
     parsed_world = yaml.safe_load(world_yaml)
     world = from_dict(World, parsed_world)
     return world
+
+def validate_world(world: World) -> list[str]:
+
+    issues: list[str] = []
+
+    # Track referenced things
+    ref_flags: set[str] = set()
+    ref_items: set[str] = set()
+    ref_npcs: set[str] = set()
+
+    # Header
+    for npc_id in world.world.initial_companions:        
+        ref_npcs.add(npc_id)
+        if npc_id not in world.npcs:
+            issues.append(f"Initial companion '{npc_id}' was not found in the 'npcs' list.")
+
+    for item_id in world.world.initial_inventory:
+        ref_items.add(item_id)
+        if item_id not in world.items:
+            issues.append(f"Initial item '{item_id}' was not found in the 'items' list.")
+   
+    return issues
