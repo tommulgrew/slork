@@ -74,18 +74,29 @@
     },
     "npcs": {
       "type": "object",
+      "description": "NPC characters found in the world. Each one must have a corresponding 'item' with the same ID'",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "description": { "type": "string" },
-          "persona": { "type": "string" },
+          "description": { 
+            "type": "string",
+            "description": "Displayed as part of the location description when the NPC is present. Must convey that the NPC is present and communicate the noun the player should use to interact with them. E.g. 'A bored looking guard stands in front of the gate.'"
+          },
+          "persona": { 
+            "type": "string",
+            "description": "Only used in AI mode. A basic description of the NPC's persona."
+          },
           "sample_lines": {
             "type": "array",
             "items": { "type": "string" },
-            "default": []
+            "default": [],
+            "description": "Only used in AI mode. Example dialog lines for few-shot dialog generation."
           },
-          "quest_hook": { "type": "string" }
+          "quest_hook": {
+            "type": "string",
+            "description": "Only used in AI mode. Contains quest related information for AI to take into account when generating dialog etc."
+          }
         }
       },
       "default": {}
