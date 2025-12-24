@@ -65,8 +65,9 @@ items:
     aliases: [bone]
 
   dog:
-    name: Dog
+    name: Small dog
     description: A small, friendly dog.
+    aliases: [dog]
 
 npcs:
   researcher:
@@ -184,7 +185,7 @@ interactions:
     item: fuel_can
     target: generator
     message: The generator sputters, then roars to life. Lights flicker on across the station.
-    consumes: true
+    repeatable: false
     set_flags: [power_restored]
 
   - verb: use
@@ -193,6 +194,10 @@ interactions:
     requires_flags: [power_restored]
     message: The key turns with a metallic groan. The lighthouse door unlocks. Inside a spiral stairway leads upward.
     set_flags: [lighthouse_open]
+
+  - verb: open
+    item: lighthouse_door
+    message: The door is locked, and will not open.
 
   - verb: use
     item: station_key
@@ -227,4 +232,5 @@ interactions:
     target: dog
     consumes: true
     message: "The dog accepts the toy bone and begins chewing on it."
-    
+    set_flags:
+      - "companion:dog"
