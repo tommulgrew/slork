@@ -84,6 +84,34 @@ class World:
             ref_items.add(item_id)
             if item_id not in self.items:
                 issues.append(f"Initial item '{item_id}' was not found in the 'items' list.")
+
+        # Locations
+        items_by_loc: dict[str, str] = {}        
+        for loc_id, loc in self.locations.items():
+
+            # Location items
+            for item_id in loc.items:
+                ref_items.add(item_id)
+                if item_id not in self.items:
+                    issues.append(f"Item '{item_id}' in location '{loc_id}' was not found in the 'items' list.")
+                if item_id in self.world.initial_inventory:
+                    issues.append(f"Item '{item_id}' in location '{loc_id}' is also in the initial items list.")
+                if item_id in items_by_loc:
+                    issues.append(f"Item '{item_id}' in location '{loc_id}' is also in location '{items_by_loc[item_id]}'.")
+                items_by_loc[item_id] = loc_id
+
+            # Location exits
+            for exit_id, exit in loc.exits.items():
+                if exit.to not in self.locations:
+                    issues.append(f"'{exit_id}' exit in location '{loc_id}' points to invalid location '{exit.to}'.")
+                if exit.requires_flags and not exit.blocked_description:
+                    issues.append(f"'{exit_id}' exit in location '{loc_id}' has requires_flags, but no blocked_description.")
+                if exit.blocked_description and not exit.requires_flags:
+                    issues.append(f"'{exit_id}' exit in location '{loc_id}' has blocked_description, but no requires_flags.")
+                for flag in exit.requires_flags:
+                    ref_flags.add(flag)
+                    if flag not in self.flags:
+                        issues.append(f"Required flag '{flag}' for '{exit_id}' exit in location '{loc_id}' was not found in 'flags' list.")
     
         return issues
 
