@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 from dacite import from_dict
 import yaml
+from .commands import VALID_VERBS
 
 @dataclass
 class Header:
@@ -72,11 +73,10 @@ class World:
         # Track referenced things
         ref_flags: set[str] = set()
         ref_items: set[str] = set()
-        ref_npcs: set[str] = set()
 
         # Header
         for npc_id in self.world.initial_companions:        
-            ref_npcs.add(npc_id)
+            ref_items.add(npc_id)
             if npc_id not in self.npcs:
                 issues.append(f"Initial companion '{npc_id}' was not found in the 'npcs' list.")
 
@@ -101,6 +101,8 @@ class World:
                 items_by_loc[item_id] = loc_id
 
             # Location exits
+            if not loc.exits:
+                issues.append(f"Location '{loc_id}' has no exits.")
             for exit_id, exit in loc.exits.items():
                 if exit.to not in self.locations:
                     issues.append(f"'{exit_id}' exit in location '{loc_id}' points to invalid location '{exit.to}'.")
@@ -112,7 +114,61 @@ class World:
                     ref_flags.add(flag)
                     if flag not in self.flags:
                         issues.append(f"Required flag '{flag}' for '{exit_id}' exit in location '{loc_id}' was not found in 'flags' list.")
-    
+
+        # NPCs
+        for npc_id, npc in self.npcs.items():
+            if npc_id not in self.items:
+                issues.append(f"NPC '{npc_id}' does not have a corresponding item in the 'items' list.")
+
+        # Interactions
+        for x in self.interactions:
+            if x.verb not in VALID_VERBS:
+                issues.append(f"Interaction verb '{x.verb}' is not in the valid verbs list ({', '.join(VALID_VERBS)}).")
+            if x.item not in self.items:
+                issues.append(f"Interaction item '{x.item}' is was not found in the 'items' list.")
+            if x.target and x.verb not in ['use', 'give']:
+                issues.append(f"Interaction verb '{x.verb}' has a target ('{x.target}'). Only verbs 'use' and 'give' support targets.")
+
+            # Note: Not counting interaction references to items, as we are 
+            # interested in references that make them available in the game.
+
+            for flag in x.requires_flags:
+                if flag not in self.flags:
+                    issues.append(f"Required flag '{flag}' for interaction was not found in 'flags' list.")
+                ref_flags.add(flag)
+            for flag in x.blocking_flags:
+                if flag not in self.flags:
+                    issues.append(f"Blocking flag '{flag}' for interaction was not found in 'flags' list.")
+                ref_flags.add(flag)
+
+        unref_flags = [ flag    for flag          in self.flags         if flag    not in ref_flags]
+        unref_items = [ item_id for item_id, item in self.items.items() if item_id not in ref_items]
+        if unref_flags:
+            issues.append(f"Unreferenced flags: {', '.join(unref_flags)}.")
+        if unref_items:
+            issues.append(f"Unreferenced items: {', '.join(unref_items)}.")
+
+        # Find unreachable locations
+        unreachable = [ loc_id for loc_id, _ in self.locations.items() ]
+        queue = [ self.world.start ]
+        unreachable.remove(self.world.start)
+
+        while queue:
+            
+            # Remove location from queue
+            loc_id = queue[0]
+            queue.remove(loc_id)
+            loc = self.locations[loc_id]
+
+            # Scan exits
+            for _, ex in loc.exits.items():
+                if ex.to in unreachable:
+                    unreachable.remove(ex.to)
+                    queue.append(ex.to)
+
+        if unreachable:
+            issues.append(f"Unreachable locations: {', '.join(unreachable)}.")
+
         return issues
 
 def load_world(path: Path):

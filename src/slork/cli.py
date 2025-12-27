@@ -17,7 +17,6 @@ def main() -> None:
     if issues:
         issue_lines = "\n".join([f"- {issue}" for issue in issues])
         print(f"WORLD VALIDATION FAILED\nFile: {args.world}\n{issue_lines}")
-        return
 
     # Create game engine
     base_engine: GameEngine = GameEngine(world)
