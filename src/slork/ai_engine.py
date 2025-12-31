@@ -5,7 +5,7 @@ import json
 from dacite import from_dict
 from dacite.exceptions import DaciteError
 from .engine import GameEngine, ActionResult, ActionStatus
-from .ai_client import OllamaClient, OllamaNormalisedMessage
+from .ai_client_ollama import OllamaClient, OllamaNormalisedMessage
 from .commands import VALID_VERBS
 
 T = TypeVar("T")

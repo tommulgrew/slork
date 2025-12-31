@@ -3,7 +3,7 @@ from typing import Optional
 from .args import parse_main_args
 from .world import load_world, World
 from .engine import GameEngine, ActionResult
-from .ai_client import OllamaClient, OllamaClientSettings, OllamaApiError
+from .ai_client_ollama import OllamaClient, OllamaClientSettings, OllamaApiError
 from .ai_engine import AIGameEngine, AIResponseFormatError
 
 def main() -> None:
