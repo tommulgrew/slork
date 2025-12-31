@@ -40,7 +40,8 @@ def main() -> None:
     print(world.world.title)
     print(f"Slork v{version('slork')} (c) Tom Mulgrew")
     if ai_engine:
-        print(f"Using AI model: {args.ai_model}")
+        print(f"  AI backend: {args.ai_backend}")
+        print(f"  AI model:   {args.ai_model}")
     print("**************************************************")
 
     # Initial location
