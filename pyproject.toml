@@ -3,7 +3,8 @@ name = "slork"
 version = "0.2.0"
 dependencies = [
     "pyyaml",
-    "dacite"
+    "dacite",
+    "openai"
 ]
 
 [build-system]

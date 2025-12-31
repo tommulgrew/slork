@@ -3,7 +3,7 @@ from typing import Optional
 from .args import parse_main_args
 from .world import load_world, World
 from .engine import GameEngine, ActionResult
-from .ai_client_ollama import OllamaClient, OllamaClientSettings, OllamaApiError
+from .ai_client_ollama import OllamaClient, OllamaClientSettings, AIChatAPIError
 from .ai_engine import AIGameEngine, AIResponseFormatError
 
 def main() -> None:
@@ -44,7 +44,7 @@ def main() -> None:
     # Initial location
     try:
         print(engine.describe_current_location())
-    except (OllamaApiError, AIResponseFormatError) as exc:
+    except (AIChatAPIError, AIResponseFormatError) as exc:
         print(base_engine.describe_current_location())
         print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
 
@@ -74,7 +74,7 @@ def main() -> None:
             engine_response: ActionResult = engine.handle_raw_command(player_cmd_str)
             print(engine_response.message)
 
-        except (OllamaApiError, AIResponseFormatError) as exc:
+        except (AIChatAPIError, AIResponseFormatError) as exc:
             print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
 
 if __name__ == "__main__":
