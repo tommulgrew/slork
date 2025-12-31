@@ -5,6 +5,7 @@ from urllib.error import HTTPError, URLError
 from typing import Any, Optional
 import json
 import socket
+from .ai_client import NormalisedAIChatMessage
 
 @dataclass
 class OllamaToolFunction:
@@ -24,14 +25,9 @@ class OllamaMessage:
     tool_calls: list[OllamaToolCall] = field(default_factory=list)
 
 @dataclass
-class OllamaNormalisedMessage:
-    role: str
-    content: str
-
-@dataclass
 class OllamaChatRequest:
     model: str
-    messages: list[OllamaNormalisedMessage]
+    messages: list[NormalisedAIChatMessage]
     stream: bool = False
 
 @dataclass
@@ -56,7 +52,7 @@ class OllamaClient:
     def __init__(self, settings: OllamaClientSettings):
         self.settings = settings
 
-    def chat(self, messages: list[OllamaNormalisedMessage]) -> OllamaNormalisedMessage:
+    def chat(self, messages: list[NormalisedAIChatMessage]) -> NormalisedAIChatMessage:
         chat_request = OllamaChatRequest(
             model=self.settings.model,
             messages=messages
@@ -85,13 +81,13 @@ class OllamaClient:
 
         # Normalise chat message response
         if response_message.content:
-            return OllamaNormalisedMessage(
+            return NormalisedAIChatMessage(
                 role=response_message.role, 
                 content=response_message.content
             )
 
         if response_message.tool_calls:
-            return OllamaNormalisedMessage(
+            return NormalisedAIChatMessage(
                 role=response_message.role,
                 content=json.dumps(response_message.tool_calls[0].function.arguments)
             )

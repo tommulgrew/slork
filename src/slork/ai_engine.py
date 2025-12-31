@@ -5,7 +5,8 @@ import json
 from dacite import from_dict
 from dacite.exceptions import DaciteError
 from .engine import GameEngine, ActionResult, ActionStatus
-from .ai_client_ollama import OllamaClient, OllamaNormalisedMessage
+from .ai_client import NormalisedAIChatMessage
+from .ai_client_ollama import OllamaClient
 from .commands import VALID_VERBS
 
 T = TypeVar("T")
@@ -40,7 +41,7 @@ class AIGameEngine:
         self.engine = engine
         self.ai_client = ai_client
 
-        self.message_history: deque[OllamaNormalisedMessage] = deque(maxlen=8)
+        self.message_history: deque[NormalisedAIChatMessage] = deque(maxlen=8)
         self.ai_prompts = create_ai_prompts()
 
     def describe_current_location(self, verbose: bool = False) -> str:
@@ -68,11 +69,11 @@ class AIGameEngine:
     def ai_interpret_player_input(self, raw_command: str) -> AIPlayerInputResponse:
 
         # Build messages for chat api call
-        system_message = OllamaNormalisedMessage("system", self.ai_prompts.interpret_player_input)
-        engine_context_message = OllamaNormalisedMessage("user", f"ENGINE: {self.engine.describe_current_location(verbose=True)}")
-        player_message = OllamaNormalisedMessage("user", f"PLAYER: {raw_command}")
+        system_message = NormalisedAIChatMessage("system", self.ai_prompts.interpret_player_input)
+        engine_context_message = NormalisedAIChatMessage("user", f"ENGINE: {self.engine.describe_current_location(verbose=True)}")
+        player_message = NormalisedAIChatMessage("user", f"PLAYER: {raw_command}")
 
-        ai_messages: list[OllamaNormalisedMessage] = [
+        ai_messages: list[NormalisedAIChatMessage] = [
             system_message,
             *self.message_history,
             engine_context_message,
@@ -95,9 +96,9 @@ class AIGameEngine:
     def ai_enhance_engine_response(self, engine_response: ActionResult) -> ActionResult:
 
         # Build messages for chat api call
-        system_message = OllamaNormalisedMessage("system", self.ai_prompts.enhance_engine_response)
-        engine_response_message = OllamaNormalisedMessage("user", f"ENGINE:\n  STATUS: {engine_response.status.name}\n  MESSAGE: {engine_response.message}")
-        ai_messages: list[OllamaNormalisedMessage] = [
+        system_message = NormalisedAIChatMessage("system", self.ai_prompts.enhance_engine_response)
+        engine_response_message = NormalisedAIChatMessage("user", f"ENGINE:\n  STATUS: {engine_response.status.name}\n  MESSAGE: {engine_response.message}")
+        ai_messages: list[NormalisedAIChatMessage] = [
             system_message,
             *self.message_history,
             engine_response_message
@@ -128,8 +129,8 @@ class AIGameEngine:
                 raise
 
     def repair_json(self, json: str, exc) -> str:
-        system_message = OllamaNormalisedMessage("system", self.ai_prompts.repair_json)
-        user_message = OllamaNormalisedMessage("user", f"""\
+        system_message = NormalisedAIChatMessage("system", self.ai_prompts.repair_json)
+        user_message = NormalisedAIChatMessage("user", f"""\
 The following JSON was rejected by the parser.
 
 Parser error:
@@ -140,7 +141,7 @@ Malformed JSON:
 """
         )
 
-        ai_messages: list[OllamaNormalisedMessage] = [
+        ai_messages: list[NormalisedAIChatMessage] = [
             system_message,
             user_message
         ]
