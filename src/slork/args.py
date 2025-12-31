@@ -21,5 +21,11 @@ def parse_main_args():
         default="http://localhost:11434",
         help="Ollama base URL.",
     )
+    parser.add_argument(
+        "--ai-backend",
+        type=str,
+        default="ollama",
+        choices=["ollama", "openai"]
+    )
     return parser.parse_args()
 
