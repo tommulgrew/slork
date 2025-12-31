@@ -6,7 +6,6 @@ from dacite import from_dict
 from dacite.exceptions import DaciteError
 from .engine import GameEngine, ActionResult, ActionStatus
 from .ai_client import NormalisedAIChatMessage
-from .ai_client_ollama import OllamaClient
 from .commands import VALID_VERBS
 
 T = TypeVar("T")
@@ -37,7 +36,7 @@ class AIGameEngine:
     The LLM also attempts to add flavour to the game engine responses, and provide
     dialog for NPC characters.
     """
-    def __init__(self, engine: GameEngine, ai_client: OllamaClient):
+    def __init__(self, engine: GameEngine, ai_client):
         self.engine = engine
         self.ai_client = ai_client
 

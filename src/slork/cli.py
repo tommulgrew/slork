@@ -1,9 +1,12 @@
+import os
 from importlib.metadata import version
 from typing import Optional
 from .args import parse_main_args
 from .world import load_world, World
 from .engine import GameEngine, ActionResult
-from .ai_client_ollama import OllamaClient, OllamaClientSettings, AIChatAPIError
+from .ai_client import AIChatAPIError, AIConfigurationError
+from .ai_client_ollama import OllamaClient, OllamaClientSettings
+from .ai_client_openai import OpenAIClient, OpenAIClientSettings
 from .ai_engine import AIGameEngine, AIResponseFormatError
 
 def main() -> None:
@@ -25,13 +28,12 @@ def main() -> None:
     # AI infused engine
     ai_engine: Optional[AIGameEngine] = None
     if args.ai_model:
-        ai_settings: OllamaClientSettings = OllamaClientSettings(
-            args.ai_model,
-            args.ollama_url
-        )
-        ai_client = OllamaClient(ai_settings)
-        ai_engine = AIGameEngine(base_engine, ai_client)
-        engine = ai_engine
+        try:
+            ai_client = createAIClient(args)
+            ai_engine = AIGameEngine(base_engine, ai_client)
+            engine = ai_engine
+        except(AIConfigurationError) as exc:
+            print(f"{exc}\nContinuing without AI.")
 
     print()
     print("**************************************************")
@@ -76,6 +78,25 @@ def main() -> None:
 
         except (AIChatAPIError, AIResponseFormatError) as exc:
             print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
+
+def createAIClient(args):
+    if args.ai_backend == "ollama":
+        ollama_settings: OllamaClientSettings = OllamaClientSettings(
+            model=args.ai_model,
+            base_url=args.ollama_url
+        )
+        return OllamaClient(ollama_settings)
+    elif args.ai_backend == "openai":
+        openai_api_key = os.environ.get("OPENAI_API_KEY")
+        if not openai_api_key:
+            raise AIConfigurationError("Missing OPENAI_API_KEY environment variable.")
+        openai_settings: OpenAIClientSettings = OpenAIClientSettings(
+            model=args.ai_model,
+            api_key=openai_api_key
+        )
+        return OpenAIClient(openai_settings)
+    
+    raise AIConfigurationError(f"Unknown backend '{args.ai_backend}'.")
 
 if __name__ == "__main__":
     main()
