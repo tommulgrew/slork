@@ -27,9 +27,11 @@ def main() -> None:
 
     # AI infused engine
     ai_engine: Optional[AIGameEngine] = None
+    ai_imggen = None
     if args.ai_model:
         try:
             ai_client = createAIClient(args)
+            ai_imggen = ai_client.getImageGenerator()       # Testing
             ai_engine = AIGameEngine(base_engine, ai_client)
             engine = ai_engine
         except(AIConfigurationError) as exc:
@@ -60,9 +62,9 @@ def main() -> None:
                 break
             if not player_cmd_str:
                 continue
-            if player_cmd_str.lower() in { "quit", "exit" }:
+            elif player_cmd_str.lower() in { "quit", "exit" }:
                 break
-            if player_cmd_str.lower() == "ai":
+            elif player_cmd_str.lower() == "ai":
                 # Toggle AI on/off
                 if ai_engine == None:
                     print("AI is not available. Specify a model using '--ai-model MODELNAME' when launching Slork to enable AI.")
@@ -72,6 +74,17 @@ def main() -> None:
                 else:
                     engine = ai_engine
                     print("AI enabled")
+                continue
+            elif player_cmd_str.lower() == "genimg":
+                if ai_imggen:
+                    ai_imggen.generatePng(
+                        "A moody, painterly illustration of a windswept coastal outpost. "
+                        "Cracked concrete buildings streaked with salt, waves crashing nearby, "
+                        "overcast sky, atmospheric lighting. No text.",
+                        "station_yard.png"
+                    )
+                else:
+                    print("No image generator available")
                 continue
 
             engine_response: ActionResult = engine.handle_raw_command(player_cmd_str)
