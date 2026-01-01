@@ -1,6 +1,7 @@
 import os
 from importlib.metadata import version
 from typing import Optional
+from pathlib import Path
 from .args import parse_main_args
 from .world import load_world, World
 from .engine import GameEngine, ActionResult
@@ -8,6 +9,7 @@ from .ai_client import AIChatAPIError, AIConfigurationError
 from .ai_client_ollama import OllamaClient, OllamaClientSettings
 from .ai_client_openai import OpenAIClient, OpenAIClientSettings
 from .ai_engine import AIGameEngine, AIResponseFormatError
+from .images import ImageService
 
 def main() -> None:
 
@@ -27,15 +29,22 @@ def main() -> None:
 
     # AI infused engine
     ai_engine: Optional[AIGameEngine] = None
-    ai_imggen = None
+    images: Optional[ImageService] = None
     if args.ai_model:
+        ai_client = None
         try:
             ai_client = createAIClient(args)
-            ai_imggen = ai_client.get_image_generator()       # Testing
             ai_engine = AIGameEngine(base_engine, ai_client)
             engine = ai_engine
         except(AIConfigurationError) as exc:
             print(f"{exc}\nContinuing without AI.")
+        
+        if ai_client:
+            # Look for image generator support
+            img_gen = ai_client.get_image_generator()
+            if img_gen:
+                world_path: Path = args.world
+                images = ImageService(img_gen, ai_client, base_engine, world_path.stem)
 
     print()
     print("**************************************************")
@@ -48,6 +57,9 @@ def main() -> None:
 
     # Initial location
     try:
+        if images:
+            imagePath = images.get_location_image(base_engine.location_id)
+            print(f"Image: {imagePath}")
         print(engine.describe_current_location())
     except (AIChatAPIError, AIResponseFormatError) as exc:
         print(base_engine.describe_current_location())
@@ -77,6 +89,9 @@ def main() -> None:
                 continue
 
             engine_response: ActionResult = engine.handle_raw_command(player_cmd_str)
+            if images:
+                imagePath = images.get_location_image(base_engine.location_id)
+                print(f"Image: {imagePath}")
             print(engine_response.message)
 
         except (AIChatAPIError, AIResponseFormatError) as exc:

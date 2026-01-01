@@ -13,16 +13,19 @@ class ImageService:
     Uses AI image generation to create and return images for locations
     items, and NPCs
     """
-    def __init__(self, image_generator, ai_client, game_engine: GameEngine, base_folder: Path = Path("assets/images")):
+    def __init__(self, image_generator, ai_client, game_engine: GameEngine, sub_folder_name: str):
         self.image_generator = image_generator
         self.ai_client = ai_client
         self.game_engine = game_engine
-        self.folder = base_folder / Path(game_engine.world.world.title)
+        self.folder = Path("assets/images") / Path(sub_folder_name)
         self.prompts: AIPrompts = create_ai_prompts()
+
+        # Ensure images folder exists
+        self.folder.mkdir(parents=True, exist_ok=True)
 
     def get_location_image(self, locId: str) -> Path:
         image_path = self.get_location_path(locId)
-        if not image_path.exists:
+        if not image_path.exists():
             self.generate_location_image(locId, image_path)
         return image_path
 
@@ -34,9 +37,10 @@ class ImageService:
         prompt: str = self.get_image_gen_prompt(
             self.prompts.create_location_prompt,
             f"""\
-            LOCATION: {location.name}
-            DESCRIPTION: {location.description}
-            """)
+LOCATION: {location.name}
+DESCRIPTION: {location.description}
+""")
+        print(f"Generating {location.name} image...")
         self.image_generator.generate_png(prompt, image_path)
     
     def get_image_gen_prompt(self, system_prompt: str, description: str) -> str:

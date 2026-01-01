@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Literal, cast, Optional
+from typing import Optional
 import base64
 from openai import OpenAI
 from .ai_client import AIChatAPIError
@@ -30,5 +30,6 @@ class OpenAIImageGen:
         image_bytes = base64.b64decode(image_base64)
 
         # Write to file
-        with open(filename, "wb") as f:
+        filename_str = str(filename)
+        with open(filename_str, "wb") as f:
             f.write(image_bytes)
