@@ -55,6 +55,11 @@ class Interaction:
     completed: bool = False     # Game session state. Not part of world file.
 
 @dataclass
+class AIGuidance:
+    text_generation: Optional[str] = None
+    image_generation: Optional[str] = None
+
+@dataclass
 class World:
     """
     A text adventure world definition, loaded from a yaml file.
@@ -65,6 +70,7 @@ class World:
     locations: dict[str, Location]
     npcs: dict[str, NPC]
     interactions: list[Interaction]
+    ai_guidance: Optional[AIGuidance]
 
     def validate(self) -> list[str]:
 

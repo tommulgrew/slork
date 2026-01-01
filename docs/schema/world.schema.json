@@ -32,6 +32,20 @@
         }
       }
     },
+    "ai_guidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text_generation": {
+          "type": "string",
+          "description": "Additional text for text generation system prompts. E.g. 'The tone should be serious and somber', or 'Phrase responses as if reading a storybook to the player.'"
+        },
+        "image_generation": {
+          "type": "string",
+          "description": "Additional text for image generation prompts. E.g. 'Warm tones, fantasy storybook style.'"
+        }
+      }
+    },
     "flags": {
       "type": "array",
       "items": { "type": "string" },

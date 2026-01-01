@@ -59,7 +59,7 @@ def main() -> None:
     try:
         if images:
             imagePath = images.get_location_image(base_engine.location_id)
-            print(f"Image: {imagePath}")
+            print(f"(Image: {imagePath})")
         print(engine.describe_current_location())
     except (AIChatAPIError, AIResponseFormatError) as exc:
         print(base_engine.describe_current_location())
@@ -91,7 +91,7 @@ def main() -> None:
             engine_response: ActionResult = engine.handle_raw_command(player_cmd_str)
             if images:
                 imagePath = images.get_location_image(base_engine.location_id)
-                print(f"Image: {imagePath}")
+                print(f"(Image: {imagePath})")
             print(engine_response.message)
 
         except (AIChatAPIError, AIResponseFormatError) as exc:

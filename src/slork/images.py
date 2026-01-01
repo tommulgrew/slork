@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 from .engine import GameEngine
 from .world import Location
 from .ai_client import NormalisedAIChatMessage
@@ -18,7 +19,8 @@ class ImageService:
         self.ai_client = ai_client
         self.game_engine = game_engine
         self.folder = Path("assets/images") / Path(sub_folder_name)
-        self.prompts = create_ai_prompts()
+        self.img_gen_prompt_common: Optional[str] = game_engine.world.ai_guidance.image_generation if game_engine.world.ai_guidance else None
+        self.prompts = create_ai_prompts(self.img_gen_prompt_common)
 
         # Ensure images folder exists
         self.folder.mkdir(parents=True, exist_ok=True)
@@ -30,7 +32,7 @@ class ImageService:
         return image_path
 
     def get_location_path(self, loc_id: str) -> Path:
-        filename = Path(f"location_{loc_id}").with_suffix("png")
+        filename = Path(f"location_{loc_id}").with_suffix(".png")
         return self.folder / filename
 
     def generate_location_image(self, loc_id: str, image_path: Path):
@@ -41,7 +43,7 @@ class ImageService:
 LOCATION: {location.name}
 DESCRIPTION: {location.description}
 """)
-        print(f"Generating {location.name} image...")
+        print(f"(Generating {location.name} image...)")
         self.image_generator.generate_png(prompt, image_path)
     
     def get_image_gen_prompt(self, system_prompt: str, description: str) -> str:
@@ -54,16 +56,27 @@ DESCRIPTION: {location.description}
 
         # Call AI chat endpoint
         ai_chat_response = self.ai_client.chat(ai_messages)
-        return ai_chat_response.content
+        image_gen_prompt = ai_chat_response.content
+        if self.img_gen_prompt_common:
+            image_gen_prompt += f". {self.img_gen_prompt_common}"
+        return image_gen_prompt
 
 
-def create_ai_prompts() -> AIPrompts:
+def create_ai_prompts(prompt_common: Optional[str]) -> AIPrompts:
+
+    prompt_common_guidance = f"""
+The following common text will be appended to ALL image prompts:
+'{prompt_common}'
+Do NOT include this text - it will automatically be appended to your output.
+Avoid any terms that would conflict or override terms in the common text.
+""" if prompt_common else ""
+
     return AIPrompts(
         create_location_prompt=f"""\
 You are an image generator prompt creator.
 You create the prompts to generate supplementary images for a text adventure 
 game, based on the text descriptions of locations.
-
+{prompt_common_guidance}
 Images should illustrate the content from the original text.
 
 Images should NOT introduce any *new* content that might mislead the user into
