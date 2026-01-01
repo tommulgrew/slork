@@ -46,7 +46,7 @@ class ImageService:
             assert(not resolved_item.error)     # Should always succeed if the game engine command succeeded
             assert(resolved_item.item_id)
 
-            if cmd.main_noun in world.npcs:
+            if resolved_item.item_id in world.npcs:
                 return self.get_npc_image(resolved_item.item_id)
             else:
                 return self.get_item_image(resolved_item.item_id)
@@ -63,12 +63,17 @@ class ImageService:
 
     def generate_location_image(self, loc_id: str, image_path: Path):
         location = self.game_engine.world.locations[loc_id]
-        prompt = self.get_image_gen_prompt(
-            self.prompts.create_location_prompt,
-            f"""\
+        description = f"""\
 LOCATION: {location.name}
 DESCRIPTION: {location.description}
-""")
+"""
+        if location.exits:
+            description += f"EXITS: {', '.join([f'{dir} - {exit.description}' for dir, exit in location.exits.items()])}"
+
+        prompt = self.get_image_gen_prompt(
+            self.prompts.create_location_prompt,
+            description
+        )
         print(f"(Generating '{location.name}' image...)")
         self.image_generator.generate_png(prompt, image_path)
     
