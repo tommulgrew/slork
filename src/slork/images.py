@@ -10,7 +10,7 @@ class AIPrompts:
 
 class ImageService:
     """
-    Uses AI image generation to create and return images for locations
+    Uses AI image generation to create and return images for locations,
     items, and NPCs
     """
     def __init__(self, image_generator, ai_client, game_engine: GameEngine, sub_folder_name: str):
@@ -18,23 +18,24 @@ class ImageService:
         self.ai_client = ai_client
         self.game_engine = game_engine
         self.folder = Path("assets/images") / Path(sub_folder_name)
-        self.prompts: AIPrompts = create_ai_prompts()
+        self.prompts = create_ai_prompts()
 
         # Ensure images folder exists
         self.folder.mkdir(parents=True, exist_ok=True)
 
-    def get_location_image(self, locId: str) -> Path:
-        image_path = self.get_location_path(locId)
+    def get_location_image(self, loc_id: str) -> Path:
+        image_path = self.get_location_path(loc_id)
         if not image_path.exists():
-            self.generate_location_image(locId, image_path)
+            self.generate_location_image(loc_id, image_path)
         return image_path
 
-    def get_location_path(self, locId: str) -> Path:
-        return self.folder / Path(f"location_{locId}.png")
+    def get_location_path(self, loc_id: str) -> Path:
+        filename = Path(f"location_{loc_id}").with_suffix("png")
+        return self.folder / filename
 
-    def generate_location_image(self, locId: str, image_path: Path):
-        location: Location = self.game_engine.world.locations[locId]
-        prompt: str = self.get_image_gen_prompt(
+    def generate_location_image(self, loc_id: str, image_path: Path):
+        location = self.game_engine.world.locations[loc_id]
+        prompt = self.get_image_gen_prompt(
             self.prompts.create_location_prompt,
             f"""\
 LOCATION: {location.name}
@@ -52,7 +53,7 @@ DESCRIPTION: {location.description}
         ]
 
         # Call AI chat endpoint
-        ai_chat_response: NormalisedAIChatMessage = self.ai_client.chat(ai_messages)
+        ai_chat_response = self.ai_client.chat(ai_messages)
         return ai_chat_response.content
 
 
