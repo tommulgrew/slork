@@ -161,10 +161,13 @@ class GameEngine:
     
     def handle_raw_command(self, raw_command: str) -> ActionResult:
         command = parse_command(raw_command)
+        self.last_command = command
         if command.error:
             return ActionResult(status=ActionStatus.INVALID, message=command.error)
         
-        return self.handle_command(command)
+        result = self.handle_command(command)
+        self.last_result = result
+        return result
 
     def handle_command(self, command: ParsedCommand) -> ActionResult:
 

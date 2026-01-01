@@ -90,7 +90,7 @@ def main() -> None:
 
             engine_response: ActionResult = engine.handle_raw_command(player_cmd_str)
             if images:
-                imagePath = images.get_location_image(base_engine.location_id)
+                imagePath = images.get_image()
                 print(f"(Image: {imagePath})")
             print(engine_response.message)
 

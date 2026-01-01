@@ -41,7 +41,8 @@ class AIGameEngine:
         self.ai_client = ai_client
 
         self.message_history: deque[NormalisedAIChatMessage] = deque(maxlen=8)
-        self.ai_prompts = create_ai_prompts()
+        text_gen_prompt_common = engine.world.ai_guidance.text_generation if engine.world.ai_guidance else None
+        self.ai_prompts = create_ai_prompts(text_gen_prompt_common)
 
     def describe_current_location(self, verbose: bool = False) -> str:
         description = self.engine.describe_current_location(verbose)
@@ -148,7 +149,7 @@ Malformed JSON:
         ai_chat_response = self.ai_client.chat(ai_messages)
         return ai_chat_response.content
 
-def create_ai_prompts() -> AIPrompts:
+def create_ai_prompts(common: Optional[str]) -> AIPrompts:
     verb_list = ', '.join(sorted(VALID_VERBS))
     return AIPrompts(
         interpret_player_input=f"""\
@@ -196,11 +197,12 @@ If no valid game action applies, respond directly to the player as JSON:
 {{ "respond": "[response]" }}
 For example:
 {{ "respond": "I'm not sure what you mean. What would you like to do?" }}
-{{ "respond": "I don't know how to open the door, but perhaps you could look around for a key." }}
+
+{ f'When responding to the player: {common}' if common else '' }
 
 Return ONLY JSON, with exactly one of the keys: "execute" or "respond".
 """,
-        enhance_engine_response="""\
+        enhance_engine_response=f"""\
 You are narrator for a deterministic text adventure.
 You liaise *between* the player (PLAYER) and the game engine (ENGINE), which do not communicate directly with each other.
 
@@ -208,11 +210,15 @@ Take the game engine's last response and reword it to add some color and flavor.
 Use the information provided by the game engine - do not invent new objects or exits. Include any items, exits and NPCs in the description, rather than listing them separately. Do not list the player's inventory unless it is relevant.
 Occasionally add improvised dialog for NPC characters - when appropriate - based on their persona to make them feel alive.
 
+{common}
+
 If the player's last input was a question, consider whether the engine output can be used to answer it.
 Respond with the reworded text to display to the player, as JSON:
-{ "respond": "[response]" }
+{{ "respond": "[response]" }}
 Examples:
-{ "respond": "You step forward boldly into the dim tunnel, ready to face whatever might lurk inside." }
+{{ "respond": "You step forward boldly into the dim tunnel, ready to face whatever might lurk inside." }}
+
+Return ONLY JSON with the key: "respond"
 """,
         repair_json="""\
 You are a JSON repair tool.

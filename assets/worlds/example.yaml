@@ -7,7 +7,7 @@ world:
     - lint
 
 ai_guidance:
-  text_generation: The tone should be quirky and fun, as if the player has accidentally falling into a Terry Pratchet novel.
+  text_generation: The tone should be quirky, non-serious and off-beat.
   image_generation: vibrant, warm tones, fantasy storybook style.
 
 flags:

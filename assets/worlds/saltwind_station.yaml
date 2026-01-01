@@ -4,7 +4,12 @@ world:
   initial_inventory: [bone]
   initial_companions: []
 
-flags: []
+ai_guidance:
+  image_generation: Charcoal drawing, rough texture, expressive strokes, dramatic shading
+
+flags:
+  - lighthouse_open
+  - power_restored
 
 items:
   journal:
@@ -164,6 +169,8 @@ locations:
   lighthouse_top:
     name: Lighthouse Lantern Room
     description: Glass panes look out over the endless sea. The light is dark.
+    items:
+      - brass_whistle
     exits:
       down:
         to: lighthouse_base
