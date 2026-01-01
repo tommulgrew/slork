@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal, cast, Optional
 import base64
 from openai import OpenAI
@@ -12,7 +13,7 @@ class OpenAIImageGen:
         self.client = client
         self.model = model or "gpt-image-1"
     
-    def generatePng(self, prompt: str, filename: str):
+    def generate_png(self, prompt: str, filename: Path):
 
         # Call service to generate image
         result = self.client.images.generate(

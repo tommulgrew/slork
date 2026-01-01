@@ -22,7 +22,7 @@ class OpenAIClient:
     def chat(self, messages: list[NormalisedAIChatMessage]) -> NormalisedAIChatMessage:
         response = self.client.chat.completions.create(
             model=self.settings.model,
-            messages=[ makeChatCompletionMessage(m) for m in messages ]
+            messages=[ make_chat_completion_message(m) for m in messages ]
         )
 
         msg = response.choices[0].message
@@ -31,10 +31,10 @@ class OpenAIClient:
 
         return NormalisedAIChatMessage(role=msg.role, content=msg.content)
 
-    def getImageGenerator(self):
+    def get_image_generator(self):
         return self.imggen
 
-def makeChatCompletionMessage(m: NormalisedAIChatMessage) -> ChatCompletionMessageParam:
+def make_chat_completion_message(m: NormalisedAIChatMessage) -> ChatCompletionMessageParam:
     assert(m.role in ["system", "user", "assistant"])
     if m.role == "system":
         return ChatCompletionSystemMessageParam(

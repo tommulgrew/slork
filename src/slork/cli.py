@@ -31,7 +31,7 @@ def main() -> None:
     if args.ai_model:
         try:
             ai_client = createAIClient(args)
-            ai_imggen = ai_client.getImageGenerator()       # Testing
+            ai_imggen = ai_client.get_image_generator()       # Testing
             ai_engine = AIGameEngine(base_engine, ai_client)
             engine = ai_engine
         except(AIConfigurationError) as exc:
@@ -74,17 +74,6 @@ def main() -> None:
                 else:
                     engine = ai_engine
                     print("AI enabled")
-                continue
-            elif player_cmd_str.lower() == "genimg":
-                if ai_imggen:
-                    ai_imggen.generatePng(
-                        "A moody, painterly illustration of a windswept coastal outpost. "
-                        "Cracked concrete buildings streaked with salt, waves crashing nearby, "
-                        "overcast sky, atmospheric lighting. No text.",
-                        "station_yard.png"
-                    )
-                else:
-                    print("No image generator available")
                 continue
 
             engine_response: ActionResult = engine.handle_raw_command(player_cmd_str)

@@ -79,7 +79,7 @@ class AIGameEngine:
             player_message
         ]
 
-        # Call Ollama chat endpoint
+        # Call AI chat endpoint
         ai_chat_response = self.ai_client.chat(ai_messages)
 
         if not ai_chat_response.content:
@@ -103,7 +103,7 @@ class AIGameEngine:
             engine_response_message
         ]
 
-        # Call Ollama chat endpoint
+        # Call AI chat endpoint
         ai_chat_response = self.ai_client.chat(ai_messages)
 
         # Add interaction to message history

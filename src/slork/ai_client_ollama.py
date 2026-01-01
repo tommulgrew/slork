@@ -91,5 +91,5 @@ class OllamaClient:
 
         raise AIChatAPIError("Ollama response contained no content or tool call")
 
-    def getImageGenerator(self):
+    def get_image_generator(self):
         return None         # Not supported in Ollama client
