@@ -283,10 +283,13 @@ class GameEngine:
         return ActionResult(
             status=ActionStatus.OK, 
             message=result.item.description,
-            image_ref=ImageReference(
-                type="npc" if result.item_id in self.world.npcs else "item",
-                id=result.item_id
-            ))
+            image_ref=self.get_item_image_ref(result.item_id))
+
+    def get_item_image_ref(self, item_id: str) -> ImageReference:
+        return ImageReference(
+            type="npc" if item_id in self.world.npcs else "item",
+            id=item_id
+        )
 
     def handle_interaction(self, command: ParsedCommand) -> ActionResult:
         # Command parser ensures all commands (apart from "look" and "inventory")
