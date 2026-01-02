@@ -28,6 +28,14 @@ class ResolveItemResult:
     item_id: Optional[str] = None
     error: Optional[str] = None
 
+@dataclass
+class GameEngineState:
+    location_id: str
+    inventory: list[str]
+    flags: list[str]
+    location_items: dict[str, list[str]]
+    completed_interactions: list[str] = []
+
 class PGameEngine(Protocol):
     @abstractmethod
     def handle_raw_command(self, raw_command: str) -> ActionResult:
@@ -453,3 +461,15 @@ class GameEngine:
 
 def companion_flag(npc_id: str) -> str:
     return f"companion:{npc_id}"
+
+def get_initial_game_state(world: World) -> GameEngineState:
+    return GameEngineState(
+        location_id=world.world.start,
+        inventory=world.world.initial_inventory.copy() if world.world.initial_inventory else [],
+        flags=[companion_flag(npc_id) for npc_id in world.world.initial_companions],
+        location_items={
+            loc_id: location.items.copy()
+            for loc_id, location in world.locations.items()
+        },
+        completed_interactions=[],
+    )
