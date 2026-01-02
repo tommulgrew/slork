@@ -279,18 +279,27 @@ class GameEngine:
         if result.error:
             return ActionResult(status=ActionStatus.INVALID, message=result.error)        
         assert result.item is not None
-        assert result.item_id is not None
 
         return ActionResult(
             status=ActionStatus.OK, 
             message=result.item.description,
-            image_ref=self.get_item_image_ref(result.item_id))
+            image_ref=self.get_item_image_ref(result))
 
-    def get_item_image_ref(self, item_id: str) -> ImageReference:
-        return ImageReference(
-            type="npc" if item_id in self.world.npcs else "item",
-            id=item_id
-        )
+    def get_item_image_ref(self, item_result: ResolveItemResult) -> Optional[ImageReference]:
+        assert not item_result.error
+        assert item_result.item
+        assert item_result.item_id
+
+        # NPC?
+        if item_result.item_id in self.world.npcs:
+            return ImageReference(type="npc", id=item_result.item_id)
+
+        # Otherwise must be a portable item, as non-portable items are part of
+        # the location description and therefore should appear in the location 
+        # image. (So rendering a second image would likely introduce 
+        # inconsistency.)
+        if item_result.item.portable:
+            return ImageReference(type="item", id=item_result.item_id)
 
     def handle_interaction(self, command: ParsedCommand) -> ActionResult:
         # Command parser ensures all commands (apart from "look" and "inventory")

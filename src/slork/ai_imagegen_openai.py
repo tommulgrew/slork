@@ -11,7 +11,7 @@ class OpenAIImageGen:
 
     def __init__(self, client: OpenAI, *, model: Optional[str] = None, size: Optional[str] = None):
         self.client = client
-        self.model = model or "gpt-image-1"
+        self.model = model or "dall-e-2" # "gpt-image-1"
     
     def generate_png(self, prompt: str, filename: Path):
 

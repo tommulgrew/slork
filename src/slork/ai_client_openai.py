@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam, ChatCompletionAssistantMessageParam
 from .ai_client import NormalisedAIChatMessage, AIChatAPIError
@@ -8,6 +9,7 @@ from .ai_imagegen_openai import OpenAIImageGen
 class OpenAIClientSettings:
     model: str
     api_key: str
+    image_model: Optional[str]=None
 
 class OpenAIClient:
     """
@@ -17,7 +19,7 @@ class OpenAIClient:
     def __init__(self, settings: OpenAIClientSettings):
         self.settings = settings
         self.client = OpenAI(api_key=settings.api_key)
-        self.imggen = OpenAIImageGen(self.client)
+        self.imggen = OpenAIImageGen(self.client, model=settings.image_model)
 
     def chat(self, messages: list[NormalisedAIChatMessage]) -> NormalisedAIChatMessage:
         response = self.client.chat.completions.create(

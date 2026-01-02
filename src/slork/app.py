@@ -88,7 +88,8 @@ def createAIClient(args):
             raise AIConfigurationError("Missing OPENAI_API_KEY environment variable.")
         openai_settings: OpenAIClientSettings = OpenAIClientSettings(
             model=args.ai_model,
-            api_key=openai_api_key
+            api_key=openai_api_key,
+            image_model=args.ai_image_model
         )
         return OpenAIClient(openai_settings)
     

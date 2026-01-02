@@ -47,7 +47,7 @@
             "module": "slork.webapp",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["--world", "assets/worlds/example.yaml", "--ai-backend", "openai", "--ai-model", "gpt-4o-mini"]
+            "args": ["--world", "assets/worlds/example.yaml", "--ai-backend", "openai", "--ai-model", "gpt-5-nano"]
         },
     ]
 }

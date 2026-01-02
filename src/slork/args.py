@@ -13,7 +13,7 @@ def parse_main_args():
         "--ai-model",
         type=str,
         required=False,
-        help="Ollama model name"
+        help="AI model name"
     )
     parser.add_argument(
         "--ollama-url",
@@ -26,6 +26,12 @@ def parse_main_args():
         type=str,
         default="ollama",
         choices=["ollama", "openai"]
+    )
+    parser.add_argument(
+        "--ai-image-model",
+        type=str,
+        required=False,
+        help="AI image generation tool model name"
     )
     return parser.parse_args()
 
