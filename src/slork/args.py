@@ -33,5 +33,17 @@ def parse_main_args():
         required=False,
         help="AI image generation tool model name"
     )
+    parser.add_argument(
+        "--ai-image-size",
+        type=str,
+        required=False,
+        help="Size parameter to pass to the image generator. E.g. '512x512'. Valid values depend on the generator used."
+    )
+    parser.add_argument(
+        "--ai-image-quality",
+        type=str,
+        required=False,
+        help="Quality parameter to pass to the image generator. E.g. 'low'. Valid values depend on the generator used."
+    )
     return parser.parse_args()
 

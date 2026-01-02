@@ -23,17 +23,22 @@
         input[type='text'] {
             width: min(400px, calc(100% - 50px));
         }
-
     </style>
+    <script>
+        function disableInput() {
+            document.getElementById("command-field").attributes["readonly"] = "readonly";
+            document.getElementById("submit-button").attributes["disabled"] = "disabled";
+        }
+    </script>
 </head>
 <body>
-    <form method="post">
+    <form method="post" onsubmit="disableInput()">
         <img src="{{ image }}">
         {% for text_line in text.split('\n') %}    
         <p>{{ text_line }}</p>
         {% endfor %}
-        <input type="text" name="command" autofocus />
-        <input type="submit" value="OK" />
-    <form action="index.html" method="post">
+        <input type="text" name="command" autofocus id="command-field" />
+        <input type="submit" value="OK" id="submit-button" />
+    </form>
 </body>
 </html>

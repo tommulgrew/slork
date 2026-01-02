@@ -89,7 +89,9 @@ def createAIClient(args):
         openai_settings: OpenAIClientSettings = OpenAIClientSettings(
             model=args.ai_model,
             api_key=openai_api_key,
-            image_model=args.ai_image_model
+            image_model=args.ai_image_model,
+            image_size=args.ai_image_size,
+            image_quality=args.ai_image_quality
         )
         return OpenAIClient(openai_settings)
     

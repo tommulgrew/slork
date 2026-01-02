@@ -89,7 +89,11 @@ class World:
         for item_id in self.world.initial_inventory:
             ref_items.add(item_id)
             if item_id not in self.items:
-                issues.append(f"Initial item '{item_id}' was not found in the 'items' list.")
+                issues.append(f"Initial inventory item '{item_id}' was not found in the 'items' list.")
+            else:
+                item = self.items[item_id]
+                if not item.portable:
+                    issues.append(f"Initial inventory item '{item_id}' is not marked as portable.")
 
         # Locations
         items_by_loc: dict[str, str] = {}        

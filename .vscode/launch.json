@@ -47,7 +47,14 @@
             "module": "slork.webapp",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["--world", "assets/worlds/example.yaml", "--ai-backend", "openai", "--ai-model", "gpt-5-nano"]
+            "args": [
+                "--world", "assets/worlds/saltwind_station.yaml", 
+                "--ai-backend", "openai", 
+                "--ai-model", "gpt-5-nano",
+                "--ai-image-model", "gpt-image-1-mini",
+                "--ai-image-size", "1024x1024",
+                "--ai-image-quality", "low"
+            ]
         },
     ]
 }

@@ -66,6 +66,7 @@ items:
 
   bone:
     name: Rubber bone
+    portable: true
     description: A small rubber toy bone.
     aliases: [bone]
 

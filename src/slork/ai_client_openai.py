@@ -10,6 +10,8 @@ class OpenAIClientSettings:
     model: str
     api_key: str
     image_model: Optional[str]=None
+    image_size: Optional[str]=None
+    image_quality: Optional[str]=None
 
 class OpenAIClient:
     """
@@ -19,7 +21,12 @@ class OpenAIClient:
     def __init__(self, settings: OpenAIClientSettings):
         self.settings = settings
         self.client = OpenAI(api_key=settings.api_key)
-        self.imggen = OpenAIImageGen(self.client, model=settings.image_model)
+        self.imggen = OpenAIImageGen(
+            self.client, 
+            model=settings.image_model, 
+            size=settings.image_size, 
+            quality=settings.image_quality
+        )
 
     def chat(self, messages: list[NormalisedAIChatMessage]) -> NormalisedAIChatMessage:
         response = self.client.chat.completions.create(

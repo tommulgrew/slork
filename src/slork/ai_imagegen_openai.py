@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional
 import base64
 from openai import OpenAI
+from urllib.request import urlopen
 from .ai_client import AIChatAPIError
 
 class OpenAIImageGen:
@@ -9,9 +10,11 @@ class OpenAIImageGen:
     OpenAI based image generator.
     """
 
-    def __init__(self, client: OpenAI, *, model: Optional[str] = None, size: Optional[str] = None):
+    def __init__(self, client: OpenAI, *, model: Optional[str] = None, size: Optional[str] = None, quality: Optional[str] = None):
         self.client = client
-        self.model = model or "dall-e-2" # "gpt-image-1"
+        self.model = model or "gpt-image-1-mini"
+        self.size = size
+        self.quality = quality
     
     def generate_png(self, prompt: str, filename: Path):
 
@@ -19,15 +22,24 @@ class OpenAIImageGen:
         result = self.client.images.generate(
             model=self.model,
             prompt=prompt,
-            size="auto"
+            quality=self.quality,       # pyright: ignore
+            size=self.size,             # pyright: ignore
         )
 
-        # Result is base64 encoded png
-        # Extract bytes
-        if not result.data or not result.data[0] or not result.data[0].b64_json:
+        # Retrieve result
+        image_bytes: Optional[bytes] = None
+        if result.data and result.data[0]:
+            data = result.data[0]
+            if data.b64_json:
+                # Response contains image in base64 format
+                image_bytes = base64.b64decode(data.b64_json)
+            elif data.url:
+                # Response contains a URL to fetch the image
+                with urlopen(data.url) as response:
+                    image_bytes = response.read()
+
+        if not image_bytes:
             raise AIChatAPIError("Received AI generate-image response with no image.")
-        image_base64 = result.data[0].b64_json
-        image_bytes = base64.b64decode(image_base64)
 
         # Write to file
         filename_str = str(filename)
