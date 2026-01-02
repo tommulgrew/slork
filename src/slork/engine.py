@@ -41,6 +41,7 @@ class GameEngine:
         self.inventory=world.world.initial_inventory.copy() if world.world.initial_inventory else []
         self.flags=[companion_flag(npc_id) for npc_id in world.world.initial_companions]
         self.move_companions()
+        self.last_command: Optional[ParsedCommand] = None
 
     def current_location(self) -> Location:
         return self.world.locations[self.location_id]

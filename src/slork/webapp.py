@@ -47,10 +47,14 @@ def create_web_app(app: App, state: WebAppState) -> Flask:
             image_path = app.get_image(engine_response.image_ref)
             state.image_url = fix_image_path(image_path)
 
+        text = engine_response.message
+        if app.base_engine.last_command:
+            text = f"> {app.base_engine.last_command.raw}\n\n{text}"
+
         return render_template(
             "index.html",
             title=app.world.world.title,
-            text=engine_response.message,
+            text=text,
             image=state.image_url
         )
 
