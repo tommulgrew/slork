@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Literal
-from .engine import GameEngine
-from .world import Location
+from .engine import ImageReference
+from .world import World
 from .ai_client import NormalisedAIChatMessage
 
 @dataclass
@@ -16,40 +16,26 @@ class ImageService:
     Uses AI image generation to create and return images for locations,
     items, and NPCs
     """
-    def __init__(self, image_generator, ai_client, game_engine: GameEngine, sub_folder_name: str):
+    def __init__(self, image_generator, ai_client, world: World, sub_folder_name: str):
         self.image_generator = image_generator
         self.ai_client = ai_client
-        self.game_engine = game_engine
+        self.world = world
         self.folder = Path("assets/images") / Path(sub_folder_name)
-        self.img_gen_prompt_common: Optional[str] = game_engine.world.ai_guidance.image_generation if game_engine.world.ai_guidance else None
+        self.img_gen_prompt_common: Optional[str] = world.ai_guidance.image_generation if world.ai_guidance else None
         self.prompts = create_ai_prompts(self.img_gen_prompt_common)
 
         # Ensure images folder exists
         self.folder.mkdir(parents=True, exist_ok=True)
 
-    def get_image(self) -> Optional[Path]:
-        cmd = self.game_engine.last_command
-        result = self.game_engine.last_result
-
-        if cmd.error or result.status.value != "ok":
-            return None
-        
-        if cmd.verb == "look" or cmd.verb == "go":
-            return self.get_location_image(self.game_engine.location_id)
-
-        if cmd.verb == "examine":
-            assert(cmd.main_noun)
-            world = self.game_engine.world
-
-            # Resolve the item to get the item_id
-            resolved_item = self.game_engine.resolve_item(cmd.main_noun, include_location=True, include_inventory=True)
-            assert(not resolved_item.error)     # Should always succeed if the game engine command succeeded
-            assert(resolved_item.item_id)
-
-            if resolved_item.item_id in world.npcs:
-                return self.get_npc_image(resolved_item.item_id)
-            else:
-                return self.get_item_image(resolved_item.item_id)
+    def get_image(self, image_ref: ImageReference) -> Optional[Path]:
+        if image_ref.type == "location":
+            return self.get_location_image(image_ref.id)
+        elif image_ref.type == "item":
+            return self.get_item_image(image_ref.id)
+        elif image_ref.type == "npc":
+            return self.get_npc_image(image_ref.id)
+        else:
+            raise ValueError(f"Unknown image reference type: {image_ref.type}")
 
     def get_location_image(self, loc_id: str) -> Path:
         image_path = self.get_image_path("location", loc_id)
@@ -62,7 +48,7 @@ class ImageService:
         return self.folder / filename
 
     def generate_location_image(self, loc_id: str, image_path: Path):
-        location = self.game_engine.world.locations[loc_id]
+        location = self.world.locations[loc_id]
         description = f"""\
 LOCATION: {location.name}
 DESCRIPTION: {location.description}
@@ -99,9 +85,8 @@ DESCRIPTION: {location.description}
         return image_path
 
     def generate_npc_image(self, npc_id: str, image_path: Path):
-        world = self.game_engine.world
-        item = world.items[npc_id]
-        npc = world.npcs[npc_id]
+        item = self.world.items[npc_id]
+        npc = self.world.npcs[npc_id]
         prompt = self.get_image_gen_prompt(
             self.prompts.create_npc_prompt,
             f"""\
@@ -119,7 +104,7 @@ PERSONA: {npc.persona}
         return image_path
 
     def generate_item_image(self, item_id: str, image_path: Path) -> Optional[Path]:
-        item = self.game_engine.world.items[item_id]
+        item = self.world.items[item_id]
 
         # Non-portable items are included in the location description, and 
         # generally shown in the location image. Therefore we don't generate a 

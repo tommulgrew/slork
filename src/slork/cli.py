@@ -43,8 +43,11 @@ def main() -> None:
             # Look for image generator support
             img_gen = ai_client.get_image_generator()
             if img_gen:
-                world_path: Path = args.world
-                images = ImageService(img_gen, ai_client, base_engine, world_path.stem)
+                images = ImageService(
+                    image_generator=img_gen, 
+                    ai_client=ai_client, 
+                    world=world, 
+                    sub_folder_name=args.world.stem)
 
     print()
     print("**************************************************")
@@ -57,10 +60,11 @@ def main() -> None:
 
     # Initial location
     try:
-        if images:
-            imagePath = images.get_location_image(base_engine.location_id)
+        engine_response = engine.describe_current_location()
+        if engine_response.image_ref and images:
+            imagePath = images.get_image(engine_response.image_ref)
             print(f"(Image: {imagePath})")
-        print(engine.describe_current_location().message)
+        print(engine_response.message)
     except (AIChatAPIError, AIResponseFormatError) as exc:
         print(base_engine.describe_current_location().message)
         print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
@@ -89,8 +93,8 @@ def main() -> None:
                 continue
 
             engine_response: ActionResult = engine.handle_raw_command(player_cmd_str)
-            if images:
-                imagePath = images.get_image()
+            if engine_response.image_ref and images:
+                imagePath = images.get_image(engine_response.image_ref)
                 print(f"(Image: {imagePath})")
             print(engine_response.message)
 

@@ -11,7 +11,7 @@ class ActionStatus(Enum):
     INVALID = "invalid"
 
 @dataclass
-class ActionImageReference:
+class ImageReference:
     type: Literal["location", "item", "npc"]
     id: str
 
@@ -19,7 +19,7 @@ class ActionImageReference:
 class ActionResult:
     status: ActionStatus
     message: str
-    image_ref: Optional[ActionImageReference] = None
+    image_ref: Optional[ImageReference] = None
 
 @dataclass
 class InteractionResult:
@@ -66,7 +66,13 @@ class GameEngine:
             lines.extend(self.describe_inventory())
 
         description = "\n".join(lines)
-        return ActionResult(status=ActionStatus.OK, message=description)
+        return ActionResult(
+            status=ActionStatus.OK, 
+            message=description,
+            image_ref=ImageReference(
+                type="location",
+                id=self.location_id
+            ))
 
     def describe_npcs(self, verbose: bool) -> list[str]:
         location = self.current_location()
