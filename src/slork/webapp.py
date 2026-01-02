@@ -21,10 +21,14 @@ def create_web_app(app: App) -> Flask:
     @web_app.route("/", methods=["GET", "POST"])
     def index():
         engine_response = app.engine.describe_current_location()
+        image_path = app.get_image(engine_response.image_ref)
         return render_template(
             "index.html",
             text=engine_response.message,
-            image=app.get_image(engine_response.image_ref)
+            image=str(image_path) if image_path else ""
         )
 
     return web_app
+
+if __name__ == "__main__":
+    main()
