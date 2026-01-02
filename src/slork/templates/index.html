@@ -1,10 +1,30 @@
 <!doctype html>
 <html>
 <head>
-    <title>Slork</title>
+    <title>{{ title }}</title>
+    <style>
+        form {
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        img {
+            max-height: 600px;
+        }
+        input[type='text'] {
+            width: min(400px, calc(100% - 50px));
+        }
+
+    </style>
 </head>
 <body>
-    <img src="/assets/{{ image }}" style="max-width: 100%;">
-    <p>{{ text }}</p>
+    <form method="post">
+        <img src="{{ image }}">
+        {% for text_line in text.split('\n') %}    
+        <p>{{ text_line }}</p>
+        {% endfor %}
+        <input type="text" name="command" autofocus />
+        <input type="submit" value="OK" />
+    <form action="index.html" method="post">
 </body>
 </html>

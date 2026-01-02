@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Literal
+from typing import Optional, Literal, Any
 from .engine import ImageReference
 from .world import World
 from .ai_client import NormalisedAIChatMessage
@@ -16,7 +16,7 @@ class ImageService:
     Uses AI image generation to create and return images for locations,
     items, and NPCs
     """
-    def __init__(self, image_generator, ai_client, world: World, sub_folder_name: str):
+    def __init__(self, image_generator: Optional[Any], ai_client: Optional[Any], world: World, sub_folder_name: str):
         self.image_generator = image_generator
         self.ai_client = ai_client
         self.world = world
@@ -48,6 +48,9 @@ class ImageService:
         return self.folder / filename
 
     def generate_location_image(self, loc_id: str, image_path: Path):
+        if not self.image_generator or not self.ai_client:
+            return
+
         location = self.world.locations[loc_id]
         description = f"""\
 LOCATION: {location.name}
@@ -64,6 +67,7 @@ DESCRIPTION: {location.description}
         self.image_generator.generate_png(prompt, image_path)
     
     def get_image_gen_prompt(self, system_prompt: str, description: str) -> str:
+        assert(self.ai_client is not None)
         
         # Build messages for chat api call
         ai_messages: list[NormalisedAIChatMessage] = [
@@ -85,6 +89,9 @@ DESCRIPTION: {location.description}
         return image_path
 
     def generate_npc_image(self, npc_id: str, image_path: Path):
+        if not self.image_generator or not self.ai_client:
+            return
+
         item = self.world.items[npc_id]
         npc = self.world.npcs[npc_id]
         prompt = self.get_image_gen_prompt(
@@ -104,6 +111,9 @@ PERSONA: {npc.persona}
         return image_path
 
     def generate_item_image(self, item_id: str, image_path: Path) -> Optional[Path]:
+        if not self.image_generator or not self.ai_client:
+            return
+
         item = self.world.items[item_id]
 
         # Non-portable items are included in the location description, and 

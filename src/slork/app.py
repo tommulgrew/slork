@@ -23,28 +23,32 @@ class App:
         # Create game engine
         self.base_engine: GameEngine = GameEngine(self.world)
         self.engine: Any = self.base_engine
+        img_gen = None
+        ai_client = None
 
         # AI infused engine
         self.ai_engine: Optional[AIGameEngine] = None
         self.images: Optional[ImageService] = None
         if args.ai_model:
-            ai_client = None
             try:
                 ai_client = createAIClient(args)
-                self.ai_engine = AIGameEngine(self.base_engine, ai_client)
-                self.engine = self.ai_engine
             except(AIConfigurationError) as exc:
                 print(f"{exc}\nContinuing without AI.")
-            
-            if ai_client:
-                # Look for image generator support
-                img_gen = ai_client.get_image_generator()
-                if img_gen:
-                    self.images = ImageService(
-                        image_generator=img_gen, 
-                        ai_client=ai_client, 
-                        world=self.world, 
-                        sub_folder_name=args.world.stem)
+
+        # Create and use AI engine if AI client is available
+        if ai_client:
+            self.ai_engine = AIGameEngine(self.base_engine, ai_client)
+            self.engine = self.ai_engine
+            img_gen = ai_client.get_image_generator()
+
+        # Create image service.
+        # This will use the AI client and image generator if avialable to generate images.
+        # If not available the service can still serve pre-generated images from the disk.
+        self.images = ImageService(
+            image_generator=img_gen, 
+            ai_client=ai_client, 
+            world=self.world, 
+            sub_folder_name=args.world.stem)
 
         print()
         print("**************************************************")
