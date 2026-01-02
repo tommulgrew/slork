@@ -118,7 +118,7 @@ class GameEngine:
                 talk_interaction: Optional[Interaction] = next( 
                     (
                         interaction 
-                        for interaction in self.world.interactions
+                        for _, interaction in self.world.interactions.items()
                         if self.matches_interaction(interaction, "talk", item_id, None)
                     ),
                     None
@@ -339,7 +339,7 @@ class GameEngine:
         interaction: Optional[Interaction] = next(
             (
                 interaction 
-                for interaction in self.world.interactions
+                for _, interaction in self.world.interactions.items()
                 if self.matches_interaction(interaction, command.verb, item_id, target_id)
             ),
             None

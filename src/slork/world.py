@@ -69,7 +69,7 @@ class World:
     items: dict[str, Item]
     locations: dict[str, Location]
     npcs: dict[str, NPC]
-    interactions: list[Interaction]
+    interactions: dict[str, Interaction]
     ai_guidance: Optional[AIGuidance]
 
     def validate(self) -> list[str]:
@@ -131,7 +131,7 @@ class World:
                 issues.append(f"NPC '{npc_id}' does not have a corresponding item in the 'items' list.")
 
         # Interactions
-        for x in self.interactions:
+        for _, x in self.interactions.items():
             if x.verb not in VALID_VERBS:
                 issues.append(f"Interaction verb '{x.verb}' is not in the valid verbs list ({', '.join(VALID_VERBS)}).")
             if x.item not in self.items:

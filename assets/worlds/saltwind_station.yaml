@@ -178,64 +178,68 @@ locations:
         description: Back down the spiral stairs.
 
 interactions:
-  - verb: examine
-    item: journal
-    message: >
-      The journal describes strange readings in the water — patterns that repeat like signals.
-      The last entry ends abruptly.
-
-  - verb: talk
+  talk_to_researcher:
+    verb: talk
     item: researcher
     message: >
       Elias rubs his temples. "We picked something up out there. Then command told us to stay quiet."
 
-  - verb: use
+  fuel_generator:
+    verb: use
     item: fuel_can
     target: generator
     message: The generator sputters, then roars to life. Lights flicker on across the station.
     repeatable: false
     set_flags: [power_restored]
 
-  - verb: use
+  unlock_lighthouse_door:
+    verb: use
     item: station_key
     target: lighthouse_door
     requires_flags: [power_restored]
     message: The key turns with a metallic groan. The lighthouse door unlocks. Inside a spiral stairway leads upward.
     set_flags: [lighthouse_open]
 
-  - verb: open
+  try_open_lighthouse_door:
+    verb: open
     item: lighthouse_door
     message: The door is locked, and will not open.
 
-  - verb: use
+  try_unlock_lighthouse_door_no_power:
+    verb: use
     item: station_key
     target: lighthouse_door
     blocking_flags: [power_restored]
     message: The key appears to fit, but the door is too heavy to open manually.
 
-  - verb: talk
+  talk_to_caretaker:
+    verb: talk
     item: caretaker
     message: >
       Mara nods as the lights come back on. "Good. Maybe the sea will forgive us yet."
 
-  - verb: use
+  use_radio:
+    verb: use
     item: radio
     requires_flags: [power_restored]
     message: >
       Static clears, replaced by a repeating signal - coordinates, looping endlessly.
       Someone is still listening.
 
-  - verb: use
+  try_use_radio_no_power:
+    verb: use
     item: radio
     blocking_flags: [power_restored]
     message: >
       The radio is dead.
 
-  - verb: talk
+  talk_to_dog:
+    verb: talk
     item: dog
     message: "\"Woof!\""
 
-  - verb: give
+  give_bone_to_dog:
+    verb: give
     item: bone
     target: dog
     consumes: true

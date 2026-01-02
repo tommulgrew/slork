@@ -167,9 +167,9 @@
       "default": {}
     },
     "interactions": {
-      "type": "array",
-      "description": "Defines the interactions the player can have with the world, including their criteria and effects.",
-      "items": {
+      "type": "object",
+      "description": "Map of interaction IDs to verb interactions, each defining criteria and effects.",
+      "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
         "required": ["verb", "item"],
@@ -226,7 +226,7 @@
           }
         }
       },
-      "default": []
+      "default": {}
     }
   },
   "required": ["world", "locations", "items"]

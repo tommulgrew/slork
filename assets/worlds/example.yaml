@@ -144,42 +144,50 @@ npcs:
       - "I'd love to carry that for you, but I don't want to."    
 
 interactions:
-  - verb: use
+  unlock_stone_gate:
+    verb: use
     item: brass_key
     target: stone_gate
     set_flags:
       - gate_unlocked
     consumes: false
     message: The brass key turns; stone grinds and the gate unlocks and swings open.
-  - verb: open
+  try_open_stone_gate_locked:
+    verb: open
     item: stone_gate
     blocking_flags:
       - gate_unlocked
     repeatable: true
     message: The gate is locked and won't open.
-  - verb: open
+  try_open_stone_gate_already_open:
+    verb: open
     item: stone_gate
     requires_flags:
       - gate_unlocked
     repeatable: true
     message: It's already open.
-  - verb: talk
+  talk_to_hermit:
+    verb: talk
     item: hermit
     repeatable: true
     message: The hermit eyes you, then mutters about an old key lost along the forest path.
-  - verb: talk
+  talk_to_gnome:
+    verb: talk
     item: gnome
     repeatable: true
     message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
-  - verb: talk
+  talk_to_lenny:
+    verb: talk
     item: lenny
     message: Lenny says "You're doing well! Much better than the last guy!"
-  - verb: give
+  give_lint_to_lenny:
+    verb: give
     item: lint
     target: lenny
     repeatable: false
     message: The leprechaun's eyes widen. "You have given me pocket lint! The spell is broken! I am free! ...I'm just kidding, here's your stinky fluff back. Who gives someone lint?"
-  - verb: give
+  give_lint_to_gnome:
+    verb: give
     item: lint
     target: gnome
     repeatable: false
