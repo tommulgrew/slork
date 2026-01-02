@@ -1,12 +1,12 @@
 import os
-from typing import Optional, Any
+from typing import Optional
 from importlib.metadata import version
 from pathlib import Path
 from .world import load_world
-from .engine import GameEngine, ImageReference
+from .engine import GameEngine, ImageReference, PGameEngine
 from .ai_engine import AIGameEngine
 from .images import ImageService
-from .ai_client import AIConfigurationError
+from .ai_client import AIConfigurationError, AIChatClient, AIImageGen
 from .ai_client_ollama import OllamaClient, OllamaClientSettings
 from .ai_client_openai import OpenAIClient, OpenAIClientSettings
 
@@ -22,9 +22,9 @@ class App:
 
         # Create game engine
         self.base_engine: GameEngine = GameEngine(self.world)
-        self.engine: Any = self.base_engine
-        img_gen = None
-        ai_client = None
+        self.engine: PGameEngine = self.base_engine
+        img_gen: Optional[AIImageGen] = None
+        ai_client: Optional[AIChatClient] = None
 
         # AI infused engine
         self.ai_engine: Optional[AIGameEngine] = None
@@ -75,7 +75,7 @@ class App:
         else:
             return None
 
-def createAIClient(args):
+def createAIClient(args) -> AIChatClient:
     if args.ai_backend == "ollama":
         ollama_settings: OllamaClientSettings = OllamaClientSettings(
             model=args.ai_model,

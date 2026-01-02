@@ -1,5 +1,6 @@
+from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Literal
+from typing import Optional, Literal, Protocol
 from enum import Enum
 from .commands import ParsedCommand
 from .world import World, Item, Location, Interaction
@@ -26,6 +27,15 @@ class ResolveItemResult:
     item: Optional[Item] = None
     item_id: Optional[str] = None
     error: Optional[str] = None
+
+class PGameEngine(Protocol):
+    @abstractmethod
+    def handle_raw_command(self, raw_command: str) -> ActionResult:
+        ...
+
+    @abstractmethod
+    def describe_current_location(self, verbose: bool = False) -> ActionResult:
+        ...
 
 class GameEngine:
     """

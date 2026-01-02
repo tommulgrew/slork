@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Literal, Any
+from typing import Optional, Literal
 from .engine import ImageReference
 from .world import World
-from .ai_client import NormalisedAIChatMessage
+from .ai_client import NormalisedAIChatMessage, AIChatClient, AIImageGen
 
 @dataclass
 class AIPrompts:
@@ -16,7 +16,7 @@ class ImageService:
     Uses AI image generation to create and return images for locations,
     items, and NPCs
     """
-    def __init__(self, image_generator: Optional[Any], ai_client: Optional[Any], world: World, sub_folder_name: str):
+    def __init__(self, image_generator: Optional[AIImageGen], ai_client: Optional[AIChatClient], world: World, sub_folder_name: str):
         self.image_generator = image_generator
         self.ai_client = ai_client
         self.world = world
