@@ -12,6 +12,7 @@ A world file consists of these top-level sections:
 
 ```yaml
 world:
+ai_guidance:
 flags:
 items:
 npcs:
@@ -42,6 +43,23 @@ IDs here must match keys used elsewhere in the file.
 
 ---
 
+## `ai_guidance` (optional)
+
+AI guidance configures prompts used for AI narration and image generation.
+
+```yaml
+ai_guidance:
+  text_generation: The tone should be quirky, non-serious and off-beat.
+  image_generation: vibrant, warm tones, fantasy storybook style.
+```
+
+* **text_generation** - Extra text appended to AI narration prompts
+* **image_generation** - Extra text appended to AI image prompts
+
+These fields are only used when running with an AI backend.
+
+---
+
 ## Items
 
 Items define *everything* the player can interact with: objects, scenery, and NPCs.
@@ -59,7 +77,7 @@ items:
 
 * **name** – Display name (used in output)
 * **description** – Used by the `EXAMINE` command
-* **aliases** – Words the player can type to refer to the item
+* **aliases** – Optional extra words the player can type to refer to the item
 
 > ⚠️ Important:
 > The engine does **not** treat the item ID as an alias.
@@ -118,6 +136,7 @@ npcs:
     persona: Analytical, guarded, quietly regretful.
     sample_lines:
       - "We were meant to observe, not interfere."
+    quest_hook: Knows more than he admits about the missing crew.
 ```
 
 ### Important distinction
@@ -210,6 +229,11 @@ They are:
 * Checked by exits or interactions
 * Global to the world
 
+Companions are tracked via flags with the format `companion:<npc_id>`. These
+flags are set for any NPCs listed in `world.initial_companions` and move with
+the player. You can use `requires_flags` or `blocking_flags` in interactions
+and exits to gate behavior based on the companion list.
+
 Examples:
 
 * `power_restored`
@@ -232,9 +256,9 @@ Interactions define custom verb logic.
 
 ### Common fields
 
-* **verb** – Command verb (`use`, `talk`, `examine`)
+* **verb** – Command verb (`use`, `open`, `close`, `talk`, `give`)
 * **item** – Item being acted on
-* **target** – Optional second item (`use X on Y`)
+* **target** – Optional second item (`use X on Y`, `give X to Y`)
 * **message** – Text shown when triggered
 
 ### Control fields
@@ -244,11 +268,13 @@ Interactions define custom verb logic.
 * **set_flags** – Flags to enable
 * **clear_flags** – Flags to remove
 * **consumes** – Removes the item after use
+* **repeatable** – If false, the interaction can only be performed once
 
 ### Notes
 
-* `EXAMINE` usually doesn’t need a custom interaction unless special text is desired
-* Portable items don’t need explicit `get` interactions unless you want custom messaging
+* Interactions are used for `use`, `open`, `close`, `talk`, and `give`.
+* `EXAMINE` does not use interactions; it always shows the item's description.
+* Portable items don’t need explicit `take` interactions unless you want custom messaging.
 
 ---
 
@@ -258,6 +284,15 @@ Interactions define custom verb logic.
 * Avoid smart quotes or em dashes unless your parser explicitly allows UTF-8
 * Keep IDs lowercase with underscores
 * Treat IDs as internal — the player only sees names and aliases
+
+---
+
+## Images and non-portable items
+
+When AI image generation is enabled, location images are generated from the
+location description. Non-portable items should be described in the location
+text, so they typically appear in the location image. To avoid conflicting
+visuals, Slork does not generate separate item images for non-portable items.
 
 ---
 
