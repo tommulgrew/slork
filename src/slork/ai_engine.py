@@ -116,7 +116,11 @@ class AIGameEngine:
 
         # Expect an AIEnhanceEngineResponse in JSON format
         ai_response = self.parse_ai_response_with_repair(ai_chat_response.content, AIEnhanceEngineResponse)
-        return ActionResult(status=engine_response.status, message=ai_response.respond)
+        return ActionResult(
+            status=engine_response.status, 
+            message=ai_response.respond,
+            image_ref=engine_response.image_ref
+        )
 
     def parse_ai_response_with_repair(self, raw_text: str, response_type: Type[T]) -> T:
         try:

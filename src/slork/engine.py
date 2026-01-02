@@ -22,12 +22,6 @@ class ActionResult:
     image_ref: Optional[ImageReference] = None
 
 @dataclass
-class InteractionResult:
-    succeeded: bool = False
-    message: Optional[str] = None
-    error: Optional[str] = None
-
-@dataclass
 class ResolveItemResult:
     item: Optional[Item] = None
     item_id: Optional[str] = None
@@ -188,31 +182,22 @@ class GameEngine:
 
         if command.verb == "look":
             return self.describe_current_location()
-        if command.verb == "inventory":
+        elif command.verb == "inventory":
             return self.handle_inventory()
-        if command.verb == "go":
+        elif command.verb == "go":
             assert command.main_noun is not None
             return self.handle_go(command.main_noun)
-        if command.verb == "take":
+        elif command.verb == "take":
             assert command.main_noun is not None
             return self.handle_take(command.main_noun)
-        if command.verb == "drop":
+        elif command.verb == "drop":
             assert command.main_noun is not None
             return self.handle_drop(command.main_noun)
-        if command.verb == "examine":
+        elif command.verb == "examine":
             assert command.main_noun is not None
             return self.handle_examine(command.main_noun)
-
-        # Look for matching interaction    
-        interaction_result: InteractionResult = self.handle_interaction(command)
-        if interaction_result.error:
-            return ActionResult(status=ActionStatus.INVALID, message=interaction_result.error)
-        if interaction_result.succeeded:
-            assert interaction_result.message is not None
-            return ActionResult(status=ActionStatus.OK, message=interaction_result.message)
-
-        # Default message
-        return ActionResult(status=ActionStatus.NO_EFFECT, message="That didn't work.")
+        else:
+            return self.handle_interaction(command)  
 
     def handle_go(self, direction: str) -> ActionResult:
 
@@ -293,15 +278,21 @@ class GameEngine:
         if result.error:
             return ActionResult(status=ActionStatus.INVALID, message=result.error)        
         assert result.item is not None
+        assert result.item_id is not None
 
-        return ActionResult(status=ActionStatus.OK, message=result.item.description)
+        return ActionResult(
+            status=ActionStatus.OK, 
+            message=result.item.description,
+            image_ref=ImageReference(
+                type="npc" if result.item_id in self.world.npcs else "item",
+                id=result.item_id
+            ))
 
-    def handle_interaction(self, command: ParsedCommand) -> InteractionResult:
+    def handle_interaction(self, command: ParsedCommand) -> ActionResult:
+        # Command parser ensures all commands (apart from "look" and "inventory")
+        # have a main noun
         assert command.verb is not None
-
-        # All interactions at least require a main noun
-        if not command.main_noun:
-            return InteractionResult()
+        assert command.main_noun is not None
 
         # Resolve items
         item_result = self.resolve_item(
@@ -310,7 +301,7 @@ class GameEngine:
             include_location=not command.target_noun    # If there is a target noun, assume main noun is in inventory.
         )
         if item_result.error:
-            return InteractionResult(error=item_result.error)
+            return ActionResult(status=ActionStatus.INVALID, message=item_result.error)
         assert item_result.item_id is not None
         item_id = item_result.item_id
 
@@ -318,7 +309,7 @@ class GameEngine:
         if command.target_noun:
             target_result = self.resolve_item(command.target_noun, include_location=True)
             if target_result.error:
-                return InteractionResult(error=target_result.error)
+                return ActionResult(status=ActionStatus.INVALID, message=target_result.error)
             target_id = target_result.item_id
 
         # Search for matching interaction
@@ -333,12 +324,12 @@ class GameEngine:
 
         if interaction:
             if interaction.completed and not interaction.repeatable:
-                return InteractionResult(error="You already did that.")       
+                return ActionResult(status=ActionStatus.NO_EFFECT, message="You already did that.")
 
             self.apply_interaction(interaction)
-            return InteractionResult(succeeded=True, message=interaction.message)
+            return ActionResult(status=ActionStatus.OK, message=interaction.message)
         
-        return InteractionResult()
+        return ActionResult(status=ActionStatus.NO_EFFECT, message="That didn't work.")
 
     def has_required_flags(self, required_flags) -> bool:
         return all(flag in self.flags for flag in required_flags)
