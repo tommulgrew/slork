@@ -60,9 +60,9 @@ def main() -> None:
         if images:
             imagePath = images.get_location_image(base_engine.location_id)
             print(f"(Image: {imagePath})")
-        print(engine.describe_current_location())
+        print(engine.describe_current_location().message)
     except (AIChatAPIError, AIResponseFormatError) as exc:
-        print(base_engine.describe_current_location())
+        print(base_engine.describe_current_location().message)
         print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
 
     # Main loop

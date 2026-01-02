@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Literal
 from enum import Enum
 from .commands import ParsedCommand
 from .world import World, Item, Location, Interaction
@@ -11,9 +11,15 @@ class ActionStatus(Enum):
     INVALID = "invalid"
 
 @dataclass
+class ActionImageReference:
+    type: Literal["location", "item", "npc"]
+    id: str
+
+@dataclass
 class ActionResult:
     status: ActionStatus
     message: str
+    image_ref: Optional[ActionImageReference] = None
 
 @dataclass
 class InteractionResult:
@@ -45,7 +51,7 @@ class GameEngine:
     def current_location(self) -> Location:
         return self.world.locations[self.location_id]
 
-    def describe_current_location(self, verbose: bool = False) -> str:
+    def describe_current_location(self, verbose: bool = False) -> ActionResult:
         location = self.current_location()
         lines = [
             location.name, 
@@ -59,7 +65,8 @@ class GameEngine:
         if verbose:
             lines.extend(self.describe_inventory())
 
-        return "\n".join(lines)
+        description = "\n".join(lines)
+        return ActionResult(status=ActionStatus.OK, message=description)
 
     def describe_npcs(self, verbose: bool) -> list[str]:
         location = self.current_location()
@@ -174,7 +181,7 @@ class GameEngine:
         # Note: Command parser ensures specific verbs always have a noun
 
         if command.verb == "look":
-            return ActionResult(status=ActionStatus.OK, message=self.describe_current_location())
+            return self.describe_current_location()
         if command.verb == "inventory":
             return self.handle_inventory()
         if command.verb == "go":
@@ -220,7 +227,7 @@ class GameEngine:
         self.location_id = exit.to
         self.move_companions()
         
-        return ActionResult(status=ActionStatus.OK, message=self.describe_current_location())
+        return self.describe_current_location()
 
     def handle_take(self, noun: str) -> ActionResult:
 
