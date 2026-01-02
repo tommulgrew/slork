@@ -39,6 +39,15 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": ["--world", "assets/worlds/saltwind_station.yaml", "--ai-backend", "openai", "--ai-model", "gpt-4o-mini"]
-        }
+        },
+        {
+            "name": "Web - No AI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "slork.webapp",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": ["--world", "assets/worlds/example.yaml"]
+        },
     ]
 }

@@ -4,7 +4,8 @@ version = "0.3.0"
 dependencies = [
     "pyyaml",
     "dacite",
-    "openai"
+    "openai",
+    "flask"
 ]
 
 [build-system]
