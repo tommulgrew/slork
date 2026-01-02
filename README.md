@@ -60,7 +60,7 @@ During play:
 ```bash
 python -m slork.webapp --world assets/worlds/example.yaml
 ```
-The web app runs a Flask dev server (not production-ready) and shows the latest response, plus an image if one is available.
+The web app runs a Flask dev server (not production-ready). Browse to `http://localhost:5000/` to play, and the page shows the latest response plus an image if one is available.
 
 ## AI backends
 Slork supports multiple AI backends:
