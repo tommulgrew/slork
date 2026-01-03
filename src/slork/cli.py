@@ -44,7 +44,7 @@ def main() -> None:
             print(result.message)
 
         except (AIChatAPIError, AIResponseFormatError) as exc:
-            print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
+            print(f"{exc}\n(Enter '/AI' to toggle AI off.)")
 
         except (RuntimeError, ValueError) as exc:
             print(exc)

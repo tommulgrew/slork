@@ -101,19 +101,19 @@ class App:
         try:
             if parts:
 
-                if parts[0] == "ai":
+                if parts[0] == "/ai":
                     return self.toggle_ai()
 
-                if parts[0] == "save":
+                if parts[0] == "/save":
                     return self.handle_save(parts)
 
-                if parts[0] == "load":
+                if parts[0] == "/load":
                     return self.handle_load(parts)
 
                 # Developer mode commands
 
                 if self.dev_mode:                
-                    if parts[0] == "goto":
+                    if parts[0] == "/goto":
                         return self.handle_dev_goto(parts)
 
         except Exception as exc:
