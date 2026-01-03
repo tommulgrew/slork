@@ -1,19 +1,16 @@
-from dataclasses import asdict
 import os
-import json
-from dacite import from_dict
-from typing import Optional
+from typing import Optional, Literal
 from importlib.metadata import version
 from pathlib import Path
-
-from slork.persistence import GameStatePersister
+from .persistence import GameStatePersister
 from .world import load_world
-from .engine import GameEngine, GameEngineState, ImageReference, PGameEngine
+from .engine import GameEngine, ImageReference, PGameEngine
 from .ai_engine import AIGameEngine
 from .images import ImageService
 from .ai_client import AIConfigurationError, AIChatClient, AIImageGen
 from .ai_client_ollama import OllamaClient, OllamaClientSettings
 from .ai_client_openai import OpenAIClient, OpenAIClientSettings
+from .util import strip_quotes
 
 class App:
     def __init__(self, args):
@@ -89,7 +86,38 @@ class App:
 
     def load(self, filename: str):
         state = self.persister.load_game_state(filename)
-        self.base_engine.state = state          # TO DO: Validate against world file?        
+        self.base_engine.state = state          # TO DO: Validate against world file?
+
+    def handle_system_command(self, raw: str) -> Literal["not_system", "handled", "state_updated"]:
+        raw = strip_quotes(raw.strip()).strip()
+        parts = [part.lower() for part in raw.split()]
+        if not parts:
+            return "not_system"
+
+        try:
+            if parts[0] == "ai":
+                self.toggle_ai()
+                return "handled"
+
+            if parts[0] == "save":
+                if len(parts) == 2:
+                    self.save(parts[1])
+                else:
+                    print("Usage: SAVE filename")        
+                return "handled"
+
+            if parts[0] == "load":
+                if len(parts) == 2:
+                    self.load(parts[1])
+                else:
+                    print("Usage: LOAD filename")        
+                return "state_updated"
+
+        except RuntimeError as exc:
+            print(exc)
+            return "handled"
+
+        return "not_system"
 
 def createAIClient(args) -> AIChatClient:
     if args.ai_backend == "ollama":

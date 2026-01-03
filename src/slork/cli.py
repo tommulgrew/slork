@@ -37,7 +37,7 @@ def main() -> None:
             elif player_cmd_str.lower() in { "quit", "exit" }:
                 break
             else:
-                syscmd_result = handle_system_command(player_cmd_str, app)
+                syscmd_result = app.handle_system_command(player_cmd_str)
                 if syscmd_result == "state_updated":
                     player_cmd_str = "look"
                 elif syscmd_result == "handled":
@@ -51,37 +51,6 @@ def main() -> None:
 
         except (AIChatAPIError, AIResponseFormatError) as exc:
             print(f"{exc}\n(Enter 'AI' to toggle AI off.)")
-
-def handle_system_command(raw: str, app: App) -> Literal["not_system", "handled", "state_updated"]:
-    raw = strip_quotes(raw.strip()).strip()
-    parts = [part.lower() for part in raw.split()]
-    if not parts:
-        return "not_system"
-
-    try:
-        if parts[0] == "ai":
-            app.toggle_ai()
-            return "handled"
-
-        if parts[0] == "save":
-            if len(parts) == 2:
-                app.save(parts[1])
-            else:
-                print("Usage: SAVE filename")        
-            return "handled"
-
-        if parts[0] == "load":
-            if len(parts) == 2:
-                app.load(parts[1])
-            else:
-                print("Usage: LOAD filename")        
-            return "state_updated"
-
-    except RuntimeError as exc:
-        print(exc)
-        return "handled"
-
-    return "not_system"
 
 if __name__ == "__main__":
     main()
