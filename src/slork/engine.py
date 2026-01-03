@@ -363,8 +363,7 @@ class GameEngine:
 
         # Apply interaction
         self.apply_interaction(interaction_id, interaction)
-        return ActionResult(status=ActionStatus.OK, message=interaction.message)
-        
+        return ActionResult(status=ActionStatus.OK, message=interaction.message)        
 
     def has_required_flags(self, required_flags) -> bool:
         return all(flag in self.state.flags for flag in required_flags)
