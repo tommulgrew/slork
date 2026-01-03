@@ -95,8 +95,11 @@
             "module": "slork.webapp",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": [ "--world", "assets/worlds/titan.yaml" ]
-        },
+            "args": [
+                "--world", "assets/worlds/titan.yaml", 
+                "--dev", "True"
+            ]
+       },
         {
             "name": "Titan - Web",
             "type": "debugpy",

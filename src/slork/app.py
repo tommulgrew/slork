@@ -64,6 +64,8 @@ class App:
         if self.ai_engine:
             print(f"  AI backend: {args.ai_backend}")
             print(f"  AI model:   {args.ai_model}")
+        if self.dev_mode:
+            print("Developer mode enabled.")
         print("**************************************************")
 
     def toggle_ai(self) -> ActionResult:
@@ -144,7 +146,7 @@ class App:
         loc_id = parts[1]
         if loc_id not in self.world.locations:
             return invalid_result(f"'{loc_id}' is not a valid location ID")
-            
+
         self.base_engine.state.location_id = loc_id
         return self.engine.describe_current_location()
 

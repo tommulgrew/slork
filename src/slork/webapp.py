@@ -40,7 +40,7 @@ def create_web_app(app: App, state: WebAppState) -> Flask:
         if request.method == "POST":
             cmd = request.form["command"]
             print(f"(Http POST > {cmd})")
-            engine_response = app.engine.handle_raw_command(cmd)
+            engine_response = app.handle_raw_command(cmd)
         else:
             print("(Http GET)")
             engine_response = app.engine.get_intro()
