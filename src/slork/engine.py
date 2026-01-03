@@ -28,6 +28,9 @@ def ok_result(message:str, image_ref: Optional[ImageReference] = None) -> Action
 def invalid_result(message:str, image_ref: Optional[ImageReference] = None) -> ActionResult:
     return ActionResult(status=ActionStatus.INVALID, message=message, image_ref=image_ref)
 
+def no_effect_result(message:str, image_ref: Optional[ImageReference] = None) -> ActionResult:
+    return ActionResult(status=ActionStatus.NO_EFFECT, message=message, image_ref=image_ref)
+
 @dataclass
 class ResolveItemResult:
     item: Optional[Item] = None
@@ -208,7 +211,7 @@ class GameEngine:
         command = parse_command(raw_command)
         self.last_command = command
         if command.error:
-            return ActionResult(status=ActionStatus.INVALID, message=command.error)
+            return invalid_result(command.error)
         
         result = self.handle_command(command)
         self.last_result = result
@@ -242,15 +245,12 @@ class GameEngine:
         # Location must have corresponding exit
         location = self.current_location()
         if direction not in location.exits:
-            return ActionResult(status=ActionStatus.INVALID, message=f"You cannot go {direction}.")    
+            return invalid_result(f"You cannot go {direction}.")    
         exit = location.exits[direction]
 
         # Required flags must be present
         if not self.has_required_flags(exit.requires_flags):
-            return ActionResult(
-                status=ActionStatus.INVALID, 
-                message=exit.blocked_description if exit.blocked_description else f"You cannot go {direction}."
-            )
+            return invalid_result(exit.blocked_description if exit.blocked_description else f"You cannot go {direction}.")
 
         # Move to new location
         self.state.location_id = exit.to
@@ -262,7 +262,7 @@ class GameEngine:
 
         result = self.resolve_item(noun, include_location=True)
         if result.error:
-            return ActionResult(status=ActionStatus.INVALID, message=result.error)
+            return invalid_result(result.error)
         assert result.item_id is not None
         assert result.item is not None
 
@@ -271,13 +271,13 @@ class GameEngine:
 
         # Item must be portable
         if not item.portable:
-            return ActionResult(status=ActionStatus.NO_EFFECT, message=f"You cannot take the {item.name}.")
+            return no_effect_result(f"You cannot take the {item.name}.")
         
         # Remove from location and add to inventory
         self.current_location_items().remove(item_id)
         self.state.inventory.append(item_id)
 
-        return ActionResult(status=ActionStatus.OK, message=f"You took the {item.name}.")
+        return ok_result(f"You took the {item.name}.")
 
     def handle_inventory(self) -> ActionResult:
 
@@ -289,13 +289,13 @@ class GameEngine:
 
         message = ",\n".join(inventory_items) if inventory_items else "You carry nothing."
 
-        return ActionResult(status=ActionStatus.OK, message=message)
+        return ok_result(message)
 
     def handle_drop(self, noun: str) -> ActionResult:
 
         result = self.resolve_item(noun, include_inventory=True)
         if result.error:
-            return ActionResult(status=ActionStatus.INVALID, message=result.error)
+            return invalid_result(result.error)
         assert result.item_id is not None
         assert result.item is not None
 
@@ -306,13 +306,13 @@ class GameEngine:
         self.state.inventory.remove(item_id)
         self.current_location_items().append(item_id)
 
-        return ActionResult(status=ActionStatus.OK, message=f"You dropped the {item.name}")
+        return ok_result(f"You dropped the {item.name}")
 
     def handle_examine(self, noun: str) -> ActionResult:
 
         result = self.resolve_item(noun, include_location=True, include_inventory=True)
         if result.error:
-            return ActionResult(status=ActionStatus.INVALID, message=result.error)        
+            return invalid_result(result.error)        
         assert result.item is not None
 
         return ActionResult(
@@ -349,7 +349,7 @@ class GameEngine:
             include_location=not command.target_noun    # If there is a target noun, assume main noun is in inventory.
         )
         if item_result.error:
-            return ActionResult(status=ActionStatus.INVALID, message=item_result.error)
+            return invalid_result(item_result.error)
         assert item_result.item_id is not None
         item_id = item_result.item_id
 
@@ -357,7 +357,7 @@ class GameEngine:
         if command.target_noun:
             target_result = self.resolve_item(command.target_noun, include_location=True)
             if target_result.error:
-                return ActionResult(status=ActionStatus.INVALID, message=target_result.error)
+                return invalid_result(target_result.error)
             target_id = target_result.item_id
 
         # Search for matching interaction
@@ -372,17 +372,17 @@ class GameEngine:
 
         # No match?
         if not interaction_entry:
-            return ActionResult(status=ActionStatus.NO_EFFECT, message="That didn't work.")
+            return no_effect_result("That didn't work.")
 
         interaction_id, interaction = interaction_entry
 
         # Already done?
         if not interaction.repeatable and interaction_id in self.state.completed_interactions:
-            return ActionResult(status=ActionStatus.NO_EFFECT, message="You already did that.")
+            return no_effect_result("You already did that.")
 
         # Apply interaction
         self.apply_interaction(interaction_id, interaction)
-        return ActionResult(status=ActionStatus.OK, message=interaction.message)        
+        return ok_result(interaction.message)        
 
     def has_required_flags(self, required_flags) -> bool:
         return all(flag in self.state.flags for flag in required_flags)
