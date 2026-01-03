@@ -104,7 +104,7 @@ class World:
                 if item_id not in self.items:
                     issues.append(f"Item '{item_id}' in location '{loc_id}' was not found in the 'items' list.")
                 if item_id in self.world.initial_inventory:
-                    issues.append(f"Item '{item_id}' in location '{loc_id}' is also in the initial items list.")
+                    issues.append(f"Item '{item_id}' in location '{loc_id}' is also in the initial inventory list.")
                 if item_id in items_by_loc:
                     issues.append(f"Item '{item_id}' in location '{loc_id}' is also in location '{items_by_loc[item_id]}'.")
                 items_by_loc[item_id] = loc_id
