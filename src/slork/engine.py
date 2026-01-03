@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Literal, Protocol
 from enum import Enum
 from .commands import ParsedCommand
@@ -34,7 +34,7 @@ class GameEngineState:
     inventory: list[str]
     flags: list[str]
     location_items: dict[str, list[str]]
-    completed_interactions: list[str] = []
+    completed_interactions: list[str] = field(default_factory=list)
 
 class PGameEngine(Protocol):
     @abstractmethod
@@ -55,14 +55,17 @@ class GameEngine:
     """
     def __init__(self, world:World):
         self.world = world
-        self.location_id = world.world.start
-        self.inventory=world.world.initial_inventory.copy() if world.world.initial_inventory else []
-        self.flags=[companion_flag(npc_id) for npc_id in world.world.initial_companions]
-        self.move_companions()
+        self.state = get_initial_game_state(world)
         self.last_command: Optional[ParsedCommand] = None
 
+        # Move companions to initial location
+        self.move_companions()
+
     def current_location(self) -> Location:
-        return self.world.locations[self.location_id]
+        return self.world.locations[self.state.location_id]
+
+    def current_location_items(self) -> list[str]:
+        return self.state.location_items[self.state.location_id]
 
     def describe_current_location(self, verbose: bool = False) -> ActionResult:
         location = self.current_location()
@@ -84,11 +87,10 @@ class GameEngine:
             message=description,
             image_ref=ImageReference(
                 type="location",
-                id=self.location_id
+                id=self.state.location_id
             ))
 
     def describe_npcs(self, verbose: bool) -> list[str]:
-        location = self.current_location()
         lines = []
 
         # NPCs
@@ -98,7 +100,7 @@ class GameEngine:
         ]
         other_npcs = [ 
             (item_id, self.world.items[item_id], self.world.npcs[item_id])
-            for item_id in location.items
+            for item_id in self.current_location_items()
             if self.is_npc(item_id) and not self.is_companion(item_id)
         ]
         for item_id, item, npc in other_npcs:
@@ -123,15 +125,15 @@ class GameEngine:
                     lines.append(f"    Sample lines: {', '.join(quoted_lines)}")
                 
                 # Look for talk interaction
-                talk_interaction: Optional[Interaction] = next( 
+                talk_interaction_id: Optional[str] = next( 
                     (
-                        interaction 
-                        for _, interaction in self.world.interactions.items()
+                        interaction_id
+                        for interaction_id, interaction in self.world.interactions.items()
                         if self.matches_interaction(interaction, "talk", item_id, None)
                     ),
                     None
                 )
-                if talk_interaction and not talk_interaction.completed:
+                if talk_interaction_id and talk_interaction_id not in self.state.completed_interactions:
                     lines.append("    TALK interaction: Yes")
                 else:
                     lines.append("    TALK interaction: No")
@@ -139,14 +141,13 @@ class GameEngine:
         return lines
 
     def describe_items(self, verbose: bool) -> list[str]:
-        location = self.current_location()
         lines = []
 
         # Items
         # Only list portable items. Fixed items should be described
         # in the location description.
         item_descriptions = []
-        for item_id in location.items:
+        for item_id in self.current_location_items():
             item = self.world.items[item_id]
             if not self.is_npc(item_id):
                 if item.portable or verbose:
@@ -174,12 +175,11 @@ class GameEngine:
         return lines
 
     def describe_inventory(self) -> list[str]:
-        location = self.current_location()
         lines = []
 
         inventory_items = [
             self.world.items[item_id].name
-            for item_id in self.inventory
+            for item_id in self.state.inventory
         ]
         lines.append(f"Inventory: { ', '.join(inventory_items) if inventory_items else 'Nothing' }")
 
@@ -234,7 +234,7 @@ class GameEngine:
             )
 
         # Move to new location
-        self.location_id = exit.to
+        self.state.location_id = exit.to
         self.move_companions()
         
         return self.describe_current_location()
@@ -255,9 +255,8 @@ class GameEngine:
             return ActionResult(status=ActionStatus.NO_EFFECT, message=f"You cannot take the {item.name}.")
         
         # Remove from location and add to inventory
-        location = self.current_location()
-        location.items.remove(item_id)
-        self.inventory.append(item_id)
+        self.current_location_items().remove(item_id)
+        self.state.inventory.append(item_id)
 
         return ActionResult(status=ActionStatus.OK, message=f"You took the {item.name}.")
 
@@ -266,7 +265,7 @@ class GameEngine:
         # Get inventory item names
         inventory_items = [
             self.world.items[item_id].name
-            for item_id in self.inventory
+            for item_id in self.state.inventory
         ]
 
         message = ",\n".join(inventory_items) if inventory_items else "You carry nothing."
@@ -285,9 +284,8 @@ class GameEngine:
         item = result.item
 
         # Remove from inventory and add to location
-        location = self.current_location()
-        self.inventory.remove(item_id)
-        location.items.append(item_id)
+        self.state.inventory.remove(item_id)
+        self.current_location_items().append(item_id)
 
         return ActionResult(status=ActionStatus.OK, message=f"You dropped the {item.name}")
 
@@ -344,26 +342,32 @@ class GameEngine:
             target_id = target_result.item_id
 
         # Search for matching interaction
-        interaction: Optional[Interaction] = next(
+        interaction_entry: Optional[tuple[str, Interaction]] = next(
             (
-                interaction 
-                for _, interaction in self.world.interactions.items()
+                (interaction_id, interaction) 
+                for interaction_id, interaction in self.world.interactions.items()
                 if self.matches_interaction(interaction, command.verb, item_id, target_id)
             ),
             None
         )
 
-        if interaction:
-            if interaction.completed and not interaction.repeatable:
-                return ActionResult(status=ActionStatus.NO_EFFECT, message="You already did that.")
+        # No match?
+        if not interaction_entry:
+            return ActionResult(status=ActionStatus.NO_EFFECT, message="That didn't work.")
 
-            self.apply_interaction(interaction)
-            return ActionResult(status=ActionStatus.OK, message=interaction.message)
+        interaction_id, interaction = interaction_entry
+
+        # Already done?
+        if not interaction.repeatable and interaction_id in self.state.completed_interactions:
+            return ActionResult(status=ActionStatus.NO_EFFECT, message="You already did that.")
+
+        # Apply interaction
+        self.apply_interaction(interaction_id, interaction)
+        return ActionResult(status=ActionStatus.OK, message=interaction.message)
         
-        return ActionResult(status=ActionStatus.NO_EFFECT, message="That didn't work.")
 
     def has_required_flags(self, required_flags) -> bool:
-        return all(flag in self.flags for flag in required_flags)
+        return all(flag in self.state.flags for flag in required_flags)
 
     def resolve_item(self, noun: str, *, include_location: bool = False, include_inventory: bool = False) -> ResolveItemResult:
 
@@ -371,11 +375,10 @@ class GameEngine:
         item_ids: list[str] = []
         
         if (include_location):
-            location = self.current_location()
-            item_ids.extend(location.items)
+            item_ids.extend(self.current_location_items())
         
         if (include_inventory):
-            item_ids.extend(self.inventory)
+            item_ids.extend(self.state.inventory)
 
         # Filter to matching items
         matches = [ 
@@ -411,39 +414,49 @@ class GameEngine:
 
         # Flag requirements
         has_required = all(
-            flag in self.flags
+            flag in self.state.flags
             for flag in interaction.requires_flags        
         )
         is_blocked = any(
-            flag in self.flags
+            flag in self.state.flags
             for flag in interaction.blocking_flags
         )
 
         return has_required and not is_blocked
 
-    def apply_interaction(self, interaction: Interaction):
+    def apply_interaction(self, interaction_id: str, interaction: Interaction):
         
+        # Apply flag changes
         for flag in interaction.set_flags:
-            if flag not in self.flags:
-                self.flags.append(flag)
+            if flag not in self.state.flags:
+                self.state.flags.append(flag)
 
         for flag in interaction.clear_flags:
-            if flag in self.flags:
-                self.flags.remove(flag)
+            if flag in self.state.flags:
+                self.state.flags.remove(flag)
         
         if interaction.consumes:
-            self.inventory.remove(interaction.item)
 
-        interaction.completed = True
+            # Remove from inventory
+            if interaction.item in self.state.inventory:
+                self.state.inventory.remove(interaction.item)
+
+            # Remove from location
+            location_items = self.current_location_items()
+            if interaction.item in location_items:
+                location_items.remove(interaction.item)
+
+        # Mark as complete
+        if interaction_id not in self.state.completed_interactions:
+            self.state.completed_interactions.append(interaction_id)
     
     def move_companions(self):
-        for _, location in self.world.locations.items():
+        for _, location_items in self.state.location_items.items():
             for companion in self.companions:
-                if companion in location.items:
-                    location.items.remove(companion)
+                if companion in location_items:
+                    location_items.remove(companion)
 
-        location = self.current_location()
-        location.items.extend(self.companions)
+        self.current_location_items().extend(self.companions)
 
     def is_npc(self, item_id: str) -> bool:
         return item_id in self.world.npcs
@@ -453,7 +466,7 @@ class GameEngine:
         return [ npc_id for npc_id, _ in self.world.npcs.items() ]
 
     def is_companion(self, npc_id: str) -> bool:
-        return companion_flag(npc_id) in self.flags
+        return companion_flag(npc_id) in self.state.flags
 
     @property
     def companions(self) -> list[str]:
