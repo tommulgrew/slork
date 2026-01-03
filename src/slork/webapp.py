@@ -38,9 +38,12 @@ def create_web_app(app: App, state: WebAppState) -> Flask:
         # Perform command or display current location info
         engine_response: ActionResult
         if request.method == "POST":
-            engine_response = app.engine.handle_raw_command(request.form["command"])
+            cmd = request.form["command"]
+            print(f"(Http POST > {cmd})")
+            engine_response = app.engine.handle_raw_command(cmd)
         else:
-            engine_response = app.engine.describe_current_location()
+            print("(Http GET)")
+            engine_response = app.engine.get_intro()
         
         # Lookup image
         if engine_response.image_ref:
