@@ -1,10 +1,10 @@
 import os
-from typing import Optional, Literal
+from typing import Optional
 from importlib.metadata import version
 from pathlib import Path
-from .persistence import GameStatePersister
+from .persistence import GameStatePersister, get_world_folder_path, get_world_file_path
 from .world import load_world
-from .engine import GameEngine, ImageReference, PGameEngine, ActionResult, ok_result, invalid_result
+from .engine import ActionStatus, GameEngine, ImageReference, PGameEngine, ActionResult, ok_result, invalid_result
 from .ai_engine import AIGameEngine
 from .images import ImageService
 from .ai_client import AIConfigurationError, AIChatClient, AIImageGen
@@ -116,6 +116,9 @@ class App:
                     if parts[0] == "/goto":
                         return self.handle_dev_goto(parts)
 
+                    if parts[0] == "/run":
+                        return self.handle_dev_run(parts)
+
         except Exception as exc:
             return invalid_result(str(exc))
         
@@ -124,7 +127,7 @@ class App:
     def handle_save(self, parts: list[str]) -> ActionResult:
         """Save game state to file."""
         if len(parts) != 2:
-            return invalid_result("Usage: SAVE filename")
+            return invalid_result("Usage: /SAVE filename")
 
         self.save(parts[1])
         return ok_result("Game saved")
@@ -133,7 +136,7 @@ class App:
         """Load game state from file"""
         self.handle_load(parts)
         if len(parts) != 2:
-            return invalid_result("Usage: LOAD filename")
+            return invalid_result("Usage: /LOAD filename")
 
         self.load(parts[1])
         return self.engine.describe_current_location()
@@ -141,7 +144,7 @@ class App:
     def handle_dev_goto(self, parts: list[str]) -> ActionResult:
         """Developer cheat: Go to location"""
         if len(parts) != 2:
-            return invalid_result("Usage: GOTO location_id")
+            return invalid_result("Usage: /GOTO location_id")
 
         loc_id = parts[1]
         if loc_id not in self.world.locations:
@@ -149,6 +152,39 @@ class App:
 
         self.base_engine.state.location_id = loc_id
         return self.engine.describe_current_location()
+
+    @property
+    def scripts_folder(self) -> Path:
+        return get_world_folder_path("scripts", self.world_subfolder)
+
+    def handle_dev_run(self, parts: list[str]) -> ActionResult:
+        """Developer cheat: Run script"""
+        if len(parts) != 2:
+            return invalid_result("Usage: /RUN scriptfile")        
+
+        # Read script
+        file_path = get_world_file_path(self.scripts_folder, parts[1], ".txt")
+        print(f"(Running: {file_path})")
+        if not file_path.exists():
+            return invalid_result("No script found.")
+        script_text = file_path.read_text()
+
+        # Execute lines
+        script_lines = [ line.strip() for line in script_text.split('\n') ]
+        result: Optional[ActionResult] = None
+        output: list[str] = []
+        for line in script_lines: 
+            if line and not line.startswith("#"):
+                output.append(f"> {line}")
+                result = self.handle_raw_command(line)
+                if result.status == ActionStatus.INVALID:
+                    output.append(f"ERROR: {result.message}")
+                    break
+                output.append(result.message)
+
+        output.append("Script completed.")
+        self.base_engine.last_command = None
+        return ok_result('\n'.join(output))
 
 def createAIClient(args) -> AIChatClient:
     if args.ai_backend == "ollama":
