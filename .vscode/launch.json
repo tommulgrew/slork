@@ -11,7 +11,10 @@
             "module": "slork.cli",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["--world", "assets/worlds/example.yaml"]
+            "args": [
+                "--world", "assets/worlds/titan.yaml", 
+                "--dev", "True"
+            ]
         },
         {
             "name": "llama3.2 (Ollama)",
@@ -84,6 +87,15 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": ["--world", "assets/worlds/titan.yaml", "--ai-model", "gpt-oss:20b-cloud"]
+        },
+        {
+            "name": "Titan - Web - No AI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "slork.webapp",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [ "--world", "assets/worlds/titan.yaml" ]
         },
         {
             "name": "Titan - Web",

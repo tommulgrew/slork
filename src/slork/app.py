@@ -4,7 +4,7 @@ from importlib.metadata import version
 from pathlib import Path
 from .persistence import GameStatePersister
 from .world import load_world
-from .engine import GameEngine, ImageReference, PGameEngine
+from .engine import GameEngine, ImageReference, PGameEngine, ActionResult, ok_result, invalid_result
 from .ai_engine import AIGameEngine
 from .images import ImageService
 from .ai_client import AIConfigurationError, AIChatClient, AIImageGen
@@ -14,6 +14,7 @@ from .util import strip_quotes
 
 class App:
     def __init__(self, args):
+        self.dev_mode: bool = args.dev
 
         # Load world definition
         self.world = load_world(args.world)
@@ -65,15 +66,15 @@ class App:
             print(f"  AI model:   {args.ai_model}")
         print("**************************************************")
 
-    def toggle_ai(self):
+    def toggle_ai(self) -> ActionResult:
         if self.ai_engine == None:
-            print("AI is not available. Specify a model using '--ai-model MODELNAME' when launching Slork to enable AI.")
+            return invalid_result("AI is not available. Specify a model using '--ai-model MODELNAME' when launching Slork to enable AI.")
         elif self.engine == self.ai_engine:
-            self.engine = self.base_engine
-            print("AI disabled")
+            self.engine = self.base_engine            
+            return ok_result("AI disabled")
         else:
             self.engine = self.ai_engine
-            print("AI enabled")
+            return ok_result("AI enabled")
 
     def get_image(self, ref: Optional[ImageReference]) -> Optional[Path]:
         if self.images and ref:
@@ -88,36 +89,64 @@ class App:
         state = self.persister.load_game_state(filename)
         self.base_engine.state = state          # TO DO: Validate against world file?
 
-    def handle_system_command(self, raw: str) -> Literal["not_system", "handled", "state_updated"]:
+    def handle_raw_command(self, raw_command: str) -> ActionResult:
+        return self.handle_system_command(raw_command) or self.engine.handle_raw_command(raw_command)
+
+    def handle_system_command(self, raw: str) -> Optional[ActionResult]:
         raw = strip_quotes(raw.strip()).strip()
         parts = [part.lower() for part in raw.split()]
-        if not parts:
-            return "not_system"
 
         try:
-            if parts[0] == "ai":
-                self.toggle_ai()
-                return "handled"
+            if parts:
 
-            if parts[0] == "save":
-                if len(parts) == 2:
-                    self.save(parts[1])
-                else:
-                    print("Usage: SAVE filename")        
-                return "handled"
+                if parts[0] == "ai":
+                    return self.toggle_ai()
 
-            if parts[0] == "load":
-                if len(parts) == 2:
-                    self.load(parts[1])
-                else:
-                    print("Usage: LOAD filename")        
-                return "state_updated"
+                if parts[0] == "save":
+                    return self.handle_save(parts)
 
-        except RuntimeError as exc:
-            print(exc)
-            return "handled"
+                if parts[0] == "load":
+                    return self.handle_load(parts)
 
-        return "not_system"
+                # Developer mode commands
+
+                if self.dev_mode:                
+                    if parts[0] == "goto":
+                        return self.handle_dev_goto(parts)
+
+        except Exception as exc:
+            return invalid_result(str(exc))
+        
+        return None
+    
+    def handle_save(self, parts: list[str]) -> ActionResult:
+        """Save game state to file."""
+        if len(parts) != 2:
+            return invalid_result("Usage: SAVE filename")
+
+        self.save(parts[1])
+        return ok_result("Game saved")
+
+    def handle_load(self, parts: list[str]) -> ActionResult:
+        """Load game state from file"""
+        self.handle_load(parts)
+        if len(parts) != 2:
+            return invalid_result("Usage: LOAD filename")
+
+        self.load(parts[1])
+        return self.engine.describe_current_location()
+
+    def handle_dev_goto(self, parts: list[str]) -> ActionResult:
+        """Developer cheat: Go to location"""
+        if len(parts) != 2:
+            return invalid_result("Usage: GOTO location_id")
+
+        loc_id = parts[1]
+        if loc_id not in self.world.locations:
+            return invalid_result(f"'{loc_id}' is not a valid location ID")
+            
+        self.base_engine.state.location_id = loc_id
+        return self.engine.describe_current_location()
 
 def createAIClient(args) -> AIChatClient:
     if args.ai_backend == "ollama":

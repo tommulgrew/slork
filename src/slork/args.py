@@ -45,5 +45,11 @@ def parse_main_args():
         required=False,
         help="Quality parameter to pass to the image generator. E.g. 'low'. Valid values depend on the generator used."
     )
+    parser.add_argument(
+        "--dev",
+        type=bool,
+        default=False,
+        help="Enable developer mode (cheat) commands"
+    )
     return parser.parse_args()
 

@@ -22,6 +22,12 @@ class ActionResult:
     message: str
     image_ref: Optional[ImageReference] = None
 
+def ok_result(message:str, image_ref: Optional[ImageReference] = None) -> ActionResult:
+    return ActionResult(status=ActionStatus.OK, message=message, image_ref=image_ref)
+
+def invalid_result(message:str, image_ref: Optional[ImageReference] = None) -> ActionResult:
+    return ActionResult(status=ActionStatus.INVALID, message=message, image_ref=image_ref)
+
 @dataclass
 class ResolveItemResult:
     item: Optional[Item] = None
