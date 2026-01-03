@@ -1,9 +1,12 @@
+from dataclasses import asdict
 import os
+import json
+from dacite import from_dict
 from typing import Optional
 from importlib.metadata import version
 from pathlib import Path
 from .world import load_world
-from .engine import GameEngine, ImageReference, PGameEngine
+from .engine import GameEngine, GameEngineState, ImageReference, PGameEngine
 from .ai_engine import AIGameEngine
 from .images import ImageService
 from .ai_client import AIConfigurationError, AIChatClient, AIImageGen
@@ -15,6 +18,7 @@ class App:
 
         # Load world definition
         self.world = load_world(args.world)
+        self.world_subfolder = args.world.stem
         issues = self.world.validate()
         if issues:
             issue_lines = "\n".join([f"- {issue}" for issue in issues])
@@ -48,7 +52,7 @@ class App:
             image_generator=img_gen, 
             ai_client=ai_client, 
             world=self.world, 
-            sub_folder_name=args.world.stem)
+            sub_folder_name=self.world_subfolder)
 
         print()
         print("**************************************************")
@@ -74,6 +78,55 @@ class App:
             return self.images.get_image(ref)
         else:
             return None
+
+    def get_save_dir(self) -> Path:
+        save_dir = Path("assets/saves") / self.world_subfolder
+        save_dir.resolve()
+        return save_dir
+
+    def get_save_file_path(self, filename: str) -> Path:
+
+        # Get full file path and validate it
+        save_dir = self.get_save_dir()
+        save_file_path = (save_dir / filename).with_suffix(".json")
+        save_file_path.resolve()
+
+        if not save_file_path.is_relative_to(save_dir):
+            raise RuntimeError("Invalid filename")
+
+        # Ensure save folder exists
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+        return save_file_path
+
+    def save(self, filename: str):
+        save_file_path = self.get_save_file_path(filename)
+
+        # Serialize game state
+        state = self.base_engine.state
+        state_json = json.dumps(asdict(state), indent=2)
+
+        # Write to file
+        print(f"Saving to: {save_file_path}")
+        save_file_path.write_text(state_json)
+
+    def load(self, filename: str):
+        save_file_path = self.get_save_file_path(filename)
+        if not save_file_path.exists():
+            raise RuntimeError(f"Save '{filename}' does not exist.")
+        
+        # Read from file
+        print(f"Loading from: {save_file_path}")
+        state_json = save_file_path.read_text()
+
+        # Deserialize
+        state_dict = json.loads(state_json)
+        state = from_dict(GameEngineState, state_dict)
+
+        # TO DO: Validate against world file?
+
+        # Replace game engine state
+        self.base_engine.state = state
 
 def createAIClient(args) -> AIChatClient:
     if args.ai_backend == "ollama":

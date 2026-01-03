@@ -1,0 +1,33 @@
+{
+  "location_id": "stone_gate_clearing",
+  "inventory": [
+    "lint",
+    "brass_key"
+  ],
+  "flags": [
+    "companion:lenny",
+    "gate_unlocked"
+  ],
+  "location_items": {
+    "crossroad": [],
+    "forest_path": [],
+    "small_hut": [
+      "small_hut",
+      "hermit"
+    ],
+    "stone_gate_clearing": [
+      "stone_gate",
+      "gnome",
+      "lenny"
+    ],
+    "inner_courtyard": [
+      "survey_map"
+    ]
+  },
+  "completed_interactions": [
+    "talk_to_lenny",
+    "try_open_stone_gate_locked",
+    "unlock_stone_gate",
+    "try_open_stone_gate_already_open"
+  ]
+}
