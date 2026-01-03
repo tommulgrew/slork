@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "--world", "assets/worlds/titan.yaml", 
+                "--world", "assets/worlds/example.yaml", 
                 "--dev", "True"
             ]
         },

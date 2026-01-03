@@ -128,10 +128,13 @@ class App:
                         return self.handle_dev_goto(parts)                    
 
                     if parts[0] == "/set":
-                        return self.handle_set_flag(parts)
+                        return self.handle_dev_set(parts)
 
                     if parts[0] == "/clear":
-                        return self.handle_clear_flag(parts)
+                        return self.handle_dev_clear(parts)
+
+                    if parts[0] == "/take":
+                        return self.handle_dev_take(parts)
 
                     if parts[0] == "/run":
                         return self.handle_dev_run(parts)
@@ -170,7 +173,7 @@ class App:
         self.base_engine.state.location_id = loc_id
         return self.engine.describe_current_location()
 
-    def handle_set_flag(self, parts: list[str]) -> ActionResult:
+    def handle_dev_set(self, parts: list[str]) -> ActionResult:
         if len(parts) != 2:
             return invalid_result("Usage: /SET flag_id")
 
@@ -184,7 +187,7 @@ class App:
 
         return ok_result(f"Flag '{flag_id}' set.")
 
-    def handle_clear_flag(self, parts: list[str]) -> ActionResult:
+    def handle_dev_clear(self, parts: list[str]) -> ActionResult:
         if len(parts) != 2:
             return invalid_result("Usage: /CLEAR flag_id")
 
@@ -197,6 +200,30 @@ class App:
             flags.remove(flag_id)
 
         return ok_result(f"Flag '{flag_id}' cleared.")
+
+    def handle_dev_take(self, parts: list[str]) -> ActionResult:
+        if len(parts) != 2:
+            return invalid_result("Usage: /TAKE item_id")
+
+        item_id = parts[1]
+        if item_id not in self.world.items:
+            return invalid_result(f"'{item_id}' is not a valid item ID.")
+
+        item = self.world.items[item_id]
+        if not item.portable:
+            return invalid_result(f"Item '{item_id} ({item.name})' is not portable.")
+
+        # Remove from any locations
+        state = self.base_engine.state
+        for _, items in state.location_items.items():
+            if item_id in items:
+                items.remove(item_id)
+
+        # Add to inventory
+        if not item_id in state.inventory:
+            state.inventory.append(item_id)
+
+        return ok_result(f"'{item_id} ({item.name})' Added to inventory.")
 
     @property
     def scripts_folder(self) -> Path:
