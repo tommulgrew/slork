@@ -113,7 +113,8 @@
                 "--ai-model", "gpt-5-nano",
                 "--ai-image-model", "gpt-image-1-mini",
                 "--ai-image-size", "1024x1024",
-                "--ai-image-quality", "low"
+                "--ai-image-quality", "low",
+                "--dev", "True"
             ]
         },
     ]

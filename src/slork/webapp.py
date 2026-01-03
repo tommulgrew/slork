@@ -9,6 +9,7 @@ from .engine import ActionResult
 @dataclass
 class WebAppState:
     image_url: Optional[str] = None
+    last_cmd: Optional[str] = None
 
 def main() -> None:
 
@@ -38,9 +39,11 @@ def create_web_app(app: App, state: WebAppState) -> Flask:
         # Perform command or display current location info
         engine_response: ActionResult
         if request.method == "POST":
-            cmd = request.form["command"]
-            print(f"(Http POST > {cmd})")
-            engine_response = app.handle_raw_command(cmd)
+            state.last_cmd = request.form["command"]
+            print(f"(Http POST > {state.last_cmd})")
+
+            app.base_engine.last_command = None
+            engine_response = app.handle_raw_command(state.last_cmd)
         else:
             print("(Http GET)")
             engine_response = app.engine.get_intro()
@@ -50,9 +53,12 @@ def create_web_app(app: App, state: WebAppState) -> Flask:
             image_path = app.get_image(engine_response.image_ref)
             state.image_url = fix_image_path(image_path)
 
+        # Show last command
+        # Use command passed to base engine, if available. Otherwise use command as keyed.
         text = engine_response.message
-        if app.base_engine.last_command:
-            text = f"> {app.base_engine.last_command.raw}\n\n{text}"
+        last_cmd = app.base_engine.last_command.raw if app.base_engine.last_command else state.last_cmd
+        if last_cmd:
+            text = f"> {last_cmd}\n\n{text}"
 
         return render_template(
             "index.html",
