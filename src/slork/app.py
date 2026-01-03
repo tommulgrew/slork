@@ -113,8 +113,25 @@ class App:
                 # Developer mode commands
 
                 if self.dev_mode:                
+                    if parts[0] == "/locations":
+                        return ok_result("\n".join([ f"{loc_id} '{loc.name}'" for loc_id, loc in self.world.locations.items() ]))
+
+                    if parts[0] == "/items":
+                        return ok_result("\n".join([ 
+                            f"{item_id} '{item.name}'{' (portable)' if item.portable else ''}{' (npc)' if item_id in self.world.npcs else ''}" 
+                            for item_id, item in self.world.items.items() ]))
+
+                    if parts[0] == "/flags":
+                        return ok_result("\n".join(self.world.flags))
+
                     if parts[0] == "/goto":
-                        return self.handle_dev_goto(parts)
+                        return self.handle_dev_goto(parts)                    
+
+                    if parts[0] == "/set":
+                        return self.handle_set_flag(parts)
+
+                    if parts[0] == "/clear":
+                        return self.handle_clear_flag(parts)
 
                     if parts[0] == "/run":
                         return self.handle_dev_run(parts)
@@ -152,6 +169,34 @@ class App:
 
         self.base_engine.state.location_id = loc_id
         return self.engine.describe_current_location()
+
+    def handle_set_flag(self, parts: list[str]) -> ActionResult:
+        if len(parts) != 2:
+            return invalid_result("Usage: /SET flag_id")
+
+        flag_id = parts[1]
+        if flag_id not in self.world.flags:
+            return invalid_result(f"'{flag_id}' is not a valid flag ID.")
+
+        flags = self.base_engine.state.flags
+        if not flag_id in flags:
+            flags.append(flag_id)
+
+        return ok_result(f"Flag '{flag_id}' set.")
+
+    def handle_clear_flag(self, parts: list[str]) -> ActionResult:
+        if len(parts) != 2:
+            return invalid_result("Usage: /CLEAR flag_id")
+
+        flag_id = parts[1]
+        if flag_id not in self.world.flags:
+            return invalid_result(f"'{flag_id}' is not a valid flag ID.")
+
+        flags = self.base_engine.state.flags
+        if flag_id in flags:
+            flags.remove(flag_id)
+
+        return ok_result(f"Flag '{flag_id}' cleared.")
 
     @property
     def scripts_folder(self) -> Path:
