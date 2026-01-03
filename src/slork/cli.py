@@ -16,7 +16,7 @@ def main() -> None:
 
     # Initial location
     try:
-        engine_response = app.engine.describe_current_location()
+        engine_response = app.engine.get_intro()
         image_path = app.get_image(engine_response.image_ref)
         if image_path:
             print(f"(Image: {image_path})")

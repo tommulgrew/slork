@@ -11,6 +11,7 @@ class Header:
     start: str
     initial_inventory: list[str] = field(default_factory=list)
     initial_companions: list[str] = field(default_factory=list)
+    intro_text: Optional[str] = None
     
 @dataclass
 class Item:

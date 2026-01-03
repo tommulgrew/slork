@@ -44,13 +44,13 @@ class AIGameEngine:
         text_gen_prompt_common = engine.world.ai_guidance.text_generation if engine.world.ai_guidance else None
         self.ai_prompts = create_ai_prompts(text_gen_prompt_common)
 
+    def get_intro(self) -> ActionResult:
+        engine_response = self.engine.get_intro()
+        return self.ai_enhance_engine_response(engine_response)
+
     def describe_current_location(self, verbose: bool = False) -> ActionResult:
-        result = self.engine.describe_current_location(verbose)
-        ai_description = self.ai_enhance_engine_response(ActionResult(status=ActionStatus.OK, message=result.message))        
-        return ActionResult(
-            status=ActionStatus.OK, 
-            message=ai_description.message, 
-            image_ref=result.image_ref)
+        engine_response = self.engine.describe_current_location(verbose)
+        return self.ai_enhance_engine_response(engine_response)
     
     def handle_raw_command(self, raw_command: str) -> ActionResult:
         ai_input_response: AIPlayerInputResponse = self.ai_interpret_player_input(raw_command)

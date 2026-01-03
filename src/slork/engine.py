@@ -45,6 +45,10 @@ class PGameEngine(Protocol):
     def describe_current_location(self, verbose: bool = False) -> ActionResult:
         ...
 
+    @abstractmethod
+    def get_intro(self) -> ActionResult:
+        ...
+
 class GameEngine:
     """
     Implements a text adventure game engine.
@@ -60,6 +64,15 @@ class GameEngine:
 
         # Move companions to initial location
         self.move_companions()
+
+    def get_intro(self) -> ActionResult:
+        result = self.describe_current_location()
+
+        # Prefix with intro text
+        if self.world.world.intro_text:
+            result.message = f"{self.world.world.intro_text}\n\n{result.message}"
+
+        return result
 
     def current_location(self) -> Location:
         return self.world.locations[self.state.location_id]
