@@ -29,6 +29,10 @@
           "type": "array",
           "items": { "type": "string" },
           "default": []
+        },
+        "intro_text": {
+          "type": "string",
+          "description": "Text to display when the game starts."
         }
       }
     },
@@ -162,7 +166,8 @@
             },
             "default": {}
           }
-        }
+        },
+        "required": [ "name", "description", "exits" ]
       },
       "default": {}
     },
@@ -229,5 +234,5 @@
       "default": {}
     }
   },
-  "required": ["world", "locations", "items"]
+  "required": ["world", "locations", "items", "flags", "npcs", "interactions"]
 }
