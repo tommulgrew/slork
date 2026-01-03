@@ -33,7 +33,9 @@
 </head>
 <body>
     <form method="post" onsubmit="disableInput()">
+        {% if image %}
         <img src="{{ image }}">
+        {% endif %}
         {% for text_line in text.split('\n') %}    
         <p>{{ text_line }}</p>
         {% endfor %}
