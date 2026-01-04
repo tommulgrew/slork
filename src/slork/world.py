@@ -12,6 +12,23 @@ class Header:
     initial_inventory: list[str] = field(default_factory=list)
     initial_companions: list[str] = field(default_factory=list)
     intro_text: Optional[str] = None
+
+@dataclass(frozen=True)
+class Criteria:
+    requires_flags: list[str] = field(default_factory=list)
+    blocking_flags: list[str] = field(default_factory=list)
+
+    def is_satisfied_by(self, flags: list[str]) -> bool:
+        has_required = all(
+            flag in flags
+            for flag in self.requires_flags        
+        )
+        is_blocked = any(
+            flag in flags
+            for flag in self.blocking_flags
+        )
+
+        return has_required and not is_blocked
     
 @dataclass
 class Item:
@@ -25,7 +42,7 @@ class Item:
 class Exit:
     to: str
     description: str
-    requires_flags: list[str] = field(default_factory=list)
+    criteria: Optional[Criteria] = None
     blocked_description: Optional[str] = None
 
 @dataclass
@@ -47,8 +64,7 @@ class Interaction:
     item: str
     message: str
     target: Optional[str] = None
-    requires_flags: list[str] = field(default_factory=list)
-    blocking_flags: list[str] = field(default_factory=list)
+    criteria: Optional[Criteria] = None
     set_flags: list[str] = field(default_factory=list)
     clear_flags: list[str] = field(default_factory=list)
     consumes: bool = False
@@ -116,14 +132,12 @@ class World:
             for exit_id, exit in loc.exits.items():
                 if exit.to not in self.locations:
                     issues.append(f"'{exit_id}' exit in location '{loc_id}' points to invalid location '{exit.to}'.")
-                if exit.requires_flags and not exit.blocked_description:
-                    issues.append(f"'{exit_id}' exit in location '{loc_id}' has requires_flags, but no blocked_description.")
-                if exit.blocked_description and not exit.requires_flags:
-                    issues.append(f"'{exit_id}' exit in location '{loc_id}' has blocked_description, but no requires_flags.")
-                for flag in exit.requires_flags:
-                    ref_flags.add(flag)
-                    if flag not in self.flags:
-                        issues.append(f"Required flag '{flag}' for '{exit_id}' exit in location '{loc_id}' was not found in 'flags' list.")
+                if exit.criteria and not exit.blocked_description:
+                    issues.append(f"'{exit_id}' exit in location '{loc_id}' has a criteria, but no blocked_description.")
+                if exit.blocked_description and not exit.criteria:
+                    issues.append(f"'{exit_id}' exit in location '{loc_id}' has blocked_description, but no criteria.")
+                if exit.criteria:
+                    issues.extend(self.validate_criteria(exit.criteria, ref_flags, f"'{exit_id}' exit criteria in location '{loc_id}'"))
 
         # NPCs
         for npc_id, npc in self.npcs.items():
@@ -131,7 +145,7 @@ class World:
                 issues.append(f"NPC '{npc_id}' does not have a corresponding item in the 'items' list.")
 
         # Interactions
-        for _, x in self.interactions.items():
+        for x_id, x in self.interactions.items():
             if x.verb not in VALID_VERBS:
                 issues.append(f"Interaction verb '{x.verb}' is not in the valid verbs list ({', '.join(VALID_VERBS)}).")
             if x.item not in self.items:
@@ -142,14 +156,8 @@ class World:
             # Note: Not counting interaction references to items, as we are 
             # interested in references that make them available in the game.
 
-            for flag in x.requires_flags:
-                if flag not in self.flags:
-                    issues.append(f"Required flag '{flag}' for interaction was not found in 'flags' list.")
-                ref_flags.add(flag)
-            for flag in x.blocking_flags:
-                if flag not in self.flags:
-                    issues.append(f"Blocking flag '{flag}' for interaction was not found in 'flags' list.")
-                ref_flags.add(flag)
+            if x.criteria:
+                issues.extend(self.validate_criteria(x.criteria, ref_flags, f"'{x_id}' interaction criteria"))
 
         unref_flags = [ flag    for flag          in self.flags         if flag    not in ref_flags]
         unref_items = [ item_id for item_id, item in self.items.items() if item_id not in ref_items]
@@ -180,6 +188,23 @@ class World:
             issues.append(f"Unreachable locations: {', '.join(unreachable)}.")
 
         return issues
+
+    def validate_criteria(self, criteria: Criteria, ref_flags: set[str], owner_desc: str) -> list[str]:
+
+        issues: list[str] = []
+
+        for flag in criteria.requires_flags:
+            ref_flags.add(flag)
+            if flag not in self.flags:
+                issues.append(f"Required flag '{flag}' for {owner_desc} was not found in 'flags' list.")
+
+        for flag in criteria.blocking_flags:
+            ref_flags.add(flag)
+            if flag not in self.flags:
+                issues.append(f"Blocking flag '{flag}' for {owner_desc} was not found in 'flags' list.")
+
+        return issues
+
 
 def load_world(path: Path) -> World:
     world_yaml = path.read_text()

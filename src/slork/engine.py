@@ -188,7 +188,7 @@ class GameEngine:
         # Exits
         exit_descriptions = []
         for direction, ex in location.exits.items():
-            if self.has_required_flags(ex.requires_flags):
+            if not ex.criteria or ex.criteria.is_satisfied_by(self.state.flags):
                 exit_description = direction
                 if ex.description:
                     exit_description += f" - {ex.description}"
@@ -250,8 +250,8 @@ class GameEngine:
             return invalid_result(f"You cannot go {direction}.")    
         exit = location.exits[direction]
 
-        # Required flags must be present
-        if not self.has_required_flags(exit.requires_flags):
+        # Flag criteria must be satisfied
+        if exit.criteria and not exit.criteria.is_satisfied_by(self.state.flags):
             return invalid_result(exit.blocked_description if exit.blocked_description else f"You cannot go {direction}.")
 
         # Move to new location
@@ -432,17 +432,8 @@ class GameEngine:
         if interaction.verb != verb or interaction.item != item_id or interaction.target != target_id:
             return False
 
-        # Flag requirements
-        has_required = all(
-            flag in self.state.flags
-            for flag in interaction.requires_flags        
-        )
-        is_blocked = any(
-            flag in self.state.flags
-            for flag in interaction.blocking_flags
-        )
-
-        return has_required and not is_blocked
+        # Flag criteria must be satisfied
+        return not interaction.criteria or interaction.criteria.is_satisfied_by(self.state.flags)
 
     def apply_interaction(self, interaction_id: str, interaction: Interaction):
         
