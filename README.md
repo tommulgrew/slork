@@ -86,6 +86,7 @@ CLI prints the image path when an image is generated. The web app renders the la
 - World files can include AI guidance:
   - `ai_guidance.text_generation` influences narration tone.
   - `ai_guidance.image_generation` influences image style.
+- Items (including NPCs) can include an optional `location_description` used to append presence text when they are in their original location.
 - Use `--world path/to/your.yaml` to load a custom world.
 
 For full authoring details, see `docs/yaml_world_authoring.md`.

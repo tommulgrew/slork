@@ -5,7 +5,8 @@ dependencies = [
     "pyyaml",
     "dacite",
     "openai",
-    "flask"
+    "flask",
+    "pyreadline3"
 ]
 
 [build-system]

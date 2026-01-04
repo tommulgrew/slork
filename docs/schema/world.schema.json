@@ -67,9 +67,13 @@
             "type": "string",
             "description": "The main name of the item. Used when displaying messages about the item. Used by the player to refer to the item in commands (e.g. TAKE FLASHLIGHT)."
           },
+          "location_description": {
+            "type": "string",
+            "description": "How the item is described as part of the location description. (E.g. 'A rusty sword leans against the wall.')"
+          },
           "description": { 
             "type": "string",
-            "description": "Displayed when the player examines the item."
+            "description": "Displayed when the player examines the item. (E.g. 'An old, but serviceable short-sword. Despite a little rust, it still appears to be sharp.')"
           },
           "portable": { 
             "type": "boolean", "default": true,
@@ -92,10 +96,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "description": { 
-            "type": "string",
-            "description": "Displayed as part of the location description when the NPC is present. Must convey that the NPC is present and communicate the noun the player should use to interact with them. E.g. 'A bored looking guard stands in front of the gate.'"
-          },
           "persona": { 
             "type": "string",
             "description": "Only used in AI mode. A basic description of the NPC's persona."

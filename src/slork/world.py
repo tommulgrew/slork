@@ -17,6 +17,7 @@ class Header:
 class Item:
     name: str
     description: str
+    location_description: Optional[str] = None
     portable: bool = False
     aliases: list[str] = field(default_factory=list)
 
@@ -36,7 +37,6 @@ class Location:
 
 @dataclass
 class NPC:
-    description: str
     persona: Optional[str] = None
     sample_lines: list[str] = field(default_factory=list)
     quest_hook: Optional[str] = None

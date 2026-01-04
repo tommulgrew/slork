@@ -69,6 +69,7 @@ items:
   journal:
     name: Weathered Journal
     description: A leather-bound journal swollen with seawater.
+    location_description: A weathered journal lies half-buried in the shingle.
     aliases: [journal, book, diary]
     portable: true
 ```
@@ -77,6 +78,7 @@ items:
 
 * **name** – Display name (used in output)
 * **description** – Used by the `EXAMINE` command
+* **location_description** – Optional text appended to the location description when the item is in its original location
 * **aliases** – Optional extra words the player can type to refer to the item
 
 > ⚠️ Important:
@@ -89,7 +91,8 @@ items:
 
 * Must have `portable: true`
 * Appear in the location’s **“You see:”** list
-* Can be picked up automatically (no `get` interaction required)
+* Can be picked up automatically (no `take` interaction required)
+* If `location_description` is omitted (or the item is not in its original location), the engine will add: `There is a [item] here.`
 
 Examples:
 
@@ -102,7 +105,8 @@ Examples:
 
 * `portable: false` (or omitted)
 * Do **not** appear in “You see:”
-* Should be described directly in the **location description**
+* If `location_description` is provided, it will be appended to the location description when the item is in its original location
+* If `location_description` is omitted, the engine will append nothing (assumes the location description already mentions it)
 * Can still be targets for interactions (`use key on door`)
 
 Examples:
@@ -117,6 +121,8 @@ Examples:
 ## NPCs
 
 NPCs are implemented as **items with extra metadata**.
+The NPC metadata does not include a description; use the item's
+`location_description` for how they appear in a location.
 
 ### Item definition
 
@@ -124,6 +130,7 @@ NPCs are implemented as **items with extra metadata**.
 researcher:
   name: Elias the Researcher
   description: A tired man in a faded field jacket.
+  location_description: Elias, a tired man in a faded field jacket, stands nearby.
   aliases: [elias, researcher]
 ```
 
@@ -132,23 +139,15 @@ researcher:
 ```yaml
 npcs:
   researcher:
-    description: Elias, a man in a faded field jacket, stands nearby...
     persona: Analytical, guarded, quietly regretful.
     sample_lines:
       - "We were meant to observe, not interfere."
     quest_hook: Knows more than he admits about the missing crew.
 ```
 
-### Important distinction
-
-| Field              | Purpose                                  |
-| ------------------ | ---------------------------------------- |
-| `item.description` | Used for `EXAMINE npc`                   |
-| `npc.description`  | Appended to the **location description** |
-
 ### Naming rule (important!)
 
-NPC descriptions **must include the NPC’s name or alias**, so the player knows what noun to use:
+NPC `location_description` text **must include the NPC’s name or alias**, so the player knows what noun to use:
 
 ✅ Good:
 
@@ -163,6 +162,8 @@ A man in a faded field jacket stands nearby...
 ```
 
 Otherwise the player won’t know what to type.
+
+If no `location_description` is provided (or the NPC is not in its original location), the engine will append: `[npc] is here.`
 
 ---
 
@@ -193,7 +194,7 @@ locations:
 | -------------------- | ---------------------- |
 | Portable items       | `items:` list          |
 | NPCs                 | `items:` list          |
-| Non-portable scenery | Location `description` |
+| Non-portable scenery | `location_description` or location `description` |
 
 ---
 
@@ -290,9 +291,11 @@ Interactions define custom verb logic.
 ## Images and non-portable items
 
 When AI image generation is enabled, location images are generated from the
-location description. Non-portable items should be described in the location
-text, so they typically appear in the location image. To avoid conflicting
-visuals, Slork does not generate separate item images for non-portable items.
+location description (including any `location_description` text appended for
+items in their original location). Non-portable items are expected to be
+described there, so they typically appear in the location image. To avoid
+conflicting visuals, Slork does not generate separate item images for
+non-portable items.
 
 ---
 

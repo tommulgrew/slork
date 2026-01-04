@@ -14,18 +14,21 @@ flags:
 items:
   journal:
     name: Weathered Journal
+    location_description: You can just make out an old weathered journal poking out of the sand.
     description: A leather-bound journal swollen with seawater. Several pages are still readable.
     aliases: [journal, book, diary]
     portable: true
 
   brass_whistle:
     name: Brass Whistle
+    location_description: On the floor you spy a small white whistle.
     description: A small whistle engraved with a wave symbol. It looks well-used.
     aliases: [whistle, brass whistle]
     portable: true
 
   station_key:
     name: Station Key
+    location_description: On the desk is a thick iron key.
     description: A heavy iron key tagged "ADMIN".
     aliases: [key, station key]
     portable: true
@@ -44,6 +47,7 @@ items:
 
   fuel_can:
     name: Fuel Can
+    location_description: An old metal fuel can sits in the corner.
     description: A half-full jerry can that smells strongly of diesel.
     aliases: [fuel, diesel, can, fuel can]
     portable: true
@@ -56,11 +60,13 @@ items:
 
   researcher:
     name: Elias the Researcher
+    location_description: Elias, a man in a faded field jacket, stands nearby, jotting notes and watching the sea with a wary expression.
     description: A tired man in a faded field jacket, eyes sharp despite the years.
     aliases: [elias, researcher]
 
   caretaker:
     name: Mara the Caretaker
+    location_description: Mara, the station's caretaker, lingers near the lighthouse, her attention fixed on the horizon as if expecting the sea to answer back.
     description: A woman with windburned skin and steady hands. She watches the sea constantly.
     aliases: [mara, caretaker]
 
@@ -72,12 +78,12 @@ items:
 
   dog:
     name: Small dog
+    location_description: A small hairy dog sits in an old basket, watching you hopefully.
     description: A small, friendly dog.
     aliases: [dog]
 
 npcs:
   researcher:
-    description: Elias, a man in a faded field jacket, stands nearby, jotting notes and watching the sea with a wary expression.
     persona: Analytical, guarded, quietly regretful.
     sample_lines:
       - "We were meant to observe, not interfere."
@@ -85,7 +91,6 @@ npcs:
     quest_hook: He hints that the station's final broadcast was never sent.
 
   caretaker:
-    description: Mara, the station's caretaker, lingers near the lighthouse, her attention fixed on the horizon as if expecting the sea to answer back.
     persona: Practical, blunt, deeply attached to the station.
     sample_lines:
       - "Someone has to keep the lights working."
@@ -93,7 +98,6 @@ npcs:
     quest_hook: She wants the lighthouse restored.
 
   dog:
-    description: A small hairy dog sits in an old basket, watching you hopefully.
     persona: A small enthusiastic dog.    
 
 locations:

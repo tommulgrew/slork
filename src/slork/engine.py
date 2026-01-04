@@ -92,7 +92,9 @@ class GameEngine:
     def describe_current_location(self, verbose: bool = False) -> ActionResult:
         location = self.current_location()
         lines = [
+            "",
             location.name, 
+            "",
             location.description, 
             *self.describe_npcs(verbose),
             *self.describe_items(verbose),
@@ -126,7 +128,10 @@ class GameEngine:
             if self.is_npc(item_id) and not self.is_companion(item_id)
         ]
         for item_id, item, npc in other_npcs:
-            lines.append(npc.description)
+            if item.location_description and item_id in self.current_location().items:        # Item in its original location
+                lines.append(item.location_description)
+            else:
+                lines.append(f"{item.name} is here.")
 
         if companion_npcs:
             companion_names = [item.name for _, item, _ in companion_npcs]
@@ -166,16 +171,13 @@ class GameEngine:
         lines = []
 
         # Items
-        # Only list portable items. Fixed items should be described
-        # in the location description.
-        item_descriptions = []
         for item_id in self.current_location_items():
             item = self.world.items[item_id]
             if not self.is_npc(item_id):
-                if item.portable or verbose:
-                    item_descriptions.append(item.name)
-        if item_descriptions:
-            lines.append(f"You see: {', '.join(item_descriptions)}")
+                if item.location_description and item_id in self.current_location().items:
+                    lines.append(item.location_description)
+                elif item.portable:
+                    lines.append(f"There is a {item.name} here.")
 
         return lines
 

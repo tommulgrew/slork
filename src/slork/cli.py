@@ -6,6 +6,11 @@ from .ai_client import AIChatAPIError
 from .ai_engine import AIResponseFormatError
 from .util import strip_quotes
 
+try:
+    import readline
+except ImportError:
+    pass
+
 def main() -> None:
 
     # Parse arguments
