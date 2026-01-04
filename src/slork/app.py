@@ -110,46 +110,6 @@ class App:
                 if parts[0] == "/load":
                     return self.handle_load(parts)
 
-                # Developer mode commands
-
-                if self.dev_mode:                
-                    if parts[0] == "/locations":
-                        return ok_result("\n".join([ f"{loc_id} '{loc.name}'" for loc_id, loc in self.world.locations.items() ]))
-
-                    if parts[0] == "/items":
-                        return ok_result("\n".join([ 
-                            f"{item_id} '{item.name}'{' (portable)' if item.portable else ''}{' (npc)' if item_id in self.world.npcs else ''}" 
-                            for item_id, item in self.world.items.items() ]))
-
-                    if parts[0] == "/flags":
-                        return ok_result("\n".join(f"{flag}{' (set)' if flag in self.base_engine.state.flags else ''}" for flag in self.world.flags))
-
-                    if parts[0] == "/interactions":
-                        return ok_result(
-                            "\n".join(f"{id} ({i.verb} {i.item}{' ' + i.target if i.target else ''}){' (completed)' if id in self.base_engine.state.completed_interactions else ''}" 
-                            for id, i in self.world.interactions.items()))
-
-                    if parts[0] == "/goto":
-                        return self.handle_dev_goto(parts)                    
-
-                    if parts[0] == "/set":
-                        return self.handle_dev_set(parts)
-
-                    if parts[0] == "/clear":
-                        return self.handle_dev_clear(parts)
-
-                    if parts[0] == "/take":
-                        return self.handle_dev_take(parts)
-
-                    if parts[0] == "/do":
-                        return self.handle_dev_do(parts)
-
-                    if parts[0] == "/clear_interaction":
-                        return self.handle_dev_clear_interaction(parts)
-
-                    if parts[0] == "/run":
-                        return self.handle_dev_run(parts)
-
                 if parts[0] == "/help":
                     help = """\
 Commands:
@@ -174,9 +134,49 @@ Developer commands:
 """
                     return ok_result(help)
 
+            return self.handle_dev_command(parts) if self.dev_mode else None
+
         except Exception as exc:
             return invalid_result(str(exc))
         
+    def handle_dev_command(self, parts: list[str]) -> Optional[ActionResult]:
+        if parts[0] == "/locations":
+            return ok_result("\n".join([ f"{loc_id} '{loc.name}'" for loc_id, loc in self.world.locations.items() ]))
+
+        if parts[0] == "/items":
+            return ok_result("\n".join([ 
+                f"{item_id} '{item.name}'{' (portable)' if item.portable else ''}{' (npc)' if item_id in self.world.npcs else ''}" 
+                for item_id, item in self.world.items.items() ]))
+
+        if parts[0] == "/flags":
+            return ok_result("\n".join(f"{flag}{' (set)' if flag in self.base_engine.state.flags else ''}" for flag in self.world.flags))
+
+        if parts[0] == "/interactions":
+            return ok_result(
+                "\n".join(f"{id} ({i.verb} {i.item}{' ' + i.target if i.target else ''}){' (completed)' if id in self.base_engine.state.completed_interactions else ''}" 
+                for id, i in self.world.interactions.items()))
+
+        if parts[0] == "/goto":
+            return self.handle_dev_goto(parts)                    
+
+        if parts[0] == "/set":
+            return self.handle_dev_set(parts)
+
+        if parts[0] == "/clear":
+            return self.handle_dev_clear(parts)
+
+        if parts[0] == "/take":
+            return self.handle_dev_take(parts)
+
+        if parts[0] == "/do":
+            return self.handle_dev_do(parts)
+
+        if parts[0] == "/clear_interaction":
+            return self.handle_dev_clear_interaction(parts)
+
+        if parts[0] == "/run":
+            return self.handle_dev_run(parts)
+
         return None
     
     def handle_save(self, parts: list[str]) -> ActionResult:

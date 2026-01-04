@@ -13,7 +13,7 @@
             "justMyCode": false,
             "args": [
                 "--world", "assets/worlds/example.yaml", 
-                //"--dev", "True"
+                "--dev", "True"
             ]
         },
         {
