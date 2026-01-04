@@ -17,6 +17,7 @@ items:
   brass_key:
     name: Brass Key
     description: A tarnished brass key that feels heavy and important.
+    location_description: A tarnished brass key lies half-buried in the moss.
     portable: true
     aliases:
       - key
@@ -29,6 +30,7 @@ items:
   survey_map:
     name: Survey Map
     description: A charcoal map showing the outer ruins.
+    location_description: A charcoal map is tucked under a loose stone.
     portable: true
     aliases:
       - map
@@ -44,9 +46,11 @@ items:
   hermit:
     name: Hermit
     description: A slender wirey old man with gray hair.
+    location_description: A stooped hermit tends a tiny fire, watching you warily.
   gnome:
     name: Gnome
     description: A short, grumpy looking gnome.
+    location_description: A short, grumpy looking gnome sits on a mossy rock.
   lenny:
     name: Lenny the Leprechaun
     description: A small, annoyingly jolly leprechaun who follows you around. He claims to be your leprechaun equivalent of a fairy godmother, yet has no interest in doing anything helpful. There doesn't seem to be any way to get rid of him.
@@ -123,20 +127,17 @@ locations:
 
 npcs:
   hermit:    
-    description: A stooped hermit tends a tiny fire, watching you warily.
     persona: Wry, terse, likes riddles about the forest; guarded but not hostile.
     sample_lines:
       - "Hush now, the woods listen more than you think."
       - "Every lock has a story; some open only to those who listen."
     quest_hook: Knows rumors about the stone gate; will hint if asked or befriended.
   gnome:
-    description: A small hunched-back gnome sits casually on a large rock.
     persona: Cheeky, unhelpful and somewhat sarcastic; but not threatening.
     sample_lines:
       - "Sure, sure. Everyone has a story."
       - "And why would I want to do that?"
   lenny:
-    description: Lenny the Leprechaun is here.
     persona: Annoyingly jolly and enthusiastic; eager to share his opinion.
     sample_lines:
       - "This reminds me of a time a wizard turned me into a jellyfish."
