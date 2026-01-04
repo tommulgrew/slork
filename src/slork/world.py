@@ -17,19 +17,7 @@ class Header:
 class Criteria:
     requires_flags: list[str] = field(default_factory=list)
     blocking_flags: list[str] = field(default_factory=list)
-
-    def is_satisfied_by(self, flags: list[str]) -> bool:
-        has_required = all(
-            flag in flags
-            for flag in self.requires_flags        
-        )
-        is_blocked = any(
-            flag in flags
-            for flag in self.blocking_flags
-        )
-
-        return has_required and not is_blocked
-    
+        
 @dataclass
 class Item:
     name: str

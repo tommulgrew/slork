@@ -109,8 +109,9 @@ locations:
       north:
         to: inner_courtyard
         description: Through the stone gate.
-        requires_flags:
-          - gate_unlocked
+        criteria:
+          requires_flags:
+            - gate_unlocked
         blocked_description: The gate is locked tight.
     items:
       - stone_gate
@@ -156,15 +157,17 @@ interactions:
   try_open_stone_gate_locked:
     verb: open
     item: stone_gate
-    blocking_flags:
-      - gate_unlocked
+    criteria:
+      blocking_flags:
+        - gate_unlocked
     repeatable: true
     message: The gate is locked and won't open.
   try_open_stone_gate_already_open:
     verb: open
     item: stone_gate
-    requires_flags:
-      - gate_unlocked
+    criteria:
+      requires_flags:
+        - gate_unlocked
     repeatable: true
     message: It's already open.
   talk_to_hermit:

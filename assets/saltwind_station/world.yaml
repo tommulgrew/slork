@@ -168,7 +168,8 @@ locations:
       up:
         to: lighthouse_top
         description: A spiral staircase inside the lighthouse.
-        requires_flags: [lighthouse_open]
+        criteria:
+          requires_flags: [lighthouse_open]
         blocked_description: The door to the lighthouse is firmly shut.
 
   lighthouse_top:
@@ -200,7 +201,8 @@ interactions:
     verb: use
     item: station_key
     target: lighthouse_door
-    requires_flags: [power_restored]
+    criteria:
+      requires_flags: [power_restored]
     message: The key turns with a metallic groan. The lighthouse door unlocks. Inside a spiral stairway leads upward.
     set_flags: [lighthouse_open]
 
@@ -213,7 +215,8 @@ interactions:
     verb: use
     item: station_key
     target: lighthouse_door
-    blocking_flags: [power_restored]
+    criteria:
+      blocking_flags: [power_restored]
     message: The key appears to fit, but the door is too heavy to open manually.
 
   talk_to_caretaker:
@@ -225,7 +228,8 @@ interactions:
   use_radio:
     verb: use
     item: radio
-    requires_flags: [power_restored]
+    criteria:
+      requires_flags: [power_restored]
     message: >
       Static clears, replaced by a repeating signal - coordinates, looping endlessly.
       Someone is still listening.
@@ -233,7 +237,8 @@ interactions:
   try_use_radio_no_power:
     verb: use
     item: radio
-    blocking_flags: [power_restored]
+    criteria:
+      blocking_flags: [power_restored]
     message: >
       The radio is dead.
 

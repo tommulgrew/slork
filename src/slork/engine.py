@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Literal, Protocol
 from enum import Enum
 from .commands import ParsedCommand
-from .world import World, Item, Location, Interaction
+from .world import World, Item, Location, Interaction, Criteria
 from .commands import parse_command
 
 class ActionStatus(Enum):
@@ -188,7 +188,7 @@ class GameEngine:
         # Exits
         exit_descriptions = []
         for direction, ex in location.exits.items():
-            if not ex.criteria or ex.criteria.is_satisfied_by(self.state.flags):
+            if self.is_criteria_satisfied(ex.criteria):
                 exit_description = direction
                 if ex.description:
                     exit_description += f" - {ex.description}"
@@ -251,7 +251,7 @@ class GameEngine:
         exit = location.exits[direction]
 
         # Flag criteria must be satisfied
-        if exit.criteria and not exit.criteria.is_satisfied_by(self.state.flags):
+        if not self.is_criteria_satisfied(exit.criteria):
             return invalid_result(exit.blocked_description if exit.blocked_description else f"You cannot go {direction}.")
 
         # Move to new location
@@ -433,7 +433,7 @@ class GameEngine:
             return False
 
         # Flag criteria must be satisfied
-        return not interaction.criteria or interaction.criteria.is_satisfied_by(self.state.flags)
+        return self.is_criteria_satisfied(interaction.criteria)
 
     def apply_interaction(self, interaction_id: str, interaction: Interaction):
         
@@ -482,6 +482,21 @@ class GameEngine:
     @property
     def companions(self) -> list[str]:
         return [ npc_id for npc_id in self.npcs if self.is_companion(npc_id) ]
+
+    def is_criteria_satisfied(self, criteria: Optional[Criteria]) -> bool:
+        if not criteria:
+            return True
+
+        has_required = all(
+            flag in self.state.flags
+            for flag in criteria.requires_flags        
+        )
+        is_blocked = any(
+            flag in self.state.flags
+            for flag in criteria.blocking_flags
+        )
+
+        return has_required and not is_blocked
 
 def companion_flag(npc_id: str) -> str:
     return f"companion:{npc_id}"
