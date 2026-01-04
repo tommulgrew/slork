@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Literal
+
+from slork.persistence import get_world_sub_folder_path
 from .engine import ImageReference
 from .world import World
 from .ai_client import NormalisedAIChatMessage, AIChatClient, AIImageGen
@@ -16,16 +18,13 @@ class ImageService:
     Uses AI image generation to create and return images for locations,
     items, and NPCs
     """
-    def __init__(self, image_generator: Optional[AIImageGen], ai_client: Optional[AIChatClient], world: World, sub_folder_name: str):
+    def __init__(self, image_generator: Optional[AIImageGen], ai_client: Optional[AIChatClient], world: World, world_base_folder: Path):
         self.image_generator = image_generator
         self.ai_client = ai_client
         self.world = world
-        self.folder = Path("assets/images") / Path(sub_folder_name)
+        self.folder = get_world_sub_folder_path(world_base_folder, "images")
         self.img_gen_prompt_common: Optional[str] = world.ai_guidance.image_generation if world.ai_guidance else None
         self.prompts = create_ai_prompts(self.img_gen_prompt_common)
-
-        # Ensure images folder exists
-        self.folder.mkdir(parents=True, exist_ok=True)
 
     def get_image(self, image_ref: ImageReference) -> Optional[Path]:
         if image_ref.type == "location":

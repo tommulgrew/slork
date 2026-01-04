@@ -2,7 +2,7 @@ import os
 from typing import Optional
 from importlib.metadata import version
 from pathlib import Path
-from .persistence import GameStatePersister, get_world_folder_path, get_world_file_path
+from .persistence import GameStatePersister, get_world_sub_folder_path, get_world_file_path
 from .world import load_world
 from .engine import ActionStatus, GameEngine, ImageReference, PGameEngine, ActionResult, ok_result, invalid_result
 from .ai_engine import AIGameEngine
@@ -18,7 +18,7 @@ class App:
 
         # Load world definition
         self.world = load_world(args.world)
-        self.world_subfolder = args.world.stem
+        self.world_base_folder = args.world.parents[0]
         issues = self.world.validate()
         if issues:
             issue_lines = "\n".join([f"- {issue}" for issue in issues])
@@ -31,7 +31,7 @@ class App:
         ai_client: Optional[AIChatClient] = None
 
         # State persister
-        self.persister = GameStatePersister(self.world_subfolder)
+        self.persister = GameStatePersister(self.world_base_folder)
 
         # AI infused engine
         self.ai_engine: Optional[AIGameEngine] = None
@@ -55,7 +55,7 @@ class App:
             image_generator=img_gen, 
             ai_client=ai_client, 
             world=self.world, 
-            sub_folder_name=self.world_subfolder)
+            world_base_folder=self.world_base_folder)
 
         print()
         print("**************************************************")
@@ -288,7 +288,7 @@ Developer commands:
 
     @property
     def scripts_folder(self) -> Path:
-        return get_world_folder_path("scripts", self.world_subfolder)
+        return get_world_sub_folder_path(self.world_base_folder, "scripts")
 
     def handle_dev_run(self, parts: list[str]) -> ActionResult:
         """Developer cheat: Run script"""

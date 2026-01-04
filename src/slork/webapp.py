@@ -25,13 +25,10 @@ def main() -> None:
 
 def create_web_app(app: App, state: WebAppState) -> Flask:
     
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    ASSETS_DIR = BASE_DIR / "assets"
-
     web_app = Flask(
         __name__,
-        static_folder=str(ASSETS_DIR),
-        static_url_path="/assets"
+        static_folder=str((app.world_base_folder / "images").resolve()),
+        static_url_path="/images"
     )
 
     @web_app.route("/", methods=["GET", "POST"])
@@ -70,12 +67,7 @@ def create_web_app(app: App, state: WebAppState) -> Flask:
     return web_app
 
 def fix_image_path(path: Optional[Path]) -> Optional[str]:
-    if not path:
-        return None
-    
-    s = str(path).replace("\\", "/")
-
-    return s    
+    return f"/images/{path.name}" if path else None
 
 if __name__ == "__main__":
     main()

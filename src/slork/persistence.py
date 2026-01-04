@@ -5,12 +5,8 @@ from dacite import from_dict
 from .engine import GameEngineState
 
 class GameStatePersister:
-    def __init__(self, world_id: str):
-        self.world_id = world_id
-
-    @property
-    def saves_folder(self) -> Path:
-        return get_world_folder_path("saves", self.world_id)
+    def __init__(self, world_base_folder: Path):
+        self.saves_folder = get_world_sub_folder_path(world_base_folder, "saves")
 
     def get_save_file_path(self, filename: str) -> Path:
         return get_world_file_path(self.saves_folder, filename, ".json")
@@ -42,11 +38,11 @@ class GameStatePersister:
 
         return state
 
-def get_world_folder_path(subfolder: str, world_id: str) -> Path:
-    path = Path("assets") / subfolder / world_id
+def get_world_sub_folder_path(world_base_folder: Path, sub_folder: str) -> Path:
+    path = world_base_folder / sub_folder
     path.resolve()
 
-    path.mkdir(parents=True, exist_ok=True)
+    path.mkdir(parents=False, exist_ok=True)
 
     return path
 

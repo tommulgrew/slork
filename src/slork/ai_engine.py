@@ -45,8 +45,12 @@ class AIGameEngine:
         self.ai_prompts = create_ai_prompts(text_gen_prompt_common)
 
     def get_intro(self) -> ActionResult:
-        engine_response = self.engine.get_intro()
-        return self.ai_enhance_engine_response(engine_response)
+
+        # Use unmodified intro text, but apply regular AI enhancement to the location description.
+        response = self.describe_current_location()
+        response.message = self.engine.get_intro().message + "\n" + response.message
+
+        return response
 
     def describe_current_location(self, verbose: bool = False) -> ActionResult:
         engine_response = self.engine.describe_current_location(verbose)

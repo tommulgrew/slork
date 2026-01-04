@@ -216,7 +216,7 @@ __marimo__/
 .streamlit/secrets.toml
 
 run*.bat
-assets/images
-assets/saves
-assets/scripts
-assets/worlds/titan.yaml
+assets/**/images/
+assets/**/saves/
+assets/**/scripts/
+assets/titan/
