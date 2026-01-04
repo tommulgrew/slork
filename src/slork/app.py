@@ -122,7 +122,12 @@ class App:
                             for item_id, item in self.world.items.items() ]))
 
                     if parts[0] == "/flags":
-                        return ok_result("\n".join(self.world.flags))
+                        return ok_result("\n".join(f"{flag}{' (set)' if flag in self.base_engine.state.flags else ''}" for flag in self.world.flags))
+
+                    if parts[0] == "/interactions":
+                        return ok_result(
+                            "\n".join(f"{id} ({i.verb} {i.item}{' ' + i.target if i.target else ''}){' (completed)' if id in self.base_engine.state.completed_interactions else ''}" 
+                            for id, i in self.world.interactions.items()))
 
                     if parts[0] == "/goto":
                         return self.handle_dev_goto(parts)                    
@@ -136,8 +141,38 @@ class App:
                     if parts[0] == "/take":
                         return self.handle_dev_take(parts)
 
+                    if parts[0] == "/do":
+                        return self.handle_dev_do(parts)
+
+                    if parts[0] == "/clear_interaction":
+                        return self.handle_dev_clear_interaction(parts)
+
                     if parts[0] == "/run":
                         return self.handle_dev_run(parts)
+
+                if parts[0] == "/help":
+                    help = """\
+Commands:
+    /AI                                 Toggle AI on/off
+    /SAVE filename                      Save session to file
+    /LOAD filename                      Load session from file
+"""
+                    if self.dev_mode:
+                        help += """
+Developer commands:
+    /LOCATIONS                          List location IDs
+    /ITEMS                              List item IDS
+    /FLAGS                              List flags
+    /INTERACTIONS                       List interaction IDs
+    /GOTO loc_id                        Go to location
+    /SET flag                           Set flag
+    /CLEAR flag                         Clear flag
+    /TAKE item_id                       Take item (from anywhere)
+    /DO interaction_id                  Perform interaction (ignoring prerequisites)
+    /CLEAR_INTERACTION interaction_id   Clear 'completed' status from interaction
+    /RUN filename                       Run commands from script file
+"""
+                    return ok_result(help)
 
         except Exception as exc:
             return invalid_result(str(exc))
@@ -154,7 +189,6 @@ class App:
 
     def handle_load(self, parts: list[str]) -> ActionResult:
         """Load game state from file"""
-        self.handle_load(parts)
         if len(parts) != 2:
             return invalid_result("Usage: /LOAD filename")
 
@@ -224,6 +258,33 @@ class App:
             state.inventory.append(item_id)
 
         return ok_result(f"'{item_id} ({item.name})' Added to inventory.")
+
+    def handle_dev_do(self, parts: list[str]) -> ActionResult:
+        if len(parts) != 2:
+            return invalid_result("Usage: /DO interaction_id")
+
+        i_id = parts[1]
+        if not i_id in self.world.interactions:
+            return invalid_result(f"'{i_id}' is not a valid interaction ID.")
+
+        interaction = self.world.interactions[i_id]
+        self.base_engine.apply_interaction(i_id, interaction)
+
+        return ok_result(interaction.message)
+
+    def handle_dev_clear_interaction(self, parts: list[str]) -> ActionResult:        
+        if len(parts) != 2:
+            return invalid_result("Usage: /DO interaction_id")
+
+        i_id = parts[1]
+        if not i_id in self.world.interactions:
+            return invalid_result(f"'{i_id}' is not a valid interaction ID.")
+
+        state = self.base_engine.state
+        if i_id in state.completed_interactions:
+            state.completed_interactions.remove(i_id)
+
+        return ok_result(f"Completed flag cleared from '{i_id}' interaction.")
 
     @property
     def scripts_folder(self) -> Path:
