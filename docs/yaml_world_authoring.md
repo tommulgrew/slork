@@ -147,12 +147,13 @@ npcs:
 
 ### Naming rule (important!)
 
-NPC `location_description` text **must include the NPC’s name or alias**, so the player knows what noun to use:
+Any `location_description` text **must include the item or NPC’s name or alias**,
+so the player knows what noun to use:
 
 ✅ Good:
 
 ```
-Elias, a man in a faded field jacket, stands nearby...
+A weathered journal lies half-buried in the shingle.
 ```
 
 ❌ Bad:
@@ -291,11 +292,10 @@ Interactions define custom verb logic.
 ## Images and non-portable items
 
 When AI image generation is enabled, location images are generated from the
-location description (including any `location_description` text appended for
-items in their original location). Non-portable items are expected to be
-described there, so they typically appear in the location image. To avoid
-conflicting visuals, Slork does not generate separate item images for
-non-portable items.
+location description only (item `location_description` text is not included).
+Non-portable items should be described directly in the location description if
+they need to appear in the location image. To avoid conflicting visuals, Slork
+does not generate separate item images for non-portable items.
 
 ---
 
