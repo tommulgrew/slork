@@ -68,7 +68,7 @@
             "description": "The main name of the item. Used when displaying messages about the item. Used by the player to refer to the item in commands (e.g. TAKE FLASHLIGHT)."
           },
           "location_description": {
-            "type": "string",
+            "$ref": "#/definitions/description",
             "description": "How the item is described as part of the location description. (E.g. 'A rusty sword leans against the wall.')"
           },
           "description": { 
@@ -244,6 +244,31 @@
           "description": "Flags that must all be UNSET in order to satisfy the criteria."
         }
       }
+    },
+    "description": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "criteria": {
+                "$ref": "#/definitions/criteria",
+                "description": "Criteria that must be satisfied for the description to be displayed."
+              },
+              "description": {
+                "type": "string",
+                "description": "Text to display"
+              }
+            },
+            "required": ["description"]
+          }
+        }
+      ]
     }
   }
 }

@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Literal, Protocol
 from enum import Enum
 from .commands import ParsedCommand
-from .world import World, Item, Location, Interaction, Criteria
+from .world import World, Item, Location, Interaction, Criteria, Description
 from .commands import parse_command
 
 class ActionStatus(Enum):
@@ -128,8 +128,9 @@ class GameEngine:
             if self.is_npc(item_id) and not self.is_companion(item_id)
         ]
         for item_id, item, npc in other_npcs:
-            if item.location_description and item_id in self.current_location().items:        # Item in its original location
-                lines.append(item.location_description)
+            location_description = self.resolve_description(item.location_description)
+            if location_description and item_id in self.current_location().items:        # Item in its original location
+                lines.append(location_description)
             else:
                 lines.append(f"{item.name} is here.")
 
@@ -174,8 +175,9 @@ class GameEngine:
         for item_id in self.current_location_items():
             item = self.world.items[item_id]
             if not self.is_npc(item_id):
-                if item.location_description and item_id in self.current_location().items:
-                    lines.append(item.location_description)
+                location_description = self.resolve_description(item.location_description)
+                if location_description and item_id in self.current_location().items:
+                    lines.append(location_description)
                 elif item.portable:
                     lines.append(f"There is a {item.name} here.")
 
@@ -497,6 +499,21 @@ class GameEngine:
         )
 
         return has_required and not is_blocked
+
+    def resolve_description(self, description: Optional[Description]) -> Optional[str]:
+        if not description:
+            return None
+
+        # Unconditional string case
+        if isinstance(description, str):
+            return description
+
+        # Find first instance whose criteria is satisfied
+        return next(
+            d.description 
+            for d in description 
+            if self.is_criteria_satisfied(d.criteria)
+        )
 
 def companion_flag(npc_id: str) -> str:
     return f"companion:{npc_id}"

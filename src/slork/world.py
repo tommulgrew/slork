@@ -17,12 +17,19 @@ class Header:
 class Criteria:
     requires_flags: list[str] = field(default_factory=list)
     blocking_flags: list[str] = field(default_factory=list)
-        
+
+@dataclass(frozen=True)
+class ConditionalDescription:
+    description: str
+    criteria: Optional[Criteria] = None
+
+Description = str | list[ConditionalDescription]
+
 @dataclass
 class Item:
     name: str
     description: str
-    location_description: Optional[str] = None
+    location_description: Optional[Description] = None
     portable: bool = False
     aliases: list[str] = field(default_factory=list)
 

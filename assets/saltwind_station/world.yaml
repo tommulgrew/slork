@@ -40,7 +40,11 @@ items:
     aliases: [radio]
 
   generator:
-    name: Backup Generator
+    name: Backup Generator    
+    location_description:
+      - description: The generator chugs away steadily.
+        criteria: { requires_flags: [ power_restored ] }
+      - description: The generator sits silent.
     description: A diesel generator bolted to the concrete floor.
     portable: false
     aliases: [generator]
@@ -127,7 +131,7 @@ locations:
 
   generator_room:
     name: Generator Room
-    description: The air smells of oil and rust. The generator sits silent.
+    description: The air smells of oil and rust, with a large diesel generator in the corner of the room.
     items: [generator, fuel_can]
     exits:
       west:
