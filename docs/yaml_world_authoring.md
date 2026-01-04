@@ -293,9 +293,10 @@ Interactions define custom verb logic.
 
 When AI image generation is enabled, location images are generated from the
 location description only (item `location_description` text is not included).
-Non-portable items should be described directly in the location description if
-they need to appear in the location image. To avoid conflicting visuals, Slork
-does not generate separate item images for non-portable items.
+Non-portable items with no `location_description` are expected to be described
+directly in the location description and should appear in the location image.
+To avoid conflicting visuals, Slork does not generate separate item images for
+those items.
 
 ---
 

@@ -115,10 +115,11 @@ PERSONA: {npc.persona}
 
         item = self.world.items[item_id]
 
-        # Non-portable items are included in the location description, and 
-        # generally shown in the location image. Therefore we don't generate a 
-        # second image specifically for the item to avoid inconsistencies.
-        if not item.portable:
+        # Non-portable items with no location_description are expected to be 
+        # included in the main location's description, and should appear in the 
+        # location image. Therefore we don't generate a second image 
+        # specifically for the item to avoid inconsistencies.
+        if not item.portable and not item.location_description:
             return None
 
         prompt = self.get_image_gen_prompt(
