@@ -308,6 +308,10 @@
           "items": { "type": "string" },
           "description": "Additional keyword aliases for invoking the dialog."
         },
+        "keyword_hint": {
+          "type": "string",
+          "description": "Provides the keyword hint for this response. Hints are displayed to the player with 'You could' prefixed. E.g. 'ask for a *sword*'"
+        },
         "criteria": {
           "$ref": "#/definitions/criteria",
           "description": "Criteria that must be satisfied to make the dialog option available."

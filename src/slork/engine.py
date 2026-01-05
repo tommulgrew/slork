@@ -3,8 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Protocol
 from enum import Enum
 
-from slork.util import strip_quotes
-
+from slork.util import describe_string_list
 from .logic import Effect
 from .commands import ParsedCommand, parse_command
 from .world import World, Item, Location, Interaction, Criteria, ResolvableText, DialogTree
@@ -385,9 +384,13 @@ class GameEngine:
     def handle_dialog_response(self, raw_command: str) -> Optional[ActionResult]:
         assert self.dialog_context
 
-        # Parse candidate response keyword
+        # Parse for candidate response keyword
+        # Quotes are removed and "the" and "a" words are dropped.
+        # If the first word is "say", "respond" etc, that is also dropped.
+        # This should hopefully allow some flexibility.
         raw_command = raw_command.replace('"', '').replace("'", '').strip()
         tokens = [part.lower() for part in raw_command.split()]
+        tokens = [token for token in tokens if token not in ["", "a", "the"]]
         if tokens and tokens[0] in ["say", "respond", "reply", "answer"]:
             tokens = tokens[1:]
         keyword = " ".join(tokens)
@@ -424,14 +427,14 @@ class GameEngine:
         # Dialog text
         lines: list[str] = []
         if dialog.player_narrative:
-            lines.append(self.resolve_text(dialog.player_narrative))
-        lines.append(self.resolve_text(dialog.npc_narrative))
+            lines.append(self.resolve_text(dialog.player_narrative).rstrip())
+        lines.append(self.resolve_text(dialog.npc_narrative).rstrip())
 
         # Include possible responses
         responses = self.available_dialog_responses(dialog)
         if responses:
-            response_descriptions = [f"'{keyword}'" for keyword, _ in responses ]
-            lines.append(f"You might respond {', '.join(response_descriptions)}.")
+            response_descriptions = [response.keyword_hint or f"mention *{keyword}*" for keyword, response in responses ]
+            lines.append(f"You could {describe_string_list(response_descriptions, 'or')}.")
 
         return ok_result("\n".join(lines))
 

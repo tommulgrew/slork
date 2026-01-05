@@ -142,10 +142,16 @@ npcs:
       npc_narrative: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
       responses:
         ok:
-          player_narrative: Fine. I'll do it myself.
+          keyword_hint: shrug and say *OK*
+          player_narrative: >
+            "Fine. I'll do it myself."
           npc_narrative: The gnome snorts, uninterested.
         reward:
-          player_narrative: What about for a reward? I have a lovely pile of purple pocket lint here.
+          keyword_hint: offer a *reward*
+          aliases:
+            - offer reward
+          player_narrative: >
+            "What about for a reward? I have a lovely pile of purple pocket lint here."
           criteria:
             requires_inventory: [ lint ]              
           npc_narrative: 
@@ -153,12 +159,12 @@ npcs:
               criteria:
                 requires_inventory: [ brass_key ]
             - text: The gnome turns away, unimpressed.
-        "reverse psychology":
+        psychology:
+          keyword_hint: try some *psychology*
           aliases:
-            - psychology
             - psych
-            - reverse psych
-          player_narrative: Hey, don't sweat it. Big gate, small gnome - nothing to be ashamed of.
+          player_narrative: >
+            "Hey, don't sweat it. Big gate, small gnome - nothing to be ashamed of."
           npc_narrative: >
             The gnome looks affronted. "Size isn't everything, you big galoot!".
             Sliding off the stone, he hobbles over to the gate gives it a calculated kick.

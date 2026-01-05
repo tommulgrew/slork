@@ -11,3 +11,4 @@ class DialogTree:
     effect: Optional[Effect] = None
     aliases: list[str] = field(default_factory=list)                            # Aliases for main keyword
     responses: dict[str, DialogTree] = field(default_factory=dict)              # Keyed by keyword.
+    keyword_hint: Optional[str] = None
