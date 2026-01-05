@@ -311,7 +311,11 @@
         "criteria": {
           "$ref": "#/definitions/criteria",
           "description": "Criteria that must be satisfied to make the dialog option available."
-        },
+        },        
+        "effect": {
+          "$ref": "#/definitions/effect",
+          "description": "Change(s) to make to game state when dialog is activated."
+        },        
         "player_narrative": {
           "$ref": "#/definitions/resolvable_text",
           "description": "Describes what the player says when the option is selected."

@@ -152,7 +152,19 @@ npcs:
             - text: The gnome scratches his chin. "I aint got no use for lint. But that shiney key there..."
               criteria:
                 requires_inventory: [ brass_key ]
-            - text: The gnome turns away, with a slight hint of offence.
+            - text: The gnome turns away, unimpressed.
+        "reverse psychology":
+          aliases:
+            - psychology
+            - psych
+            - reverse psych
+          player_narrative: Hey, don't sweat it. Big gate, small gnome - nothing to be ashamed of.
+          npc_narrative: >
+            The gnome looks affronted. "Size isn't everything, you big galoot!".
+            Sliding off the stone, he hobbles over to the gate gives it a calculated kick.
+            To your surprise the gate unlocks with a loud clunk and swings open.
+          effect:
+            set_flags: [ gate_unlocked ]                                             
       
   lenny:
     persona: Annoyingly jolly and enthusiastic; eager to share his opinion.
