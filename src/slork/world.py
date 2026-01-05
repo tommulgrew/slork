@@ -57,7 +57,7 @@ class NPC:
 class Interaction:
     verb: str
     item: str
-    message: str
+    message: ResolvableText
     target: Optional[str] = None
     criteria: Optional[Criteria] = None
     set_flags: list[str] = field(default_factory=list)

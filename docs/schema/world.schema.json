@@ -216,7 +216,7 @@
             "description": "Whether the interaction can be repeated. If false, it can only be performed once."
           },
           "message": { 
-            "type": "string",
+            "$ref": "#/definitions/resolvable_text",
             "description": "Displayed to the user when they successfully perform the action."
           }
         }

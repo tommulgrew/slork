@@ -270,7 +270,7 @@ Developer commands:
         interaction = self.world.interactions[i_id]
         self.base_engine.apply_interaction(i_id, interaction)
 
-        return ok_result(interaction.message)
+        return ok_result(self.base_engine.resolve_text(interaction.message) or "")
 
     def handle_dev_clear_interaction(self, parts: list[str]) -> ActionResult:        
         if len(parts) != 2:

@@ -226,8 +226,12 @@ interactions:
   talk_to_caretaker:
     verb: talk
     item: caretaker
-    message: >
-      Mara nods as the lights come back on. "Good. Maybe the sea will forgive us yet."
+    repeatable: true
+    message:
+      - text: Mara nods as the lights come back on. "Good. Maybe the sea will forgive us yet."
+        criteria:
+          requires_flags: [ power_restored ]
+      - text: Mara seems preoccupied, and doesn't answer.
 
   use_radio:
     verb: use
