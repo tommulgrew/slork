@@ -4,6 +4,8 @@ from typing import Optional
 from dacite import from_dict
 import yaml
 from .commands import VALID_VERBS
+from .conditions import Criteria, ResolvableText
+from .dialog import DialogTree
 
 @dataclass
 class Header:
@@ -12,18 +14,6 @@ class Header:
     initial_inventory: list[str] = field(default_factory=list)
     initial_companions: list[str] = field(default_factory=list)
     intro_text: Optional[str] = None
-
-@dataclass(frozen=True)
-class Criteria:
-    requires_flags: list[str] = field(default_factory=list)
-    blocking_flags: list[str] = field(default_factory=list)
-
-@dataclass(frozen=True)
-class ConditionalText:
-    text: str
-    criteria: Optional[Criteria] = None
-
-ResolvableText = str | list[ConditionalText]
 
 @dataclass
 class Item:
@@ -52,6 +42,7 @@ class NPC:
     persona: Optional[str] = None
     sample_lines: list[str] = field(default_factory=list)
     quest_hook: Optional[str] = None
+    dialogue: Optional[DialogTree] = None
 
 @dataclass
 class Interaction:

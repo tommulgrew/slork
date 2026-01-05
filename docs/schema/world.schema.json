@@ -269,6 +269,29 @@
           }
         }
       ]
+    },
+    "dialog_option": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "keyword": {
+          "type": "string",
+          "description": "The keyword the player will use to select the dialog option."
+        },
+        "keyword_aliases": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Additional keyword aliases."
+        },
+        "player_narrative": {
+          "$ref": "#/definitions/resolvable_text",
+          "description": "Describes what the player says when the option is selected."
+        }
+      },
+      "required": [ "keyword", "player_narrative" ]
+
+
     }
+
   }
 }
