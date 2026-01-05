@@ -493,16 +493,23 @@ class GameEngine:
         if not criteria:
             return True
 
-        has_required = all(
+        has_required_flags = all(
             flag in self.state.flags
             for flag in criteria.requires_flags        
         )
-        is_blocked = any(
+        is_blocked_by_flags = any(
             flag in self.state.flags
             for flag in criteria.blocking_flags
         )
+        has_required_inventory = all(
+            item_id in self.state.inventory
+            for item_id in criteria.requires_inventory
+        )
 
-        return has_required and not is_blocked
+        return (
+            has_required_flags and not is_blocked_by_flags
+            and has_required_inventory
+        )
 
     def resolve_text(self, text: Optional[ResolvableText]) -> Optional[str]:
         if not text:

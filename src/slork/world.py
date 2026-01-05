@@ -42,7 +42,7 @@ class NPC:
     persona: Optional[str] = None
     sample_lines: list[str] = field(default_factory=list)
     quest_hook: Optional[str] = None
-    dialogue: Optional[DialogTree] = None
+    dialog: Optional[str | DialogTree] = None
 
 @dataclass
 class Interaction:

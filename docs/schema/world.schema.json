@@ -96,6 +96,19 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "dialog": {
+            "oneOf": [
+              {
+                "$ref": "#/definitions/dialog_tree",
+                "description": "Dialog tree to invoke when the player TALKs to the NPC."
+              },
+              {
+                "$ref": "#/definitions/resolvable_text",
+                "description": "Dialog to display when the player TALKs to the NPC."
+              }
+            ],
+            "description": "Dialog tree to invoke when the player TALKs to the NPC."
+          },
           "persona": { 
             "type": "string",
             "description": "Only used in AI mode. A basic description of the NPC's persona."
@@ -242,6 +255,12 @@
           "items": { "type": "string" },
           "default": [],
           "description": "Flags that must all be UNSET in order to satisfy the criteria."
+        },
+        "requires_inventory": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Items that must be in the player's inventory in order to satisfy the criteria."
         }
       }
     },
@@ -270,28 +289,36 @@
         }
       ]
     },
-    "dialog_option": {
+    "dialog_tree": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "keyword": {
-          "type": "string",
-          "description": "The keyword the player will use to select the dialog option."
-        },
-        "keyword_aliases": {
+        "aliases": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Additional keyword aliases."
+          "description": "Additional keyword aliases for invoking the dialog."
+        },
+        "criteria": {
+          "$ref": "#/definitions/criteria",
+          "description": "Criteria that must be satisfied to make the dialog option available."
         },
         "player_narrative": {
           "$ref": "#/definitions/resolvable_text",
           "description": "Describes what the player says when the option is selected."
+        },
+        "npc_narrative": {
+          "$ref": "#/definitions/resolvable_text",
+          "description": "Describes what the NPC says in response to the player."
+        },
+        "responses": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/dialog_tree"
+          },
+          "description": "Dialog subtrees based on follow-up responses the player can select from."
         }
       },
-      "required": [ "keyword", "player_narrative" ]
-
-
+      "required": [ "npc_narrative" ]
     }
-
   }
 }

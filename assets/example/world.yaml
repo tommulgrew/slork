@@ -138,6 +138,22 @@ npcs:
     sample_lines:
       - "Sure, sure. Everyone has a story."
       - "And why would I want to do that?"
+    dialog: # The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
+      npc_narrative: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
+      responses:
+        ok:
+          player_narrative: Fine. I'll do it myself.
+          npc_narrative: The gnome snorts, uninterested.
+        reward:
+          player_narrative: What about for a reward? I have a lovely pile of purple pocket lint here.
+          criteria:
+            requires_inventory: [ lint ]              
+          npc_narrative: 
+            - text: The gnome scratches his chin. "I aint got no use for lint. But that shiney key there..."
+              criteria:
+                requires_inventory: [ brass_key ]
+            - text: The gnome turns away, with a slight hint of offence.
+      
   lenny:
     persona: Annoyingly jolly and enthusiastic; eager to share his opinion.
     sample_lines:
@@ -175,11 +191,11 @@ interactions:
     item: hermit
     repeatable: true
     message: The hermit eyes you, then mutters about an old key lost along the forest path.
-  talk_to_gnome:
-    verb: talk
-    item: gnome
-    repeatable: true
-    message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
+  # talk_to_gnome:
+  #   verb: talk
+  #   item: gnome
+  #   repeatable: true
+  #   message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
   talk_to_lenny:
     verb: talk
     item: lenny
