@@ -4,7 +4,7 @@ from typing import Optional
 from dacite import from_dict
 import yaml
 from .commands import VALID_VERBS
-from .logic import Criteria, ResolvableText
+from .logic import Criteria, Effect, ResolvableText
 from .dialog import DialogTree
 
 @dataclass
@@ -49,10 +49,9 @@ class Interaction:
     verb: str
     item: str
     message: ResolvableText
+    effect: Optional[Effect] = None
     target: Optional[str] = None
     criteria: Optional[Criteria] = None
-    set_flags: list[str] = field(default_factory=list)
-    clear_flags: list[str] = field(default_factory=list)
     consumes: bool = False
     repeatable: bool = False
 

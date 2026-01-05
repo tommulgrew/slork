@@ -17,3 +17,12 @@ class ConditionalText:
 # A value that resolves to a text string at runtime.
 # Can be a regular string, or list of ConditionalText objects to evaluate.
 ResolvableText = str | list[ConditionalText]
+
+@dataclass(frozen=True)
+class Effect:
+    """
+    An effect changes the game state in some way(s).
+    For example, setting or clearing flags.
+    """
+    set_flags: list[str] = field(default_factory=list)
+    clear_flags: list[str] = field(default_factory=list)

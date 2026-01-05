@@ -203,7 +203,8 @@ interactions:
     target: generator
     message: The generator sputters, then roars to life. Lights flicker on across the station.
     repeatable: false
-    set_flags: [power_restored]
+    effect:
+      set_flags: [power_restored]
 
   unlock_lighthouse_door:
     verb: use
@@ -212,7 +213,8 @@ interactions:
     criteria:
       requires_flags: [power_restored]
     message: The key turns with a metallic groan. The lighthouse door unlocks. Inside a spiral stairway leads upward.
-    set_flags: [lighthouse_open]
+    effect:
+      set_flags: [lighthouse_open]
 
   try_open_lighthouse_door:
     verb: open
@@ -265,5 +267,6 @@ interactions:
     target: dog
     consumes: true
     message: "The dog accepts the toy bone and begins chewing on it."
-    set_flags:
-      - "companion:dog"
+    effect:
+      set_flags:
+        - "companion:dog"

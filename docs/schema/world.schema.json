@@ -188,7 +188,7 @@
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["verb", "item"],
+        "required": ["verb", "item" ],
         "properties": {
           "verb": { 
             "type": "string",
@@ -206,17 +206,9 @@
             "$ref": "#/definitions/criteria",
             "description": "Criteria that must be satisfied to perform the interaction."
           },
-          "set_flags": {
-            "type": "array",
-            "items": { "type": "string" },
-            "default": [],
-            "description": "A list of flag IDs to set when the interaction is performed."
-          },
-          "clear_flags": {
-            "type": "array",
-            "items": { "type": "string" },
-            "default": [],
-            "description": "A list of flag IDs to clear when the interaction is performed."
+          "effect": {
+            "$ref": "#/definitions/effect",
+            "description": "Change(s) to make when the interaction is performed."
           },
           "consumes": { 
             "type": "boolean", 
@@ -261,6 +253,24 @@
           "items": { "type": "string" },
           "default": [],
           "description": "Items that must be in the player's inventory in order to satisfy the criteria."
+        }
+      }
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties":{
+        "set_flags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "A list of flag IDs to set."
+        },
+        "clear_flags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "A list of flag IDs to clear."
         }
       }
     },

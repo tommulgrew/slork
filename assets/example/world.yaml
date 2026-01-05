@@ -166,8 +166,9 @@ interactions:
     verb: use
     item: brass_key
     target: stone_gate
-    set_flags:
-      - gate_unlocked
+    effect:
+      set_flags:
+        - gate_unlocked
     consumes: false
     message: The brass key turns; stone grinds and the gate unlocks and swings open.
   try_open_stone_gate_locked:

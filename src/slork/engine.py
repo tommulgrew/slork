@@ -2,6 +2,7 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Optional, Literal, Protocol
 from enum import Enum
+from .logic import Effect
 from .commands import ParsedCommand
 from .world import World, Item, Location, Interaction, Criteria, ResolvableText
 from .commands import parse_command
@@ -442,16 +443,11 @@ class GameEngine:
         return self.is_criteria_satisfied(interaction.criteria)
 
     def apply_interaction(self, interaction_id: str, interaction: Interaction):
-        
-        # Apply flag changes
-        for flag in interaction.set_flags:
-            if flag not in self.state.flags:
-                self.state.flags.append(flag)
 
-        for flag in interaction.clear_flags:
-            if flag in self.state.flags:
-                self.state.flags.remove(flag)
-        
+        # Apply state changes        
+        self.apply_effect(interaction.effect)
+
+        # "Consume" item
         if interaction.consumes:
 
             # Remove from inventory
@@ -528,6 +524,19 @@ class GameEngine:
             ),
             None
         )
+
+    def apply_effect(self, effect: Optional[Effect]):
+        if not effect:
+            return
+
+        # Apply flag changes
+        for flag in effect.set_flags:
+            if flag not in self.state.flags:
+                self.state.flags.append(flag)
+
+        for flag in effect.clear_flags:
+            if flag in self.state.flags:
+                self.state.flags.remove(flag)
 
 def companion_flag(npc_id: str) -> str:
     return f"companion:{npc_id}"
