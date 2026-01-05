@@ -47,9 +47,9 @@ class ResolveItemResult:
 class GameEngineState:
     location_id: str
     inventory: list[str]
-    flags: list[str]
+    flags: set[str]
     location_items: dict[str, list[str]]
-    completed_interactions: list[str] = field(default_factory=list)
+    completed_interactions: set[str] = field(default_factory=set)
 
 class PGameEngine(Protocol):
     @abstractmethod
@@ -460,8 +460,7 @@ class GameEngine:
                 location_items.remove(interaction.item)
 
         # Mark as complete
-        if interaction_id not in self.state.completed_interactions:
-            self.state.completed_interactions.append(interaction_id)
+        self.state.completed_interactions.add(interaction_id)
     
     def move_companions(self):
         for _, location_items in self.state.location_items.items():
@@ -489,23 +488,11 @@ class GameEngine:
         if not criteria:
             return True
 
-        has_required_flags = all(
-            flag in self.state.flags
-            for flag in criteria.requires_flags        
-        )
-        is_blocked_by_flags = any(
-            flag in self.state.flags
-            for flag in criteria.blocking_flags
-        )
-        has_required_inventory = all(
-            item_id in self.state.inventory
-            for item_id in criteria.requires_inventory
-        )
+        has_required_flags = criteria.requires_flags.issubset(self.state.flags)
+        is_blocked_by_flags = not criteria.blocking_flags.isdisjoint(self.state.flags)
+        has_required_inventory = criteria.requires_inventory.issubset(set(self.state.inventory))
 
-        return (
-            has_required_flags and not is_blocked_by_flags
-            and has_required_inventory
-        )
+        return has_required_flags and not is_blocked_by_flags and has_required_inventory
 
     def resolve_text(self, text: Optional[ResolvableText]) -> Optional[str]:
         if not text:
@@ -530,13 +517,8 @@ class GameEngine:
             return
 
         # Apply flag changes
-        for flag in effect.set_flags:
-            if flag not in self.state.flags:
-                self.state.flags.append(flag)
-
-        for flag in effect.clear_flags:
-            if flag in self.state.flags:
-                self.state.flags.remove(flag)
+        self.state.flags.update(effect.set_flags)
+        self.state.flags.difference_update(effect.clear_flags)
 
 def companion_flag(npc_id: str) -> str:
     return f"companion:{npc_id}"
@@ -545,10 +527,10 @@ def get_initial_game_state(world: World) -> GameEngineState:
     return GameEngineState(
         location_id=world.world.start,
         inventory=world.world.initial_inventory.copy() if world.world.initial_inventory else [],
-        flags=[companion_flag(npc_id) for npc_id in world.world.initial_companions],
+        flags={companion_flag(npc_id) for npc_id in world.world.initial_companions},
         location_items={
             loc_id: location.items.copy()
             for loc_id, location in world.locations.items()
         },
-        completed_interactions=[],
+        completed_interactions=set(),
     )

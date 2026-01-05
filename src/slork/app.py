@@ -222,8 +222,7 @@ Developer commands:
             return invalid_result(f"'{flag_id}' is not a valid flag ID.")
 
         flags = self.base_engine.state.flags
-        if not flag_id in flags:
-            flags.append(flag_id)
+        flags.add(flag_id)
 
         return ok_result(f"Flag '{flag_id}' set.")
 
@@ -236,8 +235,7 @@ Developer commands:
             return invalid_result(f"'{flag_id}' is not a valid flag ID.")
 
         flags = self.base_engine.state.flags
-        if flag_id in flags:
-            flags.remove(flag_id)
+        flags.discard(flag_id)
 
         return ok_result(f"Flag '{flag_id}' cleared.")
 
@@ -287,8 +285,7 @@ Developer commands:
             return invalid_result(f"'{i_id}' is not a valid interaction ID.")
 
         state = self.base_engine.state
-        if i_id in state.completed_interactions:
-            state.completed_interactions.remove(i_id)
+        state.completed_interactions.discard(i_id)
 
         return ok_result(f"Completed flag cleared from '{i_id}' interaction.")
 

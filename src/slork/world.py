@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
-from dacite import from_dict
+from dacite import from_dict, Config
 import yaml
 from .commands import VALID_VERBS
 from .logic import Criteria, Effect, ResolvableText
@@ -66,7 +66,7 @@ class World:
     A text adventure world definition, loaded from a yaml file.
     """
     world: Header
-    flags: list[str]
+    flags: set[str]
     items: dict[str, Item]
     locations: dict[str, Location]
     npcs: dict[str, NPC]
@@ -272,6 +272,12 @@ class World:
 def load_world(path: Path) -> World:
     world_yaml = path.read_text()
     parsed_world = yaml.safe_load(world_yaml)
-    world = from_dict(World, parsed_world)
+    config = Config(
+        type_hooks={
+            set: set,
+            set[str]: set,
+        }
+    )
+    world = from_dict(World, parsed_world, config=config)
     return world
 
