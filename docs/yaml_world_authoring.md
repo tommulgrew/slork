@@ -20,7 +20,8 @@ locations:
 interactions:
 ```
 
-Only `world`, `items`, and `locations` are strictly required, but most worlds will use all of them.
+All top-level sections are expected. `flags`, `npcs`, and `interactions` can be
+empty, but the keys should still be present for schema validation.
 
 ---
 
@@ -32,12 +33,14 @@ world:
   start: beach
   initial_inventory: []
   initial_companions: []
+  intro_text: You wake to the sound of waves and creaking metal.
 ```
 
 * **title** – Displayed at game start
 * **start** – Location ID where the player begins
 * **initial_inventory** – Item IDs the player starts with
 * **initial_companions** – NPC item IDs that start as companions
+* **intro_text** – Optional text displayed when the game starts
 
 IDs here must match keys used elsewhere in the file.
 
@@ -78,7 +81,7 @@ items:
 
 * **name** – Display name (used in output)
 * **description** – Used by the `EXAMINE` command
-* **location_description** – Optional text appended to the location description when the item is in its original location
+* **location_description** – Optional text appended to the location description when the item is in its original location (can be conditional, see Resolvable text)
 * **aliases** – Optional extra words the player can type to refer to the item
 
 > ⚠️ Important:
@@ -168,6 +171,17 @@ If no `location_description` is provided (or the NPC is not in its original loca
 
 ---
 
+## Criteria
+
+Criteria are used to gate exits, interactions, and conditional text. A criteria
+matches when all `requires_flags` are set and all `blocking_flags` are unset.
+
+```yaml
+criteria:
+  requires_flags: [lighthouse_open]
+  blocking_flags: [alarm_triggered]
+```
+
 ## Locations
 
 ```yaml
@@ -206,13 +220,14 @@ exits:
   up:
     to: lighthouse_top
     description: A spiral staircase inside the lighthouse.
-    requires_flags: [lighthouse_open]
+    criteria:
+      requires_flags: [lighthouse_open]
     blocked_description: The door is firmly shut.
 ```
 
 * **to** – Target location ID
 * **description** – Shown in the exits list
-* **requires_flags** – Flags required to use the exit
+* **criteria** – Flags required/blocked for the exit to be usable
 * **blocked_description** – Message if blocked
 
 ---
@@ -233,8 +248,8 @@ They are:
 
 Companions are tracked via flags with the format `companion:<npc_id>`. These
 flags are set for any NPCs listed in `world.initial_companions` and move with
-the player. You can use `requires_flags` or `blocking_flags` in interactions
-and exits to gate behavior based on the companion list.
+the player. You can use criteria `requires_flags` or `blocking_flags` in
+interactions and exits to gate behavior based on the companion list.
 
 Examples:
 
@@ -245,15 +260,18 @@ Examples:
 
 ## Interactions
 
-Interactions define custom verb logic.
+Interactions define custom verb logic and are keyed by ID.
 
 ```yaml
-- verb: use
-  item: station_key
-  target: lighthouse_door
-  requires_flags: [power_restored]
-  message: The key turns with a metallic groan.
-  set_flags: [lighthouse_open]
+interactions:
+  unlock_door:
+    verb: use
+    item: station_key
+    target: lighthouse_door
+    criteria:
+      requires_flags: [power_restored]
+    message: The key turns with a metallic groan.
+    set_flags: [lighthouse_open]
 ```
 
 ### Common fields
@@ -261,12 +279,11 @@ Interactions define custom verb logic.
 * **verb** – Command verb (`use`, `open`, `close`, `talk`, `give`)
 * **item** – Item being acted on
 * **target** – Optional second item (`use X on Y`, `give X to Y`)
-* **message** – Text shown when triggered
+* **message** – Text shown when triggered (can be conditional, see Resolvable text)
+* **criteria** – Flags required/blocked for the interaction to be available
 
 ### Control fields
 
-* **requires_flags** – Must be set
-* **blocking_flags** – Must *not* be set
 * **set_flags** – Flags to enable
 * **clear_flags** – Flags to remove
 * **consumes** – Removes the item after use
@@ -277,6 +294,26 @@ Interactions define custom verb logic.
 * Interactions are used for `use`, `open`, `close`, `talk`, and `give`.
 * `EXAMINE` does not use interactions; it always shows the item's description.
 * Portable items don’t need explicit `take` interactions unless you want custom messaging.
+
+---
+
+## Resolvable text
+
+Some fields can be either a plain string or a list of conditional entries. The
+engine picks the first entry whose criteria matches.
+If an entry omits `criteria`, it always matches.
+
+Used for:
+- Item `location_description`
+- Interaction `message`
+
+```yaml
+location_description:
+  - criteria:
+      requires_flags: [power_restored]
+    text: The generator hums with a steady glow.
+  - text: A dark, silent generator looms against the wall.
+```
 
 ---
 
