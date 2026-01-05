@@ -1,9 +1,10 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional, Literal, Protocol
+from typing import Optional, Protocol
 from enum import Enum
 
-from pydantic import InstanceOf
+from slork.util import strip_quotes
+
 from .logic import Effect
 from .commands import ParsedCommand, parse_command
 from .world import World, Item, Location, Interaction, Criteria, ResolvableText, DialogTree
@@ -220,6 +221,20 @@ class GameEngine:
         return lines
     
     def handle_raw_command(self, raw_command: str) -> ActionResult:
+        self.next_dialog_context = None
+        result = self.handle_raw_command_internal(raw_command)
+        if result.status != ActionStatus.INVALID:
+            self.dialog_context = self.next_dialog_context
+        return result
+
+    def handle_raw_command_internal(self, raw_command: str) -> ActionResult:
+
+        # Special case: During dialog, player can respond with a dialog tree response.
+        if self.dialog_context:
+            result = self.handle_dialog_response(raw_command)
+            if result:
+                return result
+
         command = parse_command(raw_command)
         self.last_command = command
         if command.error:
@@ -367,6 +382,39 @@ class GameEngine:
 
         return self.trigger_dialog(result.item_id, npc.dialog)
 
+    def handle_dialog_response(self, raw_command: str) -> Optional[ActionResult]:
+        assert self.dialog_context
+
+        # Parse candidate response keyword
+        raw_command = raw_command.replace('"', '').replace("'", '').strip()
+        tokens = [part.lower() for part in raw_command.split()]
+        if tokens and tokens[0] in ["say", "respond", "reply", "answer"]:
+            tokens = tokens[1:]
+        keyword = " ".join(tokens)
+
+        # Search available responses for match
+        dialog = self.dialog_context.dialog_node
+        responses = self.available_dialog_responses(dialog)
+        match = next(
+            (
+                response
+                for response_keyword, response in responses
+                if response_keyword == keyword
+            ),
+            next(
+                (
+                    response
+                    for _, response in responses
+                    if keyword in response.aliases
+                ),
+                None
+            )
+        )
+
+        # Trigger matching dialog
+        if match:
+            return self.trigger_dialog(self.dialog_context.npc_id, match)
+
     def trigger_dialog(self, npc_id: str, dialog: DialogTree) -> ActionResult:
 
         self.next_dialog_context = DialogContext(npc_id, dialog)
@@ -380,13 +428,9 @@ class GameEngine:
         lines.append(self.resolve_text(dialog.npc_narrative))
 
         # Include possible responses
-        responses = [ 
-            [ keyword, response ]
-            for keyword, response in dialog.responses.items() 
-            if self.is_criteria_satisfied(response.criteria)
-        ]
+        responses = self.available_dialog_responses(dialog)
         if responses:
-            response_descriptions = [f"'{keyword}'" for keyword, response in responses ]
+            response_descriptions = [f"'{keyword}'" for keyword, _ in responses ]
             lines.append(f"You might respond {', '.join(response_descriptions)}.")
 
         return ok_result("\n".join(lines))
@@ -578,6 +622,13 @@ class GameEngine:
         # Apply flag changes
         self.state.flags.update(effect.set_flags)
         self.state.flags.difference_update(effect.clear_flags)
+
+    def available_dialog_responses(self, dialog: DialogTree) -> list[tuple[str, DialogTree]]:
+        return [
+            ( keyword, response )
+            for keyword, response in dialog.responses.items() 
+            if self.is_criteria_satisfied(response.criteria)
+        ]
 
 def companion_flag(npc_id: str) -> str:
     return f"companion:{npc_id}"
