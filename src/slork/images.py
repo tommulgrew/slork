@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional, Literal
 
 from slork.persistence import get_world_sub_folder_path
-from .engine import ImageReference
+from .engine import ImageReference, ImageType
 from .world import World
 from .ai_client import NormalisedAIChatMessage, AIChatClient, AIImageGen
 
@@ -27,14 +27,13 @@ class ImageService:
         self.prompts = create_ai_prompts(self.img_gen_prompt_common)
 
     def get_image(self, image_ref: ImageReference) -> Optional[Path]:
-        if image_ref.type == "location":
-            return self.get_location_image(image_ref.id)
-        elif image_ref.type == "item":
-            return self.get_item_image(image_ref.id)
-        elif image_ref.type == "npc":
-            return self.get_npc_image(image_ref.id)
-        else:
-            raise ValueError(f"Unknown image reference type: {image_ref.type}")
+        match image_ref.type:
+            case ImageType.LOCATION:
+                return self.get_location_image(image_ref.id)    
+            case ImageType.ITEM:
+                return self.get_item_image(image_ref.id)
+            case ImageType.NPC:
+                return self.get_npc_image(image_ref.id)
 
     def get_location_image(self, loc_id: str) -> Path:
         image_path = self.get_image_path("location", loc_id)

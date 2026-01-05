@@ -3,6 +3,10 @@ world:
   start: beach
   initial_inventory: [bone]
   initial_companions: []
+  intro_text: >
+    The research station has always called to you.
+    
+    Perhaps today you will unlock its secrets.
 
 ai_guidance:
   image_generation: Charcoal drawing, rough texture, expressive strokes, dramatic shading

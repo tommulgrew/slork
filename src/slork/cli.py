@@ -22,6 +22,7 @@ def main() -> None:
     # Initial location
     try:
         engine_response = app.engine.get_intro()
+        print()
         image_path = app.get_image(engine_response.image_ref)
         if image_path:
             print(f"(Image: {image_path})")
@@ -43,6 +44,7 @@ def main() -> None:
                 break
 
             result = app.handle_raw_command(player_cmd_str)
+            print()
             image_path = app.get_image(result.image_ref)
             if image_path:
                 print(f"(Image: {image_path})")

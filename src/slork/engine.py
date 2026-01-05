@@ -11,9 +11,14 @@ class ActionStatus(Enum):
     NO_EFFECT = "no_effect"
     INVALID = "invalid"
 
+class ImageType(Enum):
+    LOCATION = "location",
+    ITEM = "item",
+    NPC = "npc"
+
 @dataclass
 class ImageReference:
-    type: Literal["location", "item", "npc"]
+    type: ImageType
     id: str
 
 @dataclass
@@ -79,7 +84,7 @@ class GameEngine:
 
         # Prefix with intro text
         if self.world.world.intro_text:
-            result.message = f"{self.world.world.intro_text}\n\n{result.message}"
+            result.message = f"{self.world.world.intro_text.rstrip()}\n\n{result.message}"
 
         return result
 
@@ -92,10 +97,9 @@ class GameEngine:
     def describe_current_location(self, verbose: bool = False) -> ActionResult:
         location = self.current_location()
         lines = [
-            "",
             location.name, 
             "",
-            location.description, 
+            location.description.rstrip(), 
             *self.describe_npcs(verbose),
             *self.describe_items(verbose),
             *self.describe_exits(verbose),
@@ -110,7 +114,7 @@ class GameEngine:
             status=ActionStatus.OK, 
             message=description,
             image_ref=ImageReference(
-                type="location",
+                type=ImageType.LOCATION,
                 id=self.state.location_id
             ))
 
@@ -331,14 +335,14 @@ class GameEngine:
 
         # NPC?
         if item_result.item_id in self.world.npcs:
-            return ImageReference(type="npc", id=item_result.item_id)
+            return ImageReference(type=ImageType.NPC, id=item_result.item_id)
 
         # Otherwise must be a portable item, as non-portable items are part of
         # the location description and therefore should appear in the location 
         # image. (So rendering a second image would likely introduce 
         # inconsistency.)
         if item_result.item.portable:
-            return ImageReference(type="item", id=item_result.item_id)
+            return ImageReference(type=ImageType.ITEM, id=item_result.item_id)
 
     def handle_interaction(self, command: ParsedCommand) -> ActionResult:
         # Command parser ensures all commands (apart from "look" and "inventory")
@@ -510,9 +514,12 @@ class GameEngine:
 
         # Find first instance whose criteria is satisfied
         return next(
-            conditional_text.text 
-            for conditional_text in text 
-            if self.is_criteria_satisfied(conditional_text.criteria)
+            (
+                conditional_text.text 
+                for conditional_text in text 
+                if self.is_criteria_satisfied(conditional_text.criteria)
+            ),
+            None
         )
 
 def companion_flag(npc_id: str) -> str:
