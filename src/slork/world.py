@@ -97,7 +97,7 @@ class World:
                     issues.append(f"Initial inventory item '{item_id}' is not marked as portable.")
 
         # Locations
-        items_by_loc: dict[str, str] = {}        
+        item_locations: dict[str, str] = {}        
         for loc_id, loc in self.locations.items():
 
             # Location items
@@ -107,9 +107,9 @@ class World:
                     issues.append(f"Item '{item_id}' in location '{loc_id}' was not found in the 'items' list.")
                 if item_id in self.world.initial_inventory:
                     issues.append(f"Item '{item_id}' in location '{loc_id}' is also in the initial inventory list.")
-                if item_id in items_by_loc:
-                    issues.append(f"Item '{item_id}' in location '{loc_id}' is also in location '{items_by_loc[item_id]}'.")
-                items_by_loc[item_id] = loc_id
+                if item_id in item_locations:
+                    issues.append(f"Item '{item_id}' in location '{loc_id}' is also in location '{item_locations[item_id]}'.")
+                item_locations[item_id] = loc_id
 
             # Location exits
             if not loc.exits:
@@ -122,12 +122,22 @@ class World:
                 if exit.blocked_description and not exit.criteria:
                     issues.append(f"'{exit_id}' exit in location '{loc_id}' has blocked_description, but no criteria.")
                 if exit.criteria:
-                    issues.extend(self.validate_criteria(exit.criteria, ref_flags, f"'{exit_id}' exit criteria in location '{loc_id}'"))
+                    issues.extend(self.validate_criteria(exit.criteria, ref_flags, ref_items, f"'{exit_id}' exit criteria in location '{loc_id}'"))
+
+        # Items
+        for item_id, item in self.items.items():
+            if item.location_description:
+                issues.extend(self.validate_resolvable_text(item.location_description, ref_flags, ref_items, f"Item '{item_id}' location_description"))
 
         # NPCs
         for npc_id, npc in self.npcs.items():
             if npc_id not in self.items:
                 issues.append(f"NPC '{npc_id}' does not have a corresponding item in the 'items' list.")
+            if npc.dialog:
+                if isinstance(npc.dialog, DialogTree):                    
+                    issues.extend(self.validate_dialog_tree(npc.dialog, ref_flags, ref_items, f"NPC '{npc_id}' dialog tree"))
+                else:
+                    issues.extend(self.validate_resolvable_text(npc.dialog, ref_flags, ref_items, f"NPC '{npc_id}' dialog tree"))
 
         # Interactions
         for x_id, x in self.interactions.items():
@@ -142,7 +152,12 @@ class World:
             # interested in references that make them available in the game.
 
             if x.criteria:
-                issues.extend(self.validate_criteria(x.criteria, ref_flags, f"'{x_id}' interaction criteria"))
+                issues.extend(self.validate_criteria(x.criteria, ref_flags, ref_items, f"'{x_id}' interaction criteria"))
+
+            if x.effect:
+                issues.extend(self.validate_effect(x.effect, ref_flags, f"'{x_id}' interaction effect"))
+
+            issues.extend(self.validate_resolvable_text(x.message, ref_flags, ref_items, f"'{x_id}' interaction message"))
 
         unref_flags = [ flag    for flag          in self.flags         if flag    not in ref_flags]
         unref_items = [ item_id for item_id, item in self.items.items() if item_id not in ref_items]
@@ -174,7 +189,7 @@ class World:
 
         return issues
 
-    def validate_criteria(self, criteria: Criteria, ref_flags: set[str], owner_desc: str) -> list[str]:
+    def validate_criteria(self, criteria: Criteria, ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
 
         issues: list[str] = []
 
@@ -187,6 +202,65 @@ class World:
             ref_flags.add(flag)
             if flag not in self.flags:
                 issues.append(f"Blocking flag '{flag}' for {owner_desc} was not found in 'flags' list.")
+
+        for item_id in criteria.requires_inventory:
+            ref_items.add(item_id)
+            if item_id not in self.items:
+                issues.append(f"Required item '{item_id}' for {owner_desc} was not found in 'items' list.")
+
+        return issues
+
+    def validate_effect(self, effect: Effect, ref_flags: set[str], owner_desc: str) -> list[str]:
+
+        issues: list[str] = []
+
+        for flag in effect.set_flags:
+            ref_flags.add(flag)
+            if flag not in self.flags:
+                issues.append(f"Flag to set '{flag}' for {owner_desc} was not found in 'flags' list.")
+
+        for flag in effect.clear_flags:
+            ref_flags.add(flag)
+            if flag not in self.flags:
+                issues.append(f"Flag to clear '{flag}' for {owner_desc} was not found in 'flags' list.")
+
+        return issues
+
+    def validate_resolvable_text(self, text: Optional[ResolvableText], ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
+
+        if not text or isinstance(text, str):
+            return []
+
+        issues: list[str] = []
+
+        for clause in text:
+            if clause.criteria:
+                issues.extend(self.validate_criteria(clause.criteria, ref_flags, ref_items, f"{owner_desc} criteria for '{clause.text}'"))
+
+        return issues        
+
+    def validate_dialog_tree(self, 
+            tree: DialogTree, 
+            ref_flags: set[str], 
+            ref_items: set[str], 
+            owner_desc: str):
+
+        issues: list[str] = []
+
+        if tree.npc_narrative:
+            issues.extend(self.validate_resolvable_text(tree.npc_narrative, ref_flags, ref_items, f"{owner_desc} npc_narrative"))
+
+        if tree.player_narrative:
+            issues.extend(self.validate_resolvable_text(tree.player_narrative, ref_flags, ref_items, f"{owner_desc} player_narrative"))
+
+        if tree.criteria:
+            issues.extend(self.validate_criteria(tree.criteria, ref_flags, ref_items, f"{owner_desc} criteria"))
+
+        if tree.effect:
+            issues.extend(self.validate_effect(tree.effect, ref_flags, f"{owner_desc} effect"))
+
+        for response_id, response in tree.responses.items():
+            issues.extend(self.validate_dialog_tree(response, ref_flags, ref_items, f"{owner_desc} > '{response_id}'"))
 
         return issues
 
