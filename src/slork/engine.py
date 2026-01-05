@@ -2,10 +2,11 @@ from abc import abstractmethod
 from dataclasses import dataclass, field
 from typing import Optional, Literal, Protocol
 from enum import Enum
+
+from pydantic import InstanceOf
 from .logic import Effect
-from .commands import ParsedCommand
-from .world import World, Item, Location, Interaction, Criteria, ResolvableText
-from .commands import parse_command
+from .commands import ParsedCommand, parse_command
+from .world import World, Item, Location, Interaction, Criteria, ResolvableText, DialogTree
 
 class ActionStatus(Enum):
     OK = "ok"
@@ -158,15 +159,12 @@ class GameEngine:
                     lines.append(f"    Sample lines: {', '.join(quoted_lines)}")
                 
                 # Look for talk interaction
-                talk_interaction_id: Optional[str] = next( 
-                    (
-                        interaction_id
-                        for interaction_id, interaction in self.world.interactions.items()
-                        if self.matches_interaction(interaction, "talk", item_id, None)
-                    ),
-                    None
-                )
-                if talk_interaction_id and talk_interaction_id not in self.state.completed_interactions:
+                if (
+                    npc.dialog and (
+                        not isinstance(npc.dialog, DialogTree)                  # String/ResolvableString
+                        or self.is_criteria_satisfied(npc.dialog.criteria)      # Dialog tree root criteria (if any) must be satisfied
+                    )
+                ):
                     lines.append("    TALK interaction: Yes")
                 else:
                     lines.append("    TALK interaction: No")

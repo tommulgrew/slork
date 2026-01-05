@@ -33,7 +33,7 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
-                "--world", "assets_renamed/titan/world.yaml", 
+                "--world", "assets/example/world.yaml", 
                 "--dev", "True",
                 "--ai-model", "gpt-oss:20b-cloud"
             ]
