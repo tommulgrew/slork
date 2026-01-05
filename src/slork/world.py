@@ -4,7 +4,7 @@ from typing import Optional
 from dacite import from_dict
 import yaml
 from .commands import VALID_VERBS
-from .conditions import Criteria, ResolvableText
+from .logic import Criteria, ResolvableText
 from .dialog import DialogTree
 
 @dataclass

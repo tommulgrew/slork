@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
-from .conditions import Criteria, ResolvableText
+from .logic import Criteria, ResolvableText
 
 @dataclass
 class DialogTree:
