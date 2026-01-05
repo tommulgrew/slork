@@ -52,6 +52,11 @@ class GameEngineState:
     location_items: dict[str, list[str]]
     completed_interactions: set[str] = field(default_factory=set)
 
+@dataclass
+class DialogContext:
+    npc_id: str
+    dialog_node: DialogTree
+
 class PGameEngine(Protocol):
     @abstractmethod
     def handle_raw_command(self, raw_command: str) -> ActionResult:
@@ -77,6 +82,8 @@ class GameEngine:
         self.world = world
         self.state = get_initial_game_state(world)
         self.last_command: Optional[ParsedCommand] = None
+        self.dialog_context: Optional[DialogContext] = None
+        self.next_dialog_context: Optional[DialogContext] = None
 
         # Move companions to initial location
         self.move_companions()
@@ -134,9 +141,8 @@ class GameEngine:
             if self.is_npc(item_id) and not self.is_companion(item_id)
         ]
         for item_id, item, npc in other_npcs:
-            location_description = self.resolve_text(item.location_description)
-            if location_description and item_id in self.current_location().items:        # Item in its original location
-                lines.append(location_description)
+            if item.location_description and item_id in self.current_location().items:        # Item in its original location
+                lines.append(self.resolve_text(item.location_description))
             else:
                 lines.append(f"{item.name} is here.")
 
@@ -178,9 +184,8 @@ class GameEngine:
         for item_id in self.current_location_items():
             item = self.world.items[item_id]
             if not self.is_npc(item_id):
-                location_description = self.resolve_text(item.location_description)
-                if location_description and item_id in self.current_location().items:
-                    lines.append(location_description)
+                if item.location_description and item_id in self.current_location().items:
+                    lines.append(self.resolve_text(item.location_description))
                 elif item.portable:
                     lines.append(f"There is a {item.name} here.")
 
@@ -228,24 +233,28 @@ class GameEngine:
 
         # Note: Command parser ensures specific verbs always have a noun
 
-        if command.verb == "look":
-            return self.describe_current_location()
-        elif command.verb == "inventory":
-            return self.handle_inventory()
-        elif command.verb == "go":
-            assert command.main_noun is not None
-            return self.handle_go(command.main_noun)
-        elif command.verb == "take":
-            assert command.main_noun is not None
-            return self.handle_take(command.main_noun)
-        elif command.verb == "drop":
-            assert command.main_noun is not None
-            return self.handle_drop(command.main_noun)
-        elif command.verb == "examine":
-            assert command.main_noun is not None
-            return self.handle_examine(command.main_noun)
-        else:
-            return self.handle_interaction(command)  
+        match command.verb:
+            case "look":
+                return self.describe_current_location()
+            case "inventory":
+                return self.handle_inventory()
+            case "go":
+                assert command.main_noun is not None
+                return self.handle_go(command.main_noun)
+            case "take":
+                assert command.main_noun is not None
+                return self.handle_take(command.main_noun)
+            case "drop":
+                assert command.main_noun is not None
+                return self.handle_drop(command.main_noun)
+            case "examine":
+                assert command.main_noun is not None
+                return self.handle_examine(command.main_noun)
+            case "talk":
+                assert command.main_noun is not None
+                return self.handle_talk(command.main_noun)
+
+        return self.handle_interaction(command)  
 
     def handle_go(self, direction: str) -> ActionResult:
 
@@ -327,6 +336,61 @@ class GameEngine:
             message=result.item.description,
             image_ref=self.get_item_image_ref(result))
 
+    def handle_talk(self, noun: str) -> ActionResult:
+        
+        result = self.resolve_item(noun, include_location=True)
+        if result.error:
+            return invalid_result(result.error)
+        assert result.item is not None
+
+        # Not an NPC?
+        if result.item_id not in self.world.npcs:
+            return no_effect_result(f"The {result.item.name} has nothing to say.")
+
+        npc = self.world.npcs[result.item_id]
+        no_reply = no_effect_result(f"{result.item.name} does not reply.")
+
+        # No NPC dialog?
+        if not npc.dialog:
+            return no_reply
+
+        # Simple dialog (string or resolvable string)
+        if not isinstance(npc.dialog, DialogTree):
+            message = self.resolve_text(npc.dialog)
+            return ok_result(message) if message else no_reply
+
+        # Dialog tree
+
+        # Root criteria must be satisfied
+        if not self.is_criteria_satisfied(npc.dialog.criteria):
+            return no_reply
+
+        return self.trigger_dialog(result.item_id, npc.dialog)
+
+    def trigger_dialog(self, npc_id: str, dialog: DialogTree) -> ActionResult:
+
+        self.next_dialog_context = DialogContext(npc_id, dialog)
+
+        self.apply_effect(dialog.effect)
+
+        # Dialog text
+        lines: list[str] = []
+        if dialog.player_narrative:
+            lines.append(self.resolve_text(dialog.player_narrative))
+        lines.append(self.resolve_text(dialog.npc_narrative))
+
+        # Include possible responses
+        responses = [ 
+            [ keyword, response ]
+            for keyword, response in dialog.responses.items() 
+            if self.is_criteria_satisfied(response.criteria)
+        ]
+        if responses:
+            response_descriptions = [f"'{keyword}'" for keyword, response in responses ]
+            lines.append(f"You might respond {', '.join(response_descriptions)}.")
+
+        return ok_result("\n".join(lines))
+
     def get_item_image_ref(self, item_result: ResolveItemResult) -> Optional[ImageReference]:
         assert not item_result.error
         assert item_result.item
@@ -389,7 +453,7 @@ class GameEngine:
 
         # Apply interaction
         self.apply_interaction(interaction_id, interaction)
-        return ok_result(self.resolve_text(interaction.message) or "")
+        return ok_result(self.resolve_text(interaction.message))
 
     def has_required_flags(self, required_flags) -> bool:
         return all(flag in self.state.flags for flag in required_flags)
@@ -492,9 +556,7 @@ class GameEngine:
 
         return has_required_flags and not is_blocked_by_flags and has_required_inventory
 
-    def resolve_text(self, text: Optional[ResolvableText]) -> Optional[str]:
-        if not text:
-            return None
+    def resolve_text(self, text: ResolvableText) -> str:
 
         # Unconditional string case
         if isinstance(text, str):
@@ -506,8 +568,7 @@ class GameEngine:
                 conditional_text.text 
                 for conditional_text in text 
                 if self.is_criteria_satisfied(conditional_text.criteria)
-            ),
-            None
+            )
         )
 
     def apply_effect(self, effect: Optional[Effect]):

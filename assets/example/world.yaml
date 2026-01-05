@@ -169,9 +169,15 @@ npcs:
   lenny:
     persona: Annoyingly jolly and enthusiastic; eager to share his opinion.
     sample_lines:
-      - "This reminds me of a time a wizard turned me into a jellyfish."
-      - "Ooh I love grumpy trolls. Try poking it with a stick."
-      - "I'd love to carry that for you, but I don't want to."    
+      - This reminds me of a time a wizard turned me into a jellyfish.
+      - Ooh I love grumpy trolls. Try poking it with a stick.
+      - I'd love to carry that for you, but I don't want to.
+    dialog: 
+      - text: >
+          "Gotta admit, I didn't think you'd solve the gate puzzle."
+        criteria:
+          requires_flags: [ 'gate_unlocked' ]
+      - text: Lenny says "You're doing well! Much better than the last guy!"            
 
 interactions:
   unlock_stone_gate:
@@ -209,10 +215,10 @@ interactions:
   #   item: gnome
   #   repeatable: true
   #   message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
-  talk_to_lenny:
-    verb: talk
-    item: lenny
-    message: Lenny says "You're doing well! Much better than the last guy!"
+  # talk_to_lenny:
+  #   verb: talk
+  #   item: lenny
+  #   message: Lenny says "You're doing well! Much better than the last guy!"
   give_lint_to_lenny:
     verb: give
     item: lint
