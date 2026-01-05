@@ -207,6 +207,10 @@ class World:
             ref_items.add(item_id)
             if item_id not in self.items:
                 issues.append(f"Required item '{item_id}' for {owner_desc} was not found in 'items' list.")
+            else:
+                item = self.items[item_id]
+                if not item.portable:
+                    issues.append(f"Required item '{item_id}' ('{item.name}') for {owner_desc} is not portable.")
 
         return issues
 
