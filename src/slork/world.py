@@ -19,17 +19,17 @@ class Criteria:
     blocking_flags: list[str] = field(default_factory=list)
 
 @dataclass(frozen=True)
-class ConditionalDescription:
-    description: str
+class ConditionalText:
+    text: str
     criteria: Optional[Criteria] = None
 
-Description = str | list[ConditionalDescription]
+ResolvableText = str | list[ConditionalText]
 
 @dataclass
 class Item:
     name: str
     description: str
-    location_description: Optional[Description] = None
+    location_description: Optional[ResolvableText] = None
     portable: bool = False
     aliases: list[str] = field(default_factory=list)
 

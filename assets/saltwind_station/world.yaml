@@ -42,9 +42,9 @@ items:
   generator:
     name: Backup Generator    
     location_description:
-      - description: The generator chugs away steadily.
+      - text: The generator chugs away steadily.
         criteria: { requires_flags: [ power_restored ] }
-      - description: The generator sits silent.
+      - text: The generator sits silent.
     description: A diesel generator bolted to the concrete floor.
     portable: false
     aliases: [generator]

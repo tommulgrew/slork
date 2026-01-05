@@ -68,7 +68,7 @@
             "description": "The main name of the item. Used when displaying messages about the item. Used by the player to refer to the item in commands (e.g. TAKE FLASHLIGHT)."
           },
           "location_description": {
-            "$ref": "#/definitions/description",
+            "$ref": "#/definitions/resolvable_text",
             "description": "How the item is described as part of the location description. (E.g. 'A rusty sword leans against the wall.')"
           },
           "description": { 
@@ -245,7 +245,7 @@
         }
       }
     },
-    "description": {
+    "resolvable_text": {
       "oneOf": [
         {
           "type": "string"
@@ -258,14 +258,14 @@
             "properties": {
               "criteria": {
                 "$ref": "#/definitions/criteria",
-                "description": "Criteria that must be satisfied for the description to be displayed."
+                "description": "Criteria that must be satisfied for the text to be displayed."
               },
-              "description": {
+              "text": {
                 "type": "string",
                 "description": "Text to display"
               }
             },
-            "required": ["description"]
+            "required": ["text"]
           }
         }
       ]

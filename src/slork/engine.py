@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Literal, Protocol
 from enum import Enum
 from .commands import ParsedCommand
-from .world import World, Item, Location, Interaction, Criteria, Description
+from .world import World, Item, Location, Interaction, Criteria, ResolvableText
 from .commands import parse_command
 
 class ActionStatus(Enum):
@@ -128,7 +128,7 @@ class GameEngine:
             if self.is_npc(item_id) and not self.is_companion(item_id)
         ]
         for item_id, item, npc in other_npcs:
-            location_description = self.resolve_description(item.location_description)
+            location_description = self.resolve_text(item.location_description)
             if location_description and item_id in self.current_location().items:        # Item in its original location
                 lines.append(location_description)
             else:
@@ -175,7 +175,7 @@ class GameEngine:
         for item_id in self.current_location_items():
             item = self.world.items[item_id]
             if not self.is_npc(item_id):
-                location_description = self.resolve_description(item.location_description)
+                location_description = self.resolve_text(item.location_description)
                 if location_description and item_id in self.current_location().items:
                     lines.append(location_description)
                 elif item.portable:
@@ -500,19 +500,19 @@ class GameEngine:
 
         return has_required and not is_blocked
 
-    def resolve_description(self, description: Optional[Description]) -> Optional[str]:
-        if not description:
+    def resolve_text(self, text: Optional[ResolvableText]) -> Optional[str]:
+        if not text:
             return None
 
         # Unconditional string case
-        if isinstance(description, str):
-            return description
+        if isinstance(text, str):
+            return text
 
         # Find first instance whose criteria is satisfied
         return next(
-            d.description 
-            for d in description 
-            if self.is_criteria_satisfied(d.criteria)
+            conditional_text.text 
+            for conditional_text in text 
+            if self.is_criteria_satisfied(conditional_text.criteria)
         )
 
 def companion_flag(npc_id: str) -> str:
