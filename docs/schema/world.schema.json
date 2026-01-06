@@ -291,13 +291,13 @@
           "default": [],
           "description": "A list of items IDs to remove from the player's inventory."
         },
-        "add_companion": {
+        "add_companions": {
           "type": "array",
           "items": { "type": "string" },
           "default": [],
           "description": "A list of NPC IDs to add to the player's companions."
         },
-        "remove_companion": {
+        "remove_companions": {
           "type": "array",
           "items": { "type": "string" },
           "default": [],

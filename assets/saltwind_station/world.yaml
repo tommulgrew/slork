@@ -253,11 +253,12 @@ interactions:
     target: dog
     consumes: true
     message: "The dog accepts the toy bone and begins chewing on it."
-    effect: { add_companion: [dog] }
+    effect: { add_companions: [dog] }
   
   use_whistle:
     verb: use
-    item: brass_whistlen
+    item: brass_whistle
+    repeatable: true
     message: 
       - text:
           The whistle makes a loud piercing sound, causing the dog to look up.

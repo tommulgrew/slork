@@ -27,7 +27,7 @@ class Effect:
     """
     set_flags: set[str] = field(default_factory=set)
     clear_flags: set[str] = field(default_factory=set)
-    add_inventory: set[str] = field(default_factory=set)
-    remove_inventory: set[str] = field(default_factory=set)
-    add_companions: set[str] = field(default_factory=set)
-    remove_companions: set[str] = field(default_factory=set)
+    add_inventory: list[str] = field(default_factory=list)
+    remove_inventory: list[str] = field(default_factory=list)
+    add_companions: list[str] = field(default_factory=list)
+    remove_companions: list[str] = field(default_factory=list)

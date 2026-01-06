@@ -676,18 +676,10 @@ class GameEngine:
         # Apply flag changes
         self.state.flags.update(effect.set_flags)
         self.state.flags.difference_update(effect.clear_flags)
-        for item_id in effect.add_inventory:
-            if item_id not in self.state.inventory:
-                self.state.inventory.append(item_id)
-        for item_id in effect.remove_inventory:
-            if item_id in self.state.inventory:
-                self.state.inventory.remove(item_id)
-        for item_id in effect.add_companions:
-            if item_id not in self.state.companions:
-                self.state.companions.append(item_id)
-        for item_id in effect.remove_companions:
-            if item_id in self.state.companions:
-                self.state.companions.remove(item_id)            
+        add_to_list(self.state.inventory, effect.add_inventory)
+        remove_from_list(self.state.inventory, effect.remove_inventory)
+        add_to_list(self.state.companions, effect.add_companions)
+        remove_from_list(self.state.companions, effect.remove_companions)
 
     def available_dialog_responses(self, dialog: DialogTree) -> list[tuple[str, DialogTree]]:
         return [

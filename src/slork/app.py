@@ -130,6 +130,8 @@ Developer commands:
     /SET flag                           Set flag
     /CLEAR flag                         Clear flag
     /TAKE item_id                       Take item (from anywhere)
+    /ADD_COMPANION npc_id               Add NPC to player's companions
+    /REMOVE_COMPANION npc_id            Remove NPC from player's companions
     /DO interaction_id                  Perform interaction (ignoring prerequisites)
     /CLEAR_INTERACTION interaction_id   Clear 'completed' status from interaction
     /RUN filename                       Run commands from script file
@@ -150,7 +152,7 @@ Developer commands:
 
             case "/items":
                 return ok_result("\n".join([ 
-                    f"{item_id} '{item.name}'{' (portable)' if item.portable else ''}{' (npc)' if item_id in self.world.npcs else ''}" 
+                    f"{item_id} '{item.name}'{' (portable)' if item.portable else ''}{' (npc)' if item_id in self.world.npcs else ''}{' (companion)' if item_id in self.base_engine.state.companions else ''}" 
                     for item_id, item in self.world.items.items() ]))
 
             case "/flags":
@@ -172,6 +174,12 @@ Developer commands:
 
             case "/take":
                 return self.handle_dev_take(parts)
+
+            case "/add_companion":
+                return self.handle_dev_add_companion(parts)
+
+            case "/remove_companion":
+                return self.handle_dev_remove_companion(parts)                
 
             case "/do":
                 return self.handle_dev_do(parts)
@@ -262,6 +270,33 @@ Developer commands:
             state.inventory.append(item_id)
 
         return ok_result(f"'{item_id} ({item.name})' Added to inventory.")
+
+    def handle_dev_add_companion(self, parts: list[str]) -> ActionResult:
+        if len(parts) != 2:
+            return invalid_result("Usage: /ADD_COMPANION npc_id")
+
+        npc_id = parts[1]
+        if npc_id not in self.world.npcs:
+            return invalid_result(f"'{npc_id}' is not a valid NPC ID.")
+
+        if npc_id not in self.base_engine.state.companions:
+            self.base_engine.state.companions.append(npc_id)
+        self.base_engine.move_companions()
+
+        return ok_result(f"'{npc_id}' added to companions")
+
+    def handle_dev_remove_companion(self, parts: list[str]) -> ActionResult:
+        if len(parts) != 2:
+            return invalid_result("Usage: /REMOVE_COMPANION npc_id")
+
+        npc_id = parts[1]
+        if npc_id not in self.world.npcs:
+            return invalid_result(f"'{npc_id}' is not a valid NPC ID.")
+
+        if npc_id in self.base_engine.state.companions:
+            self.base_engine.state.companions.remove(npc_id)
+
+        return ok_result(f"'{npc_id}' removed from companions")
 
     def handle_dev_do(self, parts: list[str]) -> ActionResult:
         if len(parts) != 2:
