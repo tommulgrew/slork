@@ -174,12 +174,21 @@ If no `location_description` is provided (or the NPC is not in its original loca
 ## Criteria
 
 Criteria are used to gate exits, interactions, and conditional text. A criteria
-matches when all `requires_flags` are set and all `blocking_flags` are unset.
+matches when all `requires_*` entries are satisfied and all `blocking_flags`
+are unset.
+
+Supported fields:
+- `requires_flags`
+- `blocking_flags`
+- `requires_inventory`
+- `requires_companions`
 
 ```yaml
 criteria:
   requires_flags: [lighthouse_open]
   blocking_flags: [alarm_triggered]
+  requires_inventory: [station_key]
+  requires_companions: [lenny]
 ```
 
 ## Locations
@@ -248,7 +257,7 @@ They are:
 
 Companions are tracked via flags with the format `companion:<npc_id>`. These
 flags are set for any NPCs listed in `world.initial_companions` and move with
-the player. You can use criteria `requires_flags` or `blocking_flags` in
+the player. You can use criteria `requires_companions` or `requires_flags` in
 interactions and exits to gate behavior based on the companion list.
 
 Examples:
@@ -271,27 +280,34 @@ interactions:
     criteria:
       requires_flags: [power_restored]
     message: The key turns with a metallic groan.
-    set_flags: [lighthouse_open]
+    effect:
+      set_flags: [lighthouse_open]
 ```
 
 ### Common fields
 
-* **verb** – Command verb (`use`, `open`, `close`, `talk`, `give`)
+* **verb** – Command verb (`use`, `open`, `close`, `give`)
 * **item** – Item being acted on
 * **target** – Optional second item (`use X on Y`, `give X to Y`)
 * **message** – Text shown when triggered (can be conditional, see Resolvable text)
 * **criteria** – Flags required/blocked for the interaction to be available
+* **effect** – Optional state changes applied when the interaction triggers
 
 ### Control fields
 
-* **set_flags** – Flags to enable
-* **clear_flags** – Flags to remove
+* **effect.set_flags** – Flags to enable
+* **effect.clear_flags** – Flags to remove
+* **effect.add_inventory** – Items to add to inventory
+* **effect.remove_inventory** – Items to remove from inventory
+* **effect.add_companions** – Companions to add
+* **effect.remove_companions** – Companions to remove
 * **consumes** – Removes the item after use
 * **repeatable** – If false, the interaction can only be performed once
 
 ### Notes
 
-* Interactions are used for `use`, `open`, `close`, `talk`, and `give`.
+* Interactions are used for `use`, `open`, `close`, and `give`.
+* NPC dialog replaces `talk` interactions.
 * `EXAMINE` does not use interactions; it always shows the item's description.
 * Portable items don’t need explicit `take` interactions unless you want custom messaging.
 
@@ -306,6 +322,7 @@ If an entry omits `criteria`, it always matches.
 Used for:
 - Item `location_description`
 - Interaction `message`
+- Dialog tree `player_narrative` and `npc_narrative`
 
 ```yaml
 location_description:
@@ -314,6 +331,44 @@ location_description:
     text: The generator hums with a steady glow.
   - text: A dark, silent generator looms against the wall.
 ```
+
+---
+
+## NPC dialog
+
+NPC dialog replaces `talk` interactions. Each NPC can define `dialog`, which can
+be a plain string, a conditional text entry, a dialog tree, or a list combining
+any of those. When a list is used, the engine selects the first entry whose
+criteria is satisfied.
+
+```yaml
+npcs:
+  researcher:
+    dialog:
+      - criteria:
+          requires_flags: [power_restored]
+        text: "The lights are back. Maybe we have a chance."
+      - npc_narrative: "He shrugs. 'Not much to say.'"
+```
+
+Dialog trees allow branching responses:
+
+```yaml
+dialog:
+  npc_narrative: "The guard eyes you. 'State your business.'"
+  responses:
+    gate:
+      keyword_hint: "mention the *gate*"
+      player_narrative: "I'm here about the gate."
+      npc_narrative: "Closed until the alarm is cleared."
+```
+
+Fields supported in dialog trees:
+- `npc_narrative` (required) and `player_narrative` (optional)
+- `keyword_hint` (optional hint shown for child nodes to guide valid keywords - should make it clear which keyword to use, and hint at the corresponding dialog direction)
+- `aliases` (alternate keywords)
+- `criteria` and `effect` (conditional gating and state changes)
+- `responses` (subtree responses keyed by keyword)
 
 ---
 

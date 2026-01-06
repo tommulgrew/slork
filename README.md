@@ -53,7 +53,8 @@ OPENAI_API_KEY=... python -m slork.cli \
 
 During play:
 - `look`, `inventory`, `go north`, `take brass key`, `drop lint`, `examine gate`
-- Interactions: `use brass key on gate`, `talk hermit`, `give lint to gnome`
+- Interactions: `use brass key on gate`, `give lint to gnome`
+- NPC dialog: `talk hermit`, `talk gnome`
 - `ai` toggles AI on/off mid-session; `quit`/`exit` ends the game.
 
 ## Quick start (web)
@@ -87,7 +88,9 @@ CLI prints the image path when an image is generated. The web app renders the la
   - `ai_guidance.text_generation` influences narration tone.
   - `ai_guidance.image_generation` influences image style.
 - Items (including NPCs) can include an optional `location_description` used to append presence text when they are in their original location.
-- Exits and interactions use `criteria` (requires/blocking flags), and some text fields can be conditional via resolvable text entries.
+- Exits, interactions, and dialog use `criteria` (requires/blocking inventory/flags/companions).
+- Interactions use `effect` for state changes, and some text fields can be conditional via resolvable text entries.
+- NPCs can define `dialog` (string, conditional text, or dialog tree, optionally as a list).
 - Use `--world path/to/your.yaml` to load a custom world.
 
 For full authoring details, see `docs/yaml_world_authoring.md`.

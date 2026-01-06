@@ -108,7 +108,7 @@
                 }
               }
             ],
-            "description": "Dialog tree to invoke when the player TALKs to the NPC. If multiple dialog trees are specified, the engine will select the first whose criteria is satisfied."
+            "description": "Text to display, or dialog tree to invoke when the player TALKs to the NPC. If a list is specified, the engine will select the first applicable entry (if any)."
           },
           "persona": { 
             "type": "string",
