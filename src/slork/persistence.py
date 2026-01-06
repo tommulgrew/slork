@@ -1,7 +1,5 @@
 import json
 from pathlib import Path
-from dataclasses import asdict
-from dacite import from_dict
 from .engine import GameEngineState
 
 class GameStatePersister:
@@ -15,7 +13,7 @@ class GameStatePersister:
         save_file_path = self.get_save_file_path(filename)
 
         # Serialize game state
-        state_json = json.dumps(asdict(state), indent=2)
+        state_json = json.dumps(state_to_dict(state), indent=2)
 
         # Write to file
         print(f"(Saving to: {save_file_path})")
@@ -32,7 +30,7 @@ class GameStatePersister:
 
         # Deserialize
         state_dict = json.loads(state_json)
-        state = from_dict(GameEngineState, state_dict)
+        state = state_from_dict(state_dict)
 
         # TO DO: Validate against world file?
 
@@ -54,3 +52,23 @@ def get_world_file_path(folder_path: Path, filename: str, ext: str) -> Path:
         raise RuntimeError("Invalid filename")
 
     return file_path
+
+def state_to_dict(state: GameEngineState) -> dict:
+    return {
+        "location_id": state.location_id,
+        "inventory": state.inventory,
+        "flags": list(state.flags),
+        "location_items": state.location_items,
+        "completed_interactions": list(state.completed_interactions),
+        "completed_npc_dialog": { k: list(v) for k, v in state.completed_npc_dialog.items() }
+    }
+
+def state_from_dict(data: dict) -> GameEngineState:
+    return GameEngineState(
+        location_id=data["location_id"],
+        inventory=data["inventory"],
+        flags=set(data["flags"]),
+        location_items=data["location_items"],
+        completed_interactions=set(data["completed_interactions"]),
+        completed_npc_dialog={ k: set(v) for k, v in data["completed_npc_dialog"].items()}
+    )
