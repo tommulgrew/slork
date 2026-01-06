@@ -77,7 +77,7 @@ class AIGameEngine:
 
         # Build messages for chat api call
         system_message = NormalisedAIChatMessage("system", self.ai_prompts.interpret_player_input)
-        engine_context_message = NormalisedAIChatMessage("user", f"ENGINE: {self.engine.describe_current_location(verbose=True)}")
+        engine_context_message = NormalisedAIChatMessage("user", f"ENGINE: {self.engine.describe_current_location(verbose=True).message}")
         player_message = NormalisedAIChatMessage("user", f"PLAYER: {raw_command}")
 
         ai_messages: list[NormalisedAIChatMessage] = [

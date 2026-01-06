@@ -46,7 +46,7 @@ items:
   hermit:
     name: Hermit
     description: A slender wirey old man with gray hair.
-    location_description: A stooped hermit tends a tiny fire, watching you warily.
+    location_description: A stooped hermit tends a tiny fire, watching you warily.        
   gnome:
     name: Gnome
     description: A short, grumpy looking gnome.
@@ -133,6 +133,7 @@ npcs:
       - "Hush now, the woods listen more than you think."
       - "Every lock has a story; some open only to those who listen."
     quest_hook: Knows rumors about the stone gate; will hint if asked or befriended.
+    dialog: The hermit eyes you, then mutters about an old key lost along the forest path.
   gnome:
     persona: Cheeky, unhelpful and somewhat sarcastic; but not threatening.
     sample_lines:
@@ -219,20 +220,6 @@ interactions:
         - gate_unlocked
     repeatable: true
     message: It's already open.
-  talk_to_hermit:
-    verb: talk
-    item: hermit
-    repeatable: true
-    message: The hermit eyes you, then mutters about an old key lost along the forest path.
-  # talk_to_gnome:
-  #   verb: talk
-  #   item: gnome
-  #   repeatable: true
-  #   message: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
-  # talk_to_lenny:
-  #   verb: talk
-  #   item: lenny
-  #   message: Lenny says "You're doing well! Much better than the last guy!"
   give_lint_to_lenny:
     verb: give
     item: lint
@@ -245,3 +232,20 @@ interactions:
     target: gnome
     repeatable: false
     message: The gnome is not impressed with your pocket fluff.
+  give_key_to_gnome:
+    verb: give
+    item: brass_key
+    target: gnome
+    repeatable: false
+    consumes: true
+    effect:
+      set_flags:
+        - gate_unlocked
+    message:
+      - text: >
+          The gnome's eyes light up. "Hoo! This is the one! How you separated this from that meddlesome old gaffer I don't know. Well, a deal's a deal."
+          He shuffles over to the gate and unlocks it with a loud clunk. It swings open, revealing the path northward.
+        criteria:
+          blocking_flags:
+            - gate_unlocked
+      - text: The gnome accepts it grudgingly, but you detect a spark in his eye. "I suppose you won't be needing it anyway.."
