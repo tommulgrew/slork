@@ -97,6 +97,7 @@ npcs:
       - "We were meant to observe, not interfere."
       - "The sea remembers things we try to forget."
     quest_hook: He hints that the station's final broadcast was never sent.
+    dialog: Elias rubs his temples. "We picked something up out there. Then command told us to stay quiet."
 
   caretaker:
     persona: Practical, blunt, deeply attached to the station.
@@ -104,9 +105,15 @@ npcs:
       - "Someone has to keep the lights working."
       - "Storm's coming. Always does."
     quest_hook: She wants the lighthouse restored.
+    dialog:
+      - text: Mara nods as the lights come back on. "Good. Maybe the sea will forgive us yet."
+        criteria:
+          requires_flags: [ power_restored ]
+      - text: Mara seems preoccupied, and doesn't answer.
 
   dog:
-    persona: A small enthusiastic dog.    
+    persona: A small enthusiastic dog.
+    dialog: "\"Woof!\""
 
 locations:
   beach:
@@ -191,12 +198,6 @@ locations:
         description: Back down the spiral stairs.
 
 interactions:
-  talk_to_researcher:
-    verb: talk
-    item: researcher
-    message: >
-      Elias rubs his temples. "We picked something up out there. Then command told us to stay quiet."
-
   fuel_generator:
     verb: use
     item: fuel_can
@@ -229,16 +230,6 @@ interactions:
       blocking_flags: [power_restored]
     message: The key appears to fit, but the door is too heavy to open manually.
 
-  talk_to_caretaker:
-    verb: talk
-    item: caretaker
-    repeatable: true
-    message:
-      - text: Mara nods as the lights come back on. "Good. Maybe the sea will forgive us yet."
-        criteria:
-          requires_flags: [ power_restored ]
-      - text: Mara seems preoccupied, and doesn't answer.
-
   use_radio:
     verb: use
     item: radio
@@ -256,11 +247,6 @@ interactions:
     message: >
       The radio is dead.
 
-  talk_to_dog:
-    verb: talk
-    item: dog
-    message: "\"Woof!\""
-
   give_bone_to_dog:
     verb: give
     item: bone
@@ -270,3 +256,14 @@ interactions:
     effect:
       set_flags:
         - "companion:dog"
+  
+  use_whistle:
+    verb: use
+    item: brass_whistle
+    message: 
+      - text:
+          The whistle makes a loud piercing sound, causing the dog to look up.
+        criteria:
+          requires_flags:
+            - companion:dog
+      - text: The whistle makes a loud piercing sound. Nothing else happens.
