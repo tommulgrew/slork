@@ -4,7 +4,7 @@ from re import M
 from typing import Optional, Protocol
 from enum import Enum
 
-from slork.util import describe_string_list
+from slork.util import add_to_list, describe_string_list, remove_from_list
 from .logic import ConditionalText, Effect
 from .commands import ParsedCommand, parse_command
 from .world import NPCDialog, World, Item, Location, Interaction, Criteria, ResolvableText, DialogTree
@@ -49,7 +49,8 @@ class ResolveItemResult:
 class GameEngineState:
     location_id: str
     inventory: list[str]
-    flags: set[str]
+    companions: list[str]
+    flags: set[str]    
     location_items: dict[str, list[str]]
     completed_interactions: set[str] = field(default_factory=set)
     completed_npc_dialog: dict[str, set[int]] = field(default_factory=dict)
@@ -135,12 +136,12 @@ class GameEngine:
         # NPCs
         companion_npcs = [
             (npc_id, self.world.items[npc_id], self.world.npcs[npc_id])
-            for npc_id in self.companions
+            for npc_id in self.state.companions
         ]
         other_npcs = [ 
             (item_id, self.world.items[item_id], self.world.npcs[item_id])
             for item_id in self.current_location_items()
-            if self.is_npc(item_id) and not self.is_companion(item_id)
+            if self.is_npc(item_id) and item_id not in self.state.companions
         ]
         for item_id, item, npc in other_npcs:
             if item.location_description and item_id in self.current_location().items:        # Item in its original location
@@ -628,12 +629,12 @@ class GameEngine:
         self.state.completed_interactions.add(interaction_id)
     
     def move_companions(self):
+        # Remove from all locations
         for _, location_items in self.state.location_items.items():
-            for companion in self.companions:
-                if companion in location_items:
-                    location_items.remove(companion)
+            remove_from_list(location_items, self.state.companions)
 
-        self.current_location_items().extend(self.companions)
+        # Add to current location
+        add_to_list(self.current_location_items(), self.state.companions)
 
     def is_npc(self, item_id: str) -> bool:
         return item_id in self.world.npcs
@@ -642,13 +643,6 @@ class GameEngine:
     def npcs(self) -> list[str]:
         return [ npc_id for npc_id, _ in self.world.npcs.items() ]
 
-    def is_companion(self, npc_id: str) -> bool:
-        return companion_flag(npc_id) in self.state.flags
-
-    @property
-    def companions(self) -> list[str]:
-        return [ npc_id for npc_id in self.npcs if self.is_companion(npc_id) ]
-
     def is_criteria_satisfied(self, criteria: Optional[Criteria]) -> bool:
         if not criteria:
             return True
@@ -656,8 +650,9 @@ class GameEngine:
         has_required_flags = criteria.requires_flags.issubset(self.state.flags)
         is_blocked_by_flags = not criteria.blocking_flags.isdisjoint(self.state.flags)
         has_required_inventory = criteria.requires_inventory.issubset(set(self.state.inventory))
+        has_required_companions = criteria.requires_companions.issubset(set(self.state.companions))
 
-        return has_required_flags and not is_blocked_by_flags and has_required_inventory
+        return has_required_flags and not is_blocked_by_flags and has_required_inventory and has_required_companions
 
     def resolve_text(self, text: ResolvableText) -> str:
 
@@ -681,6 +676,18 @@ class GameEngine:
         # Apply flag changes
         self.state.flags.update(effect.set_flags)
         self.state.flags.difference_update(effect.clear_flags)
+        for item_id in effect.add_inventory:
+            if item_id not in self.state.inventory:
+                self.state.inventory.append(item_id)
+        for item_id in effect.remove_inventory:
+            if item_id in self.state.inventory:
+                self.state.inventory.remove(item_id)
+        for item_id in effect.add_companions:
+            if item_id not in self.state.companions:
+                self.state.companions.append(item_id)
+        for item_id in effect.remove_companions:
+            if item_id in self.state.companions:
+                self.state.companions.remove(item_id)            
 
     def available_dialog_responses(self, dialog: DialogTree) -> list[tuple[str, DialogTree]]:
         return [
@@ -689,14 +696,12 @@ class GameEngine:
             if self.is_criteria_satisfied(response.criteria)
         ]
 
-def companion_flag(npc_id: str) -> str:
-    return f"companion:{npc_id}"
-
 def get_initial_game_state(world: World) -> GameEngineState:
     return GameEngineState(
         location_id=world.world.start,
-        inventory=world.world.initial_inventory.copy() if world.world.initial_inventory else [],
-        flags={companion_flag(npc_id) for npc_id in world.world.initial_companions},
+        inventory=world.world.initial_inventory.copy(),
+        companions=world.world.initial_companions.copy(),
+        flags=set(),
         location_items={
             loc_id: location.items.copy()
             for loc_id, location in world.locations.items()

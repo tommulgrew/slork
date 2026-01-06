@@ -218,6 +218,13 @@ class World:
                 if not item.portable:
                     issues.append(f"Required item '{item_id}' ('{item.name}') for {owner_desc} is not portable.")
 
+        for npc_id in criteria.requires_companions:
+            ref_items.add(npc_id)
+            if npc_id not in self.items:
+                issues.append(f"Required companion '{npc_id}' for {owner_desc} was not found in 'items' list.")
+            if not npc_id in self.npcs:
+                issues.append(f"Required companion '{npc_id}' for {owner_desc} was not found in 'NPCs' list.")
+
         return issues
 
     def validate_effect(self, effect: Effect, ref_flags: set[str], owner_desc: str) -> list[str]:

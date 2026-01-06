@@ -253,17 +253,13 @@ interactions:
     target: dog
     consumes: true
     message: "The dog accepts the toy bone and begins chewing on it."
-    effect:
-      set_flags:
-        - "companion:dog"
+    effect: { add_companion: [dog] }
   
   use_whistle:
     verb: use
-    item: brass_whistle
+    item: brass_whistlen
     message: 
       - text:
           The whistle makes a loud piercing sound, causing the dog to look up.
-        criteria:
-          requires_flags:
-            - companion:dog
+        criteria: { requires_companions: [dog] }
       - text: The whistle makes a loud piercing sound. Nothing else happens.

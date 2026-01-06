@@ -253,7 +253,13 @@
           "type": "array",
           "items": { "type": "string" },
           "default": [],
-          "description": "Items that must be in the player's inventory in order to satisfy the criteria."
+          "description": "Item IDs that must be in the player's inventory in order to satisfy the criteria."
+        },
+        "requires_companions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "NPC IDs that must be in the player's companions in order to satisfy the criteria."
         }
       }
     },
@@ -272,6 +278,30 @@
           "items": { "type": "string" },
           "default": [],
           "description": "A list of flag IDs to clear."
+        },
+        "add_inventory": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "A list of items IDs to add to the player's inventory."
+        },
+        "remove_inventory": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "A list of items IDs to remove from the player's inventory."
+        },
+        "add_companion": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "A list of NPC IDs to add to the player's companions."
+        },
+        "remove_companion": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "A list of NPC IDs to remove from the player's companions."
         }
       }
     },

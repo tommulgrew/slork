@@ -7,6 +7,7 @@ class Criteria:
     requires_flags: set[str] = field(default_factory=set)
     blocking_flags: set[str] = field(default_factory=set)
     requires_inventory: set[str] = field(default_factory=set)
+    requires_companions: set[str] = field(default_factory=set)
 
 @dataclass(frozen=True)
 class ConditionalText:
@@ -26,3 +27,7 @@ class Effect:
     """
     set_flags: set[str] = field(default_factory=set)
     clear_flags: set[str] = field(default_factory=set)
+    add_inventory: set[str] = field(default_factory=set)
+    remove_inventory: set[str] = field(default_factory=set)
+    add_companions: set[str] = field(default_factory=set)
+    remove_companions: set[str] = field(default_factory=set)

@@ -57,6 +57,7 @@ def state_to_dict(state: GameEngineState) -> dict:
     return {
         "location_id": state.location_id,
         "inventory": state.inventory,
+        "companions": state.companions,
         "flags": list(state.flags),
         "location_items": state.location_items,
         "completed_interactions": list(state.completed_interactions),
@@ -67,6 +68,7 @@ def state_from_dict(data: dict) -> GameEngineState:
     return GameEngineState(
         location_id=data["location_id"],
         inventory=data["inventory"],
+        companions=data["companions"],
         flags=set(data["flags"]),
         location_items=data["location_items"],
         completed_interactions=set(data["completed_interactions"]),
