@@ -138,39 +138,47 @@ npcs:
     sample_lines:
       - "Sure, sure. Everyone has a story."
       - "And why would I want to do that?"
-    dialog: # The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
-      npc_narrative: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
-      responses:
-        ok:
-          keyword_hint: shrug and say *OK*
-          player_narrative: >
-            "Fine. I'll do it myself."
-          npc_narrative: The gnome snorts, uninterested.
-        reward:
-          keyword_hint: offer a *reward*
-          aliases:
-            - offer reward
-          player_narrative: >
-            "What about for a reward? I have a lovely pile of purple pocket lint here."
-          criteria:
-            requires_inventory: [ lint ]              
-          npc_narrative: 
-            - text: The gnome scratches his chin. "I aint got no use for lint. But that shiney key there..."
-              criteria:
-                requires_inventory: [ brass_key ]
-            - text: The gnome turns away, unimpressed.
-        psychology:
-          keyword_hint: try some *psychology*
-          aliases:
-            - psych
-          player_narrative: >
-            "Hey, don't sweat it. Big gate, small gnome - nothing to be ashamed of."
-          npc_narrative: >
-            The gnome looks affronted. "Size isn't everything, you big galoot!".
-            Sliding off the stone, he hobbles over to the gate gives it a calculated kick.
-            To your surprise the gate unlocks with a loud clunk and swings open.
-          effect:
-            set_flags: [ gate_unlocked ]                                             
+    dialog: 
+      - criteria: { blocking_flags: [ gate_unlocked ] }
+        npc_narrative: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
+        responses:
+          ok:
+            keyword_hint: shrug and say *OK*
+            player_narrative: >
+              "Fine. I'll do it myself."
+            npc_narrative: The gnome snorts, uninterested.
+          reward:
+            keyword_hint: offer a *reward*
+            aliases:
+              - offer reward
+            player_narrative: >
+              "What about for a reward? I have a lovely pile of purple pocket lint here."
+            criteria:
+              requires_inventory: [ lint ]              
+            npc_narrative: 
+              - text: The gnome scratches his chin. "I aint got no use for lint. But that shiney key there..."
+                criteria:
+                  requires_inventory: [ brass_key ]
+              - text: The gnome turns away, unimpressed.
+          psychology:
+            keyword_hint: try some *psychology*
+            aliases:
+              - psych
+            player_narrative: >
+              "Hey, don't sweat it. Big gate, small gnome - nothing to be ashamed of."
+            npc_narrative: >
+              The gnome looks affronted. "Size isn't everything, you big galoot!".
+              Sliding off the stone, he hobbles over to the gate gives it a calculated kick.
+              To your surprise the gate unlocks with a loud clunk and swings open.
+            effect:
+              set_flags: [ gate_unlocked ]
+      - text: >
+          "Seeing as you don't need that key anymore..."
+        criteria:
+          requires_inventory:
+            - brass_key
+      - >
+        "Hrmph! Why are you still bothering me?"
       
   lenny:
     persona: Annoyingly jolly and enthusiastic; eager to share his opinion.
@@ -183,7 +191,7 @@ npcs:
           "Gotta admit, I didn't think you'd solve the gate puzzle."
         criteria:
           requires_flags: [ 'gate_unlocked' ]
-      - text: Lenny says "You're doing well! Much better than the last guy!"            
+      - Lenny says "You're doing well! Much better than the last guy!"            
 
 interactions:
   unlock_stone_gate:

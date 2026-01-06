@@ -198,7 +198,15 @@ If the player input is a question:
 - Prefer issuing LOOK, INVENTORY, or EXAMINE if engine state may help answer it.
 
 If the player attempts to talk to an NPC:
-- If a TALK interaction exists, you MUST issue a TALK command, for example:
+- If there is a DIALOG IN PROGRESS, that means the player is in the middle of a 
+dialog tree, and the DIALOG CHOICES will list keywords the engine will accept to 
+progress the dialog. Look for a choice that aligns with the player's intent and
+issue:
+{{ "execute": "[keyword]" }}
+For example, if player's input is "You'll get no money from me", and one of the
+DIALOG CHOICES is "'refuse' (refuse to pay the toll)", you would issue:
+{{ "execute": "refuse" }}
+- Otherwise, if a TALK interaction exists, you MUST issue a TALK command, for example:
 {{ "execute": "TALK CHECKOUT GIRL" }}
 - Otherwise, improvise dialogue using the NPC persona, and respond directly to the player, for example:
 {{ "respond": "The ogre turns slowly and scratches his head. 'Me don't know. Me just smash things...'" }}

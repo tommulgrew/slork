@@ -4,9 +4,9 @@ from typing import Optional, Protocol
 from enum import Enum
 
 from slork.util import describe_string_list
-from .logic import Effect
+from .logic import ConditionalText, Effect
 from .commands import ParsedCommand, parse_command
-from .world import World, Item, Location, Interaction, Criteria, ResolvableText, DialogTree
+from .world import NPCDialog, World, Item, Location, Interaction, Criteria, ResolvableText, DialogTree
 
 class ActionStatus(Enum):
     OK = "ok"
@@ -164,16 +164,39 @@ class GameEngine:
                     quoted_lines = [f'"{sample_line}"' for sample_line in npc.sample_lines]
                     lines.append(f"    Sample lines: {', '.join(quoted_lines)}")
                 
-                # Look for talk interaction
-                if (
-                    npc.dialog and (
-                        not isinstance(npc.dialog, DialogTree)                  # String/ResolvableString
-                        or self.is_criteria_satisfied(npc.dialog.criteria)      # Dialog tree root criteria (if any) must be satisfied
+                # Is a dialog currently active with NPC?
+                in_active_dialog = False
+                if self.dialog_context and self.dialog_context.npc_id == item_id:
+                    responses = self.available_dialog_responses(self.dialog_context.dialog_node)
+                    choices = (
+                        f"'{keyword}' ({node.keyword_hint})" if node.keyword_hint else keyword
+                        for keyword, node in responses
                     )
-                ):
-                    lines.append("    TALK interaction: Yes")
-                else:
-                    lines.append("    TALK interaction: No")
+                    if responses:
+                        lines.append("    DIALOG IN PROGRESS")
+                        lines.append(f"    DIALOG CHOICES: {', '.join(choices)}")
+                        in_active_dialog = True
+                
+                # Otherwise check if TALK command is available
+                if not in_active_dialog:
+
+                    # Look for talk interaction
+                    has_interaction = next( 
+                        (
+                            interaction_id
+                            for interaction_id, interaction in self.world.interactions.items()
+                            if self.matches_interaction(interaction, "talk", item_id, None) and interaction_id not in self.state.completed_interactions
+                        ),
+                        None
+                    )
+
+                    # Look for NPC dialog
+                    has_dialog = self.resolve_npc_dialog(npc.dialog)
+
+                    if has_interaction or has_dialog:
+                        lines.append("    TALK interaction: Yes")
+                    else:
+                        lines.append("    TALK interaction: No")
         
         return lines
 
@@ -364,22 +387,38 @@ class GameEngine:
         npc = self.world.npcs[result.item_id]
         no_reply = no_effect_result(f"{result.item.name} does not reply.")
 
-        # No NPC dialog?
-        if not npc.dialog:
+        # Resolve dialog
+        dialog = self.resolve_npc_dialog(npc.dialog)
+        if not dialog:
             return no_reply
 
-        # Simple dialog (string or resolvable string)
-        if not isinstance(npc.dialog, DialogTree):
-            message = self.resolve_text(npc.dialog)
-            return ok_result(message) if message else no_reply
+        # Static string case
+        if isinstance(dialog, str):
+            return ok_result(dialog.rstrip())
 
-        # Dialog tree
+        # Conditional string case
+        if isinstance(dialog, ConditionalText):
+            return ok_result(dialog.text.rstrip())
 
-        # Root criteria must be satisfied
-        if not self.is_criteria_satisfied(npc.dialog.criteria):
-            return no_reply
+        # Otherwise start dialog tree session
+        return self.trigger_dialog(result.item_id, dialog)
 
-        return self.trigger_dialog(result.item_id, npc.dialog)
+    def resolve_npc_dialog(self, dialog: Optional[NPCDialog | list[NPCDialog]]) -> Optional[NPCDialog]:        
+        if not dialog:
+            return None
+
+        # Normalise into list
+        dialog = dialog if isinstance(dialog, list) else [ dialog ]
+
+        # Return first available dialog
+        return next(
+            (
+                d
+                for d in dialog
+                if isinstance(d, str) or self.is_criteria_satisfied(d.criteria)
+            ),
+            None
+        )
 
     def handle_dialog_response(self, raw_command: str) -> Optional[ActionResult]:
         assert self.dialog_context

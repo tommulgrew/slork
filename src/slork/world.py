@@ -4,7 +4,7 @@ from typing import Optional
 from dacite import from_dict, Config
 import yaml
 from .commands import VALID_VERBS
-from .logic import Criteria, Effect, ResolvableText
+from .logic import Criteria, Effect, ResolvableText, ConditionalText
 from .dialog import DialogTree
 
 @dataclass
@@ -37,12 +37,14 @@ class Location:
     exits: dict[str, Exit]
     items: list[str] = field(default_factory=list)
 
+NPCDialog = str | DialogTree | ConditionalText
+
 @dataclass
 class NPC:
     persona: Optional[str] = None
     sample_lines: list[str] = field(default_factory=list)
     quest_hook: Optional[str] = None
-    dialog: Optional[ResolvableText | DialogTree] = None
+    dialog: Optional[NPCDialog | list[NPCDialog]] = None
 
 @dataclass
 class Interaction:
@@ -134,19 +136,23 @@ class World:
             if npc_id not in self.items:
                 issues.append(f"NPC '{npc_id}' does not have a corresponding item in the 'items' list.")
             if npc.dialog:
-                if isinstance(npc.dialog, DialogTree):                    
-                    issues.extend(self.validate_dialog_tree(npc.dialog, ref_flags, ref_items, f"NPC '{npc_id}' dialog tree"))
+                desc = f"NPC '{npc_id}' dialog"
+                if isinstance(npc.dialog, list):
+                    for i, dialog in enumerate(npc.dialog):
+                        issues.extend(self.validate_npc_dialog(dialog, ref_flags, ref_items, f"{desc} {i + 1}"))
                 else:
-                    issues.extend(self.validate_resolvable_text(npc.dialog, ref_flags, ref_items, f"NPC '{npc_id}' dialog tree"))
+                    issues.extend(self.validate_npc_dialog(npc.dialog, ref_flags, ref_items, desc))
 
         # Interactions
         for x_id, x in self.interactions.items():
             if x.verb not in VALID_VERBS:
-                issues.append(f"Interaction verb '{x.verb}' is not in the valid verbs list ({', '.join(VALID_VERBS)}).")
+                issues.append(f"Interaction '{x_id}' verb '{x.verb}' is not in the valid verbs list ({', '.join(VALID_VERBS)}).")
+            if x.verb in ["look", "inventory", "go", "take", "drop", "examine", "talk"]:
+                issues.append(f"Interaction '{x_id}' verb '{x.verb}' cannot be used in interactions.")
             if x.item not in self.items:
-                issues.append(f"Interaction item '{x.item}' is was not found in the 'items' list.")
+                issues.append(f"Interaction '{x_id}' item '{x.item}' is was not found in the 'items' list.")
             if x.target and x.verb not in ['use', 'give']:
-                issues.append(f"Interaction verb '{x.verb}' has a target ('{x.target}'). Only verbs 'use' and 'give' support targets.")
+                issues.append(f"Interaction '{x_id}' verb '{x.verb}' has a target ('{x.target}'). Only verbs 'use' and 'give' support targets.")
 
             # Note: Not counting interaction references to items, as we are 
             # interested in references that make them available in the game.
@@ -230,24 +236,34 @@ class World:
 
         return issues
 
+    def validate_conditional_text(self, text: ConditionalText, ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
+        if text.criteria:
+            return self.validate_criteria(text.criteria, ref_flags, ref_items, f"{owner_desc} criteria for '{text.text}'")
+        else:
+            return []
+
     def validate_resolvable_text(self, text: Optional[ResolvableText], ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
 
         if not text or isinstance(text, str):
             return []
 
-        issues: list[str] = []
+        return [
+            issue            
+            for clause in text
+            for issue in self.validate_conditional_text(clause, ref_flags, ref_items, owner_desc)                
+        ]
 
-        for clause in text:
-            if clause.criteria:
-                issues.extend(self.validate_criteria(clause.criteria, ref_flags, ref_items, f"{owner_desc} criteria for '{clause.text}'"))
+    def validate_npc_dialog(self, dialog: NPCDialog, ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
+        if isinstance(dialog, str):
+            return []
+        
+        elif isinstance(dialog, ConditionalText):
+            return self.validate_conditional_text(dialog, ref_flags, ref_items, owner_desc)
 
-        return issues        
+        else:
+            return self.validate_dialog_tree(dialog, ref_flags, ref_items, owner_desc)
 
-    def validate_dialog_tree(self, 
-            tree: DialogTree, 
-            ref_flags: set[str], 
-            ref_items: set[str], 
-            owner_desc: str):
+    def validate_dialog_tree(self, tree: DialogTree, ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
 
         issues: list[str] = []
 

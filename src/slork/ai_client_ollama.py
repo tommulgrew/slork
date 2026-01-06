@@ -54,10 +54,11 @@ class OllamaClient:
             model=self.settings.model,
             messages=messages
         )
-        chat_request_json=json.dumps(asdict(chat_request)).encode("utf-8")
+        chat_request_json=json.dumps(asdict(chat_request), indent=2)
+        print(f"AI REQUEST: {chat_request_json}")
         req = request.Request(
             url=f"{self.settings.base_url}/api/chat",
-            data=chat_request_json,
+            data=chat_request_json.encode("utf-8"),
             headers={"Content-Type": "application/json"},
             method="POST",
         )
@@ -72,7 +73,7 @@ class OllamaClient:
             raise AIChatAPIError("Ollama is unreachable (is it running?)") from exc
 
         # Decode response JSON
-        # print(f"AI RESPONSE: {body}")
+        print(f"AI RESPONSE: {body}")
         response_dict = json.loads(body)
         response_message: OllamaMessage = from_dict(OllamaChatResponse, response_dict).message
 
