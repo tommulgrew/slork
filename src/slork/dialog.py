@@ -5,10 +5,12 @@ from .logic import Criteria, Effect, ResolvableText
 
 @dataclass
 class DialogTree:
-    npc_narrative: ResolvableText
+    jump_target: Optional[str]                                                  # Unique ID for jumps
+    npc_narrative: Optional[ResolvableText]
     player_narrative: Optional[ResolvableText] = None
     criteria: Optional[Criteria] = None
     effect: Optional[Effect] = None
     aliases: list[str] = field(default_factory=list)                            # Aliases for main keyword
     responses: dict[str, DialogTree] = field(default_factory=dict)              # Keyed by keyword.
     keyword_hint: Optional[str] = None
+    jump: Optional[ResolvableText] = None                                       # Used to jump to another node

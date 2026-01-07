@@ -214,6 +214,7 @@ interactions:
     repeatable: true
     criteria: { blocking_flags: [ gate_unlocked ] }
     dialog: 
+      jump_target: gnome_root
       npc_narrative: The gnome turns towards you lazily. "Don't look at me, I aint opening this gate for anybody."
       responses:
         ok:
@@ -234,6 +235,7 @@ interactions:
               criteria:
                 requires_inventory: [ brass_key ]
             - text: The gnome turns away, unimpressed.
+          jump: gnome_root
         psychology:
           keyword_hint: try some *psychology*
           aliases:

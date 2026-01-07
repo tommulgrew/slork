@@ -334,6 +334,10 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "jump_target": {
+          "type": "string",
+          "description": "Unique ID to allow other nodes to jump to this one."
+        },
         "aliases": {
           "type": "array",
           "items": { "type": "string" },
@@ -365,9 +369,12 @@
             "$ref": "#/definitions/dialog_tree"
           },
           "description": "Dialog subtrees based on follow-up responses the player can select from."
+        },
+        "jump": {
+          "$ref": "#/definitions/resolvable_text",
+          "description": "Triggers a jump to the node with matching 'jump_target'."
         }
-      },
-      "required": [ "npc_narrative" ]
+      }
     }
   }
 }
