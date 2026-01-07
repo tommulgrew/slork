@@ -17,7 +17,7 @@ class ConditionalText:
 
 # A value that resolves to a text string at runtime.
 # Can be a regular string, or list of ConditionalText objects to evaluate.
-ResolvableText = str | list[ConditionalText]
+ResolvableText = str | list[ConditionalText | str]
 
 @dataclass(frozen=True)
 class Effect:

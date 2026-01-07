@@ -243,8 +243,8 @@ class World:
 
         return issues
 
-    def validate_conditional_text(self, text: ConditionalText, ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
-        if text.criteria:
+    def validate_conditional_text(self, text: ConditionalText | str, ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
+        if isinstance(text, ConditionalText) and text.criteria:
             return self.validate_criteria(text.criteria, ref_flags, ref_items, f"{owner_desc} criteria for '{text.text}'")
         else:
             return []
@@ -254,11 +254,21 @@ class World:
         if not text or isinstance(text, str):
             return []
 
-        return [
-            issue            
-            for clause in text
-            for issue in self.validate_conditional_text(clause, ref_flags, ref_items, owner_desc)                
-        ]
+        issues: list[str] = []
+
+        for i, clause in enumerate(text, 1):
+            clause_desc = f"clause {i} of {owner_desc}"
+
+            issues.extend(self.validate_conditional_text(clause, ref_flags, ref_items, clause_desc))
+            
+            if i < len(text) - 1 and (not isinstance(clause, ConditionalText) or not clause.criteria):
+                issues.append(f"{clause_desc} does not have a criteria. Subsequent clauses will never be considered.")
+
+        last_clause = text[-1]
+        if isinstance(last_clause, ConditionalText) and last_clause.criteria:
+            issues.append(f"Last clause of resolvable text must not have a criteria in {owner_desc}")
+
+        return issues
 
     def validate_npc_dialog(self, dialog: NPCDialog, ref_flags: set[str], ref_items: set[str], owner_desc: str) -> list[str]:
         if isinstance(dialog, str):

@@ -178,8 +178,7 @@ npcs:
         criteria:
           requires_inventory:
             - brass_key
-      - >
-        "Hrmph! Why are you still bothering me?"
+      - "\"Hrmph! Why are you still bothering me?\""
       
   lenny:
     persona: Annoyingly jolly and enthusiastic; eager to share his opinion.
@@ -248,4 +247,4 @@ interactions:
         criteria:
           blocking_flags:
             - gate_unlocked
-      - text: The gnome accepts it grudgingly, but you detect a spark in his eye. "I suppose you won't be needing it anyway.."
+      - The gnome accepts it grudgingly, but you detect a spark in his eye. "I suppose you won't be needing it anyway.."

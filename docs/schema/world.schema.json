@@ -156,7 +156,7 @@
             "additionalProperties": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["to"],
+              "required": [ "to", "description" ],
               "properties": {
                 "to": { 
                   "type": "string",
@@ -306,19 +306,26 @@
       }
     },
     "conditional_text": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "criteria": {
-          "$ref": "#/definitions/criteria",
-          "description": "Criteria that must be satisfied for the text to be displayed."
+      "oneOf": [
+        {
+          "type": "string"
         },
-        "text": {
-          "type": "string",
-          "description": "Text to display"
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "criteria": {
+              "$ref": "#/definitions/criteria",
+              "description": "Criteria that must be satisfied for the text to be displayed."
+            },
+            "text": {
+              "type": "string",
+              "description": "Text to display"
+            }
+          },
+          "required": ["text"]
         }
-      },
-      "required": ["text"]
+      ]
     },
     "resolvable_text": {
       "oneOf": [
@@ -374,9 +381,6 @@
     },
     "npc_dialog": {
       "oneOf": [
-        {
-          "type": "string"
-        },
         {
           "$ref": "#/definitions/conditional_text"
         },

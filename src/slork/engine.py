@@ -660,14 +660,13 @@ class GameEngine:
         if isinstance(text, str):
             return text
 
-        # Find first instance whose criteria is satisfied
-        return next(
-            (
-                conditional_text.text 
-                for conditional_text in text 
-                if self.is_criteria_satisfied(conditional_text.criteria)
-            )
-        )
+        for clause in text:
+            if isinstance(clause, str):
+                return clause
+            if self.is_criteria_satisfied(clause.criteria):
+                return clause.text
+
+        raise RuntimeError("ResolvableText did not resolve to a string.")
 
     def apply_effect(self, effect: Optional[Effect]):
         if not effect:
