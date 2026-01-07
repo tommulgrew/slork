@@ -50,12 +50,19 @@ def create_web_app(app: App, state: WebAppState) -> Flask:
             image_path = app.get_image(engine_response.image_ref)
             state.image_url = fix_image_path(image_path)
 
+        text = engine_response.message
+
         # Show last command
         # Use command passed to base engine, if available. Otherwise use command as keyed.
-        text = engine_response.message
-        last_cmd = app.base_engine.last_command.raw if app.base_engine.last_command else state.last_cmd
-        if last_cmd:
-            text = f"> {last_cmd}\n\n{text}"
+        last_input = state.last_cmd
+        last_engine_cmd = app.base_engine.last_command
+        if last_input or last_engine_cmd:
+            cmd_text = ""
+            if last_input:
+                cmd_text += f"> {last_input}\n"
+            if last_engine_cmd:
+                cmd_text += f"({last_engine_cmd.raw})\n"
+            text = f"{cmd_text}\n{text}"
 
         return render_template(
             "index.html",

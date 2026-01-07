@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional, Literal
 
 from slork.persistence import get_world_sub_folder_path
-from .engine import ImageReference, ImageType
+from .engine import ImageReference, ImageType, Location
 from .world import World
 from .ai_client import NormalisedAIChatMessage, AIChatClient, AIImageGen
 
@@ -52,7 +52,7 @@ class ImageService:
         location = self.world.locations[loc_id]
         description = f"""\
 LOCATION: {location.name}
-DESCRIPTION: {location.description}
+DESCRIPTION: {self.get_location_description(location)}
 """
         if location.exits:
             description += f"EXITS: {', '.join([f'{dir} - {exit.description}' for dir, exit in location.exits.items()])}"
@@ -130,6 +130,24 @@ DESCRIPTION: {item.description}
         print(f"(Generating '{item.name}' image...)")
         self.image_generator.generate_png(prompt, image_path)
         return image_path
+
+    def get_location_description(self, location: Location) -> str:
+        
+        # Include location descriptions for non-portable items
+        items = [
+            self.world.items[item_id]
+            for item_id in location.items
+        ]
+        item_descriptions = [
+            item.location_description
+            for item in items
+            if not item.portable and item.location_description
+        ]
+        lines = [
+            location.description,
+            *item_descriptions
+        ]
+        return '\n'.join(lines)
 
 def create_ai_prompts(prompt_common: Optional[str]) -> AIPrompts:
 

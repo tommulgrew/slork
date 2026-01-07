@@ -46,11 +46,13 @@ class AIGameEngine:
 
     def get_intro(self) -> ActionResult:
 
-        # Use unmodified intro text, but apply regular AI enhancement to the location description.
-        response = self.describe_current_location()
-        response.message = self.engine.get_intro().message + "\n" + response.message
+        result = self.describe_current_location()
 
-        return response
+        # Prefix with intro text (unenhanced)
+        if self.engine.world.world.intro_text:
+            result.message = f"{self.engine.world.world.intro_text.rstrip()}\n\n{result.message}"
+
+        return result
 
     def describe_current_location(self, verbose: bool = False) -> ActionResult:
         engine_response = self.engine.describe_current_location(verbose)
