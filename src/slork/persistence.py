@@ -60,8 +60,7 @@ def state_to_dict(state: GameEngineState) -> dict:
         "companions": state.companions,
         "flags": list(state.flags),
         "location_items": state.location_items,
-        "completed_interactions": list(state.completed_interactions),
-        "completed_npc_dialog": { k: list(v) for k, v in state.completed_npc_dialog.items() }
+        "completed_interactions": list(state.completed_interactions)
     }
 
 def state_from_dict(data: dict) -> GameEngineState:
@@ -71,6 +70,5 @@ def state_from_dict(data: dict) -> GameEngineState:
         companions=data["companions"],
         flags=set(data["flags"]),
         location_items=data["location_items"],
-        completed_interactions=set(data["completed_interactions"]),
-        completed_npc_dialog={ k: set(v) for k, v in data["completed_npc_dialog"].items()}
+        completed_interactions=set(data["completed_interactions"])
     )

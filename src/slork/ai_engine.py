@@ -208,11 +208,13 @@ issue:
 For example, if player's input is "You'll get no money from me", and one of the
 DIALOG CHOICES is "'refuse' (refuse to pay the toll)", you would issue:
 {{ "execute": "refuse" }}
-- Otherwise, if a TALK interaction exists, you MUST issue a TALK command, for example:
+- Otherwise, if the NPC has 'TALK INTERACTION: Yes', you MUST issue a TALK 
+command, for example:
 {{ "execute": "TALK CHECKOUT GIRL" }}
-- Otherwise, improvise dialogue using the NPC persona, and respond directly to the player, for example:
+- You must NOT issue a TALK command if the NPC has 'TALK INTERACTION: No',
+instead improvise dialogue using the NPC persona, and respond directly to the 
+player, for example:
 {{ "respond": "The ogre turns slowly and scratches his head. 'Me don't know. Me just smash things...'" }}
-- Do not invent new facts or change game state.
 
 If no valid game action applies, respond directly to the player as JSON:
 {{ "respond": "[response]" }}

@@ -96,20 +96,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "dialog": {
-            "oneOf": [
-              {
-                "$ref": "#/definitions/npc_dialog"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/npc_dialog"
-                }
-              }
-            ],
-            "description": "Text to display, or dialog tree to invoke when the player TALKs to the NPC. If a list is specified, the engine will select the first applicable entry (if any)."
-          },
           "persona": { 
             "type": "string",
             "description": "Only used in AI mode. A basic description of the NPC's persona."
@@ -221,9 +207,13 @@
             "default": false,
             "description": "Whether the interaction can be repeated. If false, it can only be performed once."
           },
-          "message": { 
+          "message": {
             "$ref": "#/definitions/resolvable_text",
-            "description": "Displayed to the user when they successfully perform the action."
+            "description": "Displayed to the user when the interaction is performed."
+          },
+          "dialog": {
+            "$ref": "#/definitions/dialog_tree",
+            "description": "Dialog tree to invoke when the interaction is performed."
           }
         }
       },
@@ -378,16 +368,6 @@
         }
       },
       "required": [ "npc_narrative" ]
-    },
-    "npc_dialog": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/conditional_text"
-        },
-        {
-          "$ref": "#/definitions/dialog_tree"
-        }
-      ]
     }
   }
 }

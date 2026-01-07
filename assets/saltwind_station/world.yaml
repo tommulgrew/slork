@@ -97,7 +97,6 @@ npcs:
       - "We were meant to observe, not interfere."
       - "The sea remembers things we try to forget."
     quest_hook: He hints that the station's final broadcast was never sent.
-    dialog: Elias rubs his temples. "We picked something up out there. Then command told us to stay quiet."
 
   caretaker:
     persona: Practical, blunt, deeply attached to the station.
@@ -105,15 +104,9 @@ npcs:
       - "Someone has to keep the lights working."
       - "Storm's coming. Always does."
     quest_hook: She wants the lighthouse restored.
-    dialog:
-      - text: Mara nods as the lights come back on. "Good. Maybe the sea will forgive us yet."
-        criteria:
-          requires_flags: [ power_restored ]
-      - Mara seems preoccupied, and doesn't answer.
 
   dog:
     persona: A small enthusiastic dog.
-    dialog: "\"Woof!\""
 
 locations:
   beach:
@@ -264,3 +257,25 @@ interactions:
           The whistle makes a loud piercing sound, causing the dog to look up.
         criteria: { requires_companions: [dog] }
       - The whistle makes a loud piercing sound. Nothing else happens.
+
+  talk_to_researcher:
+    verb: talk
+    item: researcher
+    repeatable: true
+    message: Elias rubs his temples. "We picked something up out there. Then command told us to stay quiet."
+
+  talk_to_caretaker:    
+    verb: talk
+    item: caretaker
+    repeatable: true
+    message:
+      - text: Mara nods as the lights come back on. "Good. Maybe the sea will forgive us yet."
+        criteria:
+          requires_flags: [ power_restored ]
+      - Mara seems preoccupied, and doesn't answer.
+
+  talk_to_dog:
+    verb: talk
+    item: dog
+    repeatable: true
+    message: "\"Woof!\""

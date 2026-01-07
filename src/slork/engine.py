@@ -1,13 +1,12 @@
 from abc import abstractmethod
 from dataclasses import dataclass, field
-from re import M
 from typing import Optional, Protocol
 from enum import Enum
 
 from slork.util import add_to_list, describe_string_list, remove_from_list
-from .logic import ConditionalText, Effect
+from .logic import Effect
 from .commands import ParsedCommand, parse_command
-from .world import NPCDialog, World, Item, Location, Interaction, Criteria, ResolvableText, DialogTree
+from .world import World, Item, Location, Interaction, Criteria, ResolvableText, DialogTree
 
 class ActionStatus(Enum):
     OK = "ok"
@@ -53,12 +52,6 @@ class GameEngineState:
     flags: set[str]    
     location_items: dict[str, list[str]]
     completed_interactions: set[str] = field(default_factory=set)
-    completed_npc_dialog: dict[str, set[int]] = field(default_factory=dict)
-
-@dataclass
-class DialogContext:
-    npc_id: str
-    dialog_node: DialogTree
 
 class PGameEngine(Protocol):
     @abstractmethod
@@ -85,8 +78,8 @@ class GameEngine:
         self.world = world
         self.state = get_initial_game_state(world)
         self.last_command: Optional[ParsedCommand] = None
-        self.dialog_context: Optional[DialogContext] = None
-        self.next_dialog_context: Optional[DialogContext] = None
+        self.dialog_context: Optional[DialogTree] = None
+        self.next_dialog_context: Optional[DialogTree] = None
 
         # Move companions to initial location
         self.move_companions()
@@ -120,6 +113,15 @@ class GameEngine:
         # Player inventory
         if verbose:
             lines.extend(self.describe_inventory())
+            if self.dialog_context:
+                responses = self.available_dialog_responses(self.dialog_context)
+                if responses:
+                    choices = (
+                        f"'{keyword}' ({node.keyword_hint})" if node.keyword_hint else keyword
+                        for keyword, node in responses
+                    )
+                    lines.append( "    DIALOG IN PROGRESS")
+                    lines.append(f"    DIALOG CHOICES: {', '.join(choices)}")
 
         description = "\n".join(lines)
         return ActionResult(
@@ -167,48 +169,30 @@ class GameEngine:
                     quoted_lines = [f'"{sample_line}"' for sample_line in npc.sample_lines]
                     lines.append(f"    Sample lines: {', '.join(quoted_lines)}")
                 
-                # Is a dialog currently active with NPC?
-                in_active_dialog = False
-                if self.dialog_context and self.dialog_context.npc_id == item_id:
-                    responses = self.available_dialog_responses(self.dialog_context.dialog_node)
-                    choices = (
-                        f"'{keyword}' ({node.keyword_hint})" if node.keyword_hint else keyword
-                        for keyword, node in responses
-                    )
-                    if responses:
-                        lines.append("    DIALOG IN PROGRESS")
-                        lines.append(f"    DIALOG CHOICES: {', '.join(choices)}")
-                        in_active_dialog = True
-                
-                # Otherwise check if TALK command is available
-                if not in_active_dialog:
-
-                    # Look for talk interaction
-                    has_interaction = next( 
-                        (
-                            interaction_id
-                            for interaction_id, interaction in self.world.interactions.items()
-                            if self.matches_interaction(interaction, "talk", item_id, None) and interaction_id not in self.state.completed_interactions
-                        ),
-                        None
-                    )
-
-                    # Look for NPC dialog. This must either be a dialog tree, or 
-                    # new dialog that the player hasn't already seen.
-                    # Otherwise we leave TALK interaction set to no to encourage 
-                    # the AI to improvise new dialog.
-                    i, dlg = self.resolve_npc_dialog(npc.dialog)
-                    has_dialog = (
-                        dlg and (
-                            isinstance(dlg, DialogTree)                             # Dialog tree
-                            or i not in self.state.completed_npc_dialog[item_id]    # New dialog
+                # Look for available talk interaction
+                talk_interaction = next( 
+                    (
+                        (interaction_id, interaction)
+                        for interaction_id, interaction in self.world.interactions.items()
+                        if (
+                            self.matches_interaction(interaction, "talk", item_id, None) 
+                            and self.is_criteria_satisfied(interaction.criteria)
                         )
-                    )
+                    ),
+                    None
+                )
+                if talk_interaction:
+                    interaction_id, interaction = talk_interaction
 
-                    if has_interaction or has_dialog:
-                        lines.append("    TALK interaction: Yes")
-                    else:
-                        lines.append("    TALK interaction: No")
+                    # Exclude completed TALK interactions that don't have any effect or trigger a dialog tree.
+                    # This encourages the AI to improvise dialog instead.
+                    if interaction_id in self.state.completed_interactions and not (interaction.dialog or interaction.effect):
+                        talk_interaction = None
+
+                if talk_interaction:
+                    lines.append("    TALK INTERACTION: Yes")
+                else:
+                    lines.append("    TALK INTERACTION: No")
         
         return lines
 
@@ -299,9 +283,6 @@ class GameEngine:
             case "examine":
                 assert command.main_noun is not None
                 return self.handle_examine(command.main_noun)
-            case "talk":
-                assert command.main_noun is not None
-                return self.handle_talk(command.main_noun)
 
         return self.handle_interaction(command)  
 
@@ -385,56 +366,6 @@ class GameEngine:
             message=result.item.description,
             image_ref=self.get_item_image_ref(result))
 
-    def handle_talk(self, noun: str) -> ActionResult:
-        
-        result = self.resolve_item(noun, include_location=True)
-        if result.error:
-            return invalid_result(result.error)
-        assert result.item is not None
-
-        # Not an NPC?
-        if result.item_id not in self.world.npcs:
-            return no_effect_result(f"The {result.item.name} has nothing to say.")
-
-        npc = self.world.npcs[result.item_id]
-        no_reply = no_effect_result(f"{result.item.name} does not reply.")
-
-        # Resolve dialog
-        i, dialog = self.resolve_npc_dialog(npc.dialog)
-        if not dialog:
-            return no_reply
-
-        # Add index to completed dialog set
-        self.state.completed_npc_dialog[result.item_id].add(i)
-
-        # Static string case
-        if isinstance(dialog, str):
-            return ok_result(dialog.rstrip())
-
-        # Conditional string case
-        if isinstance(dialog, ConditionalText):
-            return ok_result(dialog.text.rstrip())
-
-        # Otherwise start dialog tree session
-        return self.trigger_dialog(result.item_id, dialog)
-
-    def resolve_npc_dialog(self, dialog: Optional[NPCDialog | list[NPCDialog]]) -> tuple[int, Optional[NPCDialog]]:
-        if not dialog:
-            return (-1, None)
-
-        # Normalise into list
-        dialog = dialog if isinstance(dialog, list) else [ dialog ]
-
-        # Return first available dialog, along with it's index
-        return next(
-            (
-                (i, dlg)
-                for i, dlg in enumerate(dialog)
-                if isinstance(dlg, str) or self.is_criteria_satisfied(dlg.criteria)
-            ),
-            (-1, None)
-        )
-
     def handle_dialog_response(self, raw_command: str) -> Optional[ActionResult]:
         assert self.dialog_context
 
@@ -450,7 +381,7 @@ class GameEngine:
         keyword = " ".join(tokens)
 
         # Search available responses for match
-        dialog = self.dialog_context.dialog_node
+        dialog = self.dialog_context
         responses = self.available_dialog_responses(dialog)
         match = next(
             (
@@ -470,11 +401,11 @@ class GameEngine:
 
         # Trigger matching dialog
         if match:
-            return self.trigger_dialog(self.dialog_context.npc_id, match)
+            return self.trigger_dialog(match)
 
-    def trigger_dialog(self, npc_id: str, dialog: DialogTree) -> ActionResult:
+    def trigger_dialog(self, dialog: DialogTree) -> ActionResult:
 
-        self.next_dialog_context = DialogContext(npc_id, dialog)
+        self.next_dialog_context = dialog
 
         self.apply_effect(dialog.effect)
 
@@ -553,11 +484,17 @@ class GameEngine:
             return no_effect_result("You already did that.")
 
         # Resolve the message *before* applying the interaction
-        message_text = self.resolve_text(interaction.message)
+        message_text = self.resolve_text(interaction.message) if interaction.message else None
 
         # Apply interaction
         self.apply_interaction(interaction_id, interaction)
-        return ok_result(message_text)
+
+        # Trigger dialog, if any. Otherwise display message.
+        if interaction.dialog:
+            return self.trigger_dialog(interaction.dialog)
+        else:
+            assert message_text        
+            return ok_result(message_text)
 
     def has_required_flags(self, required_flags) -> bool:
         return all(flag in self.state.flags for flag in required_flags)
@@ -697,9 +634,5 @@ def get_initial_game_state(world: World) -> GameEngineState:
             loc_id: location.items.copy()
             for loc_id, location in world.locations.items()
         },
-        completed_interactions=set(),
-        completed_npc_dialog={
-            npc_id: set()
-            for npc_id, _ in world.npcs.items()
-        }
+        completed_interactions=set()
     )
