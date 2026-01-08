@@ -631,7 +631,7 @@ class GameEngine:
         return [
             ( keyword, response )
             for keyword, response in dialog.responses.items() 
-            if self.is_criteria_satisfied(response.criteria)
+            if not response.internal and self.is_criteria_satisfied(response.criteria)
         ]
 
 def get_initial_game_state(world: World) -> GameEngineState:

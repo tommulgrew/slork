@@ -5,6 +5,7 @@ from .logic import Criteria, Effect, ResolvableText
 
 @dataclass
 class DialogTree:
+    internal: bool = False                                                      # Internal nodes are hidden in responses, and can only be accessed via a jump
     criteria: Optional[Criteria] = None                                         # Dialog subtree is only available if criteria is satisfied (not meaningful for root nodes)
     aliases: list[str] = field(default_factory=list)                            # Aliases for main keyword
     keyword_hint: Optional[str] = None                                          # Displayed to player when in parent node, to hint at the direction the dialog will take if this node is selected.
