@@ -285,14 +285,6 @@ class World:
         if not tree.jump and not tree.npc_narrative:
             state.issues.append(f"{owner_desc} must have a 'npc_narrative' or a 'jump'.")
 
-        # Internal nodes rules
-        if tree.internal:
-            if not tree.jump_target:
-                state.issues.append(f"{owner_desc} - 'internal' dialog nodes must have a 'jump_target'.")
-
-            if tree.criteria:
-                state.issues.append(f"{owner_desc} - 'internal' dialog nodes cannot have a 'criteria'.")
-
         # Jumps should not have responses
         if tree.jump and tree.responses:
             state.issues.append(f"{owner_desc} cannot have 'responses' and a 'jump'.")

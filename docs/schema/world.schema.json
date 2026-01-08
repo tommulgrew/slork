@@ -334,10 +334,6 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "internal": {
-          "type": "boolean",
-          "description": "Internal dialog nodes are hidden in 'responses' lists, and can only be invoked via jumps."
-        },
         "jump_target": {
           "type": "string",
           "description": "Unique ID to allow other nodes to jump to this one."
