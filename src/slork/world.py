@@ -318,7 +318,25 @@ class World:
 
         for response_id, response in tree.responses.items():
             self.validate_dialog_tree(response, state, f"{owner_desc} > '{response_id}'")
+    
+    def get_dialog_jump_lookup(self) -> dict[str, DialogTree]:
+        lookup = dict()
 
+        # Scan interactions for dialog
+        for _, i in self.interactions.items():
+            if i.dialog:               
+                self.build_dialog_jump_lookup(i.dialog, lookup)
+                
+        return lookup
+
+    def build_dialog_jump_lookup(self, tree: DialogTree, lookup: dict[str, DialogTree]):
+
+        # Recursively scan dialog tree for jump targets
+        if tree.jump_target:
+            lookup[tree.jump_target] = tree
+        if tree.responses:
+            for _, r in tree.responses.items():
+                self.build_dialog_jump_lookup(r, lookup)
 
 def load_world(path: Path) -> World:
     world_yaml = path.read_text()

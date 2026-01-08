@@ -80,6 +80,7 @@ class GameEngine:
         self.last_command: Optional[ParsedCommand] = None
         self.dialog_context: Optional[DialogTree] = None
         self.next_dialog_context: Optional[DialogTree] = None
+        self.dialog_jump_lookup: dict[str, DialogTree] = world.get_dialog_jump_lookup()
 
         # Move companions to initial location
         self.move_companions()
@@ -401,19 +402,28 @@ class GameEngine:
 
         # Trigger matching dialog
         if match:
-            return self.trigger_dialog(match)
+            return self.trigger_dialog(match, [])
 
-    def trigger_dialog(self, dialog: DialogTree) -> ActionResult:
+    def trigger_dialog(self, dialog: DialogTree, lines: list[str]) -> ActionResult:
 
         self.next_dialog_context = dialog
 
         self.apply_effect(dialog.effect)
 
         # Dialog text
-        lines: list[str] = []
-        if dialog.player_narrative:
-            lines.append(self.resolve_text(dialog.player_narrative).rstrip())
-        lines.append(self.resolve_text(dialog.npc_narrative).rstrip())
+        # Skip if text has already been generated (i.e. by a node that jumped to this one)
+        if not lines:
+            lines = []
+            if dialog.player_narrative:
+                lines.append(self.resolve_text(dialog.player_narrative).rstrip())
+            if dialog.npc_narrative:
+                lines.append(self.resolve_text(dialog.npc_narrative).rstrip())
+
+        # Handle dialog jumps
+        if dialog.jump:
+            jump_target = self.resolve_text(dialog.jump)
+            jump_node = self.dialog_jump_lookup[jump_target]
+            return self.trigger_dialog(jump_node, lines)
 
         # Include possible responses
         responses = self.available_dialog_responses(dialog)
@@ -491,7 +501,7 @@ class GameEngine:
 
         # Trigger dialog, if any. Otherwise display message.
         if interaction.dialog:
-            return self.trigger_dialog(interaction.dialog)
+            return self.trigger_dialog(interaction.dialog, [])
         else:
             assert message_text        
             return ok_result(message_text)
